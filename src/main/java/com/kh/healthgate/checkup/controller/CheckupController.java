@@ -19,6 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.kh.healthgate.checkup.model.dto.ManualReminderRequest;
 import com.kh.healthgate.checkup.model.dto.ReminderResponse;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+
+import com.kh.healthgate.checkup.model.dto.ReminderSettingRequest;
+import com.kh.healthgate.checkup.model.dto.ReminderSettingResponse;
 /**
  * 건강검진 관련 API 요청을 처리하는 Controller
  */
@@ -78,5 +84,66 @@ public class CheckupController {
                 checkupService.sendManualReminder(request);
 
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 자동 알림 설정 등록
+     *
+     * POST /healthgate/checkups/reminder-settings
+     */
+    @PostMapping("/reminder-settings")
+    public ResponseEntity<ReminderSettingResponse> createReminderSetting(
+            @RequestBody ReminderSettingRequest request) {
+
+        ReminderSettingResponse response =
+                checkupService.createReminderSetting(request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 자동 알림 설정 전체 목록 조회
+     *
+     * GET /healthgate/checkups/reminder-settings
+     */
+    @GetMapping("/reminder-settings")
+    public ResponseEntity<List<ReminderSettingResponse>>
+            getReminderSettings() {
+
+        List<ReminderSettingResponse> settingList =
+                checkupService.getReminderSettings();
+
+        return ResponseEntity.ok(settingList);
+    }
+
+    /**
+     * 자동 알림 설정 수정
+     *
+     * PUT /healthgate/checkups/reminder-settings/{settingId}
+     */
+    @PutMapping("/reminder-settings/{settingId}")
+    public ResponseEntity<ReminderSettingResponse> updateReminderSetting(
+            @PathVariable("settingId") Long settingId,
+            @RequestBody ReminderSettingRequest request) {
+
+        ReminderSettingResponse response =
+                checkupService.updateReminderSetting(settingId, request);
+
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 건강검진 알림 발송 이력 전체 조회
+     *
+     * GET /healthgate/checkups/reminders/history
+     */
+    @GetMapping("/reminders/history")
+    public ResponseEntity<List<ReminderResponse>>
+            getReminderHistory() {
+
+        List<ReminderResponse> historyList =
+                checkupService.getReminderHistory();
+
+        return ResponseEntity.ok(historyList);
     }
 }

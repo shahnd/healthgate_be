@@ -20,6 +20,10 @@ import com.kh.healthgate.checkup.model.dto.ManualReminderRequest;
 import com.kh.healthgate.checkup.model.dto.ReminderResponse;
 import com.kh.healthgate.checkup.model.vo.CheckupReminder;
 
+import com.kh.healthgate.checkup.model.dao.CheckupReminderSettingDao;
+import com.kh.healthgate.checkup.model.dto.ReminderSettingRequest;
+import com.kh.healthgate.checkup.model.dto.ReminderSettingResponse;
+import com.kh.healthgate.checkup.model.vo.CheckupReminderSetting;
 /**
  * 건강검진 관련 비즈니스 로직을 담당하는 Service
  */
@@ -31,6 +35,9 @@ public class CheckupService {
     
     @Autowired
     private CheckupReminderDao checkupReminderDao;
+    
+    @Autowired
+    private CheckupReminderSettingDao checkupReminderSettingDao;
 
     /**
      * 지정한 연도의 건강검진 완료율 통계를 조회한다.
@@ -144,5 +151,117 @@ public class CheckupService {
                 savedReminder.getCheckupReminderStatus(),
                 savedReminder.isCheckupReminderIsManual()
         );
+    }
+    
+    /**
+     * 자동 알림 설정을 등록한다.
+     */
+    @Transactional
+    public ReminderSettingResponse createReminderSetting(
+            ReminderSettingRequest request) {
+
+        CheckupReminderSetting setting =
+                new CheckupReminderSetting();
+
+        setting.setCheckupReminderSettingType(
+                request.getSettingType()
+        );
+        setting.setCheckupReminderSettingMessageTemplate(
+                request.getMessageTemplate()
+        );
+        setting.setCheckupReminderSettingCronSchedule(
+                request.getCronSchedule()
+        );
+        setting.setCheckupReminderSettingIsActive(
+                request.isActive()
+        );
+
+        CheckupReminderSetting savedSetting =
+                checkupReminderSettingDao.save(setting);
+
+        return convertReminderSettingResponse(savedSetting);
+    }
+
+    /**
+     * 자동 알림 설정 전체 목록을 조회한다.
+     */
+    @Transactional(readOnly = true)
+    public List<ReminderSettingResponse> getReminderSettings() {
+
+        return checkupReminderSettingDao.findAll()
+                .stream()
+                .map(this::convertReminderSettingResponse)
+                .toList();
+    }
+
+    /**
+     * 자동 알림 설정을 수정한다.
+     */
+    @Transactional
+    public ReminderSettingResponse updateReminderSetting(
+            Long settingId,
+            ReminderSettingRequest request) {
+
+        CheckupReminderSetting setting =
+                checkupReminderSettingDao.findById(settingId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "자동 알림 설정을 찾을 수 없습니다."
+                                )
+                        );
+
+        setting.setCheckupReminderSettingType(
+                request.getSettingType()
+        );
+        setting.setCheckupReminderSettingMessageTemplate(
+                request.getMessageTemplate()
+        );
+        setting.setCheckupReminderSettingCronSchedule(
+                request.getCronSchedule()
+        );
+        setting.setCheckupReminderSettingIsActive(
+                request.isActive()
+        );
+
+        CheckupReminderSetting savedSetting =
+                checkupReminderSettingDao.save(setting);
+
+        return convertReminderSettingResponse(savedSetting);
+    }
+
+    /**
+     * 자동 알림 설정 Entity를 응답 DTO로 변환한다.
+     */
+    private ReminderSettingResponse convertReminderSettingResponse(
+            CheckupReminderSetting setting) {
+
+        return new ReminderSettingResponse(
+                setting.getCheckupReminderSettingId(),
+                setting.getCheckupReminderSettingType(),
+                setting.getCheckupReminderSettingMessageTemplate(),
+                setting.getCheckupReminderSettingCronSchedule(),
+                setting.isCheckupReminderSettingIsActive()
+        );
+    }
+    
+    /**
+     * 건강검진 알림 발송 이력 전체를 최신순으로 조회한다.
+     */
+    @Transactional(readOnly = true)
+    public List<ReminderResponse> getReminderHistory() {
+
+        return checkupReminderDao
+                .findAllByOrderByCheckupReminderSentAtDesc()
+                .stream()
+                .map(reminder -> new ReminderResponse(
+                        reminder.getCheckupReminderId(),
+                        reminder.getCheckup().getCheckupId(),
+                        reminder.getCheckupReminderChannel(),
+                        reminder.getCheckupReminderContent(),
+                        reminder.getCheckupReminderSentAt(),
+                        reminder.getCheckupReminderStatus(),
+                        reminder.isCheckupReminderIsManual()
+                ))
+                .toList();
     }
 }
