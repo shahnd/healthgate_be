@@ -47,25 +47,25 @@ public class Hospital {
 	@Column(name="URL", length=255)
 	private String url; // VARCHAR(255)
 	
-	@Column(name="DESCIPTION")
+	@Column(name="DESCIPTION", columnDefinition="TEXT")
 	private String description; // TEXT
 	
 	@Column(name="IS_GENERAL_EXAM_AVAILABLE", nullable=false)
 	private boolean isGeneralExamAvailable;
 	
-	@Column(name="IS_STOMACH_CANCEL_EXAM_AVAILABLE")
+	@Column(name="IS_STOMACH_CANCEL_EXAM_AVAILABLE", nullable=false)
 	private boolean isStomachCancelExamAvailable;
 	
-	@Column(name="IS_COLON_CANCER_EXAM_AVAILABLE")
+	@Column(name="IS_COLON_CANCER_EXAM_AVAILABLE", nullable=false)
 	private boolean isColonCancerExamAvailable;
 	
-	@Column(name="IS_LIVER_CANCER_EXAM_AVAILABLE")
+	@Column(name="IS_LIVER_CANCER_EXAM_AVAILABLE", nullable=false)
 	private boolean isLiverCancerExamAvailable;
 	
-	@Column(name="IS_LUNG_CANCER_EXAM_AVAILABLE")
+	@Column(name="IS_LUNG_CANCER_EXAM_AVAILABLE", nullable=false)
 	private boolean isLungCancerExamAvailable;
 	
 	@Column(name="CREATED_AT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime CreatedAt;
-	
+
 }

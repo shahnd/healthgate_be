@@ -38,7 +38,7 @@ public class Notice {
 	@Column(name="TITLE", nullable=false, length=255)
 	private String title; // VARCHAR(255)
 	
-	@Column(name="CONTENT", nullable=false)
+	@Column(name="CONTENT", nullable=false, columnDefinition="TEXT")
 	private String content;   //TEXT
 	
 	@Column(name="STATUS", nullable=false, length=20)
