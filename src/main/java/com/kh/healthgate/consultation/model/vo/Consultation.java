@@ -1,7 +1,7 @@
 package com.kh.healthgate.consultation.model.vo;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -51,7 +51,7 @@ public class Consultation {
 	
 	@Column(name="CONSULTATION_SCHEDULED_DATE", nullable=false,
 			columnDefinition="DATE")
-	private Date consultationScheduledDate;			// scheduled_date	예약일자(NN, DATE)
+	private LocalDate consultationScheduledDate;			// scheduled_date	예약일자(NN, DATE)
 	
 	@Column(name="CONSULTATION_SCHEDULED_TURN", nullable=false,
 			columnDefinition="CHAR(2)")
@@ -69,8 +69,8 @@ public class Consultation {
 			columnDefinition="VARCHAR(20) DEFAULT 'RESERVED'")
 	private ConsultationStatus consultationStatus;				// status	상담진행상태(NN), DEFAULT RESERVED
 	
-	@Column(name="CONSULTATION_CONSULTATION_AT", columnDefinition="DATETIME")
-	private LocalDateTime consultationConsultationAt;		// requested_at	일지작성일시(CURRENT_TIMESTAMP)
+	@Column(name="CONSULTATION_CONSULTATED_AT", columnDefinition="DATETIME")
+	private LocalDateTime consultationConsultatedAt;		// requested_at	일지작성일시(CURRENT_TIMESTAMP)
 	
 	@Column(name="CREATED_AT", nullable=false,
 			columnDefinition="DATETIME DEFAULT CURRENT_TIMESTAMP")
