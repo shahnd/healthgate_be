@@ -1,7 +1,7 @@
 package com.kh.healthgate.consultation.model.vo;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -51,7 +51,7 @@ public class Consultation {
 	
 	@Column(name="CONSULTATION_SCHEDULED_DATE", nullable=false,
 			columnDefinition="DATE")
-	private Date consultationScheduledDate;			// scheduled_date	예약일자(NN, DATE)
+	private LocalDate consultationScheduledDate;			// scheduled_date	예약일자(NN, DATE)
 	
 	@Column(name="CONSULTATION_SCHEDULED_TURN", nullable=false,
 			columnDefinition="CHAR(2)")
