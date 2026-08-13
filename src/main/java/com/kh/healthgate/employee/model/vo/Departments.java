@@ -32,5 +32,5 @@ public class Departments {
     private int id;
 
     @Column(name = "name", length = 30)
-    private String  nameString;
+    private String  name;
 }
