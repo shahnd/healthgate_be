@@ -40,7 +40,7 @@
 			6. Spring Security
 
 			JWT 관련 라이브러리(JDK21 호환 고려 0.11.5 버전으로 연동)
-			
+
 			1. jjwt-api
 			2. jjwt-impl
 			3. jjwt-jackson
@@ -110,6 +110,13 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+
+        <!-- Source: https://wiremock.org/docs/spring-boot/ -->
+        <dependency>
+            <groupId>org.wiremock.integrations</groupId>
+            <artifactId>wiremock-spring-boot</artifactId>
+            <version>4.0.9</version>
+        </dependency>
 	</dependencies>
 
 	<build>
