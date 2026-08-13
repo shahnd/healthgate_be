@@ -37,40 +37,40 @@ import lombok.ToString;
 public class Employee {
 
     @Id
-    @Column(name = "employee_id", nullable=false)
+    @Column(name = "id", nullable=false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int employeeId;
+    private int id;
 
-    @Column(name = "employee_no", nullable = false, length = 100, unique = true)
-    private String employeeNo;
+    @Column(name = "employee_number", nullable = false, length = 100, unique = true)
+    private String employeeNumber;
 
-    @Column(name = "employee_pwd", nullable = false, length = 100)
-    private String employeePwd;
+    @Column(name = "password", nullable = false, length = 100)
+    private String password;
 
-    @Column(name = "employee_name", nullable = false, length = 20)
-    private String employeeName;
+    @Column(name = "name", nullable = false, length = 20)
+    private String name;
 
-    @Column(name = "employee_hire_date")
-    private LocalDate employeeHireDate;
+    @Column(name = "hire_date")
+    private LocalDate hireDate;
 
-    @Column(name = "employee_email", length = 100)
-    private String employeeEmail;
+    @Column(name = "email", length = 100)
+    private String email;
 
-    @Column(name = "employee_phone", length = 13)
-    private String employeePhone;
+    @Column(name = "phone", length = 13)
+    private String phone;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "employee_role")
-    private EmployeeRole employeeRole;
+    @Column(name = "role")
+    private role role;
 
-    @Column(name = "employee_status", length = 1)
-    private String employeeStatus = "Y";
+    @Column(name = "status", length = 1)
+    private String status = "Y";
 
-    @Column(name = "employee_created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime employeeCreatedAt;
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
 
-    @Column(name = "employee_updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime employeeUpdatedAt;
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="department_id")

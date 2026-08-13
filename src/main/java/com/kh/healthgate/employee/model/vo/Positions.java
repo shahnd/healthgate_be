@@ -5,8 +5,6 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -27,10 +25,10 @@ import lombok.ToString;
 public class Positions {
 
     @Id
-    @Column(name = "position_id")
-    private int positionId;
+    @Column(name = "id")
+    private int id;
 
-    @Column(name = "position_name", length = 30)
-    private String positionName;
+    @Column(name = "name", length = 30)
+    private String name;
 
 }
