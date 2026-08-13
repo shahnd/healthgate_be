@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,9 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @GetMapping("/employees")
     public ResponseEntity<List<Employee>> selectEmployeeList() {
 
@@ -31,6 +35,8 @@ public class EmployeeController {
 
     @PostMapping("/employees")
     public ResponseEntity<String> insertEmployee(@RequestBody Employee employee) {
+
+        employee.setPassword(bCryptPasswordEncoder.encode(employee.getPassword()));;
 
         Employee resultEmp = employeeService.insertEmployee(employee);
 

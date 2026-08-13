@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.healthgate.auth.model.service.AuthService;
 import com.kh.healthgate.employee.model.vo.Employee;
+import com.kh.healthgate.employee.model.vo.role;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -33,25 +34,29 @@ public class AuthController {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, role role) {}
+
     @PostMapping("/auth/login")
-    public ResponseEntity<String> loginEmployee(@RequestBody Employee employee) {
+    public ResponseEntity<LoginResponse> loginEmployee(@RequestBody Employee employee) {
 
         log.debug("로그인 정보: {}", employee);
 
-        Employee loginEmp = authService.loginEmployee(employee.getEmployeeNo());
+        Employee loginEmp = authService.loginEmployee(employee.getEmployeeNumber());
 
-        if (loginEmp != null && bCryptPasswordEncoder.matches(loginEmp.getEmployeePwd(), employee.getEmployeePwd())) {
+        if (loginEmp != null && bCryptPasswordEncoder.matches(employee.getPassword(), loginEmp.getPassword())) {
             Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
 
             String jwt = Jwts.builder()
-                             .setSubject(loginEmp.getEmployeeNo())
-                             .claim("employeeName", loginEmp.getEmployeeName())
-                             .claim("employeeRole", loginEmp.getEmployeeRole())
+                             .setSubject(loginEmp.getEmployeeNumber())
+                             .claim("name", loginEmp.getName())
+                             .claim("role", loginEmp.getRole())
                              .setIssuedAt(new Date(System.currentTimeMillis() + 1 * 60 * 60 * 1000))
                              .signWith(key, SignatureAlgorithm.HS256)
                              .compact();
 
-            return ResponseEntity.ok(jwt);
+            LoginResponse responseBody = new LoginResponse(jwt, null, loginEmp.getEmployeeNumber(), loginEmp.getName(), loginEmp.getRole());
+
+            return ResponseEntity.ok(responseBody);
         }
 
 

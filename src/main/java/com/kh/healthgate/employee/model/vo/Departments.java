@@ -28,9 +28,9 @@ import lombok.ToString;
 public class Departments {
 
     @Id
-    @Column(name = "department_id")
-    private int departmentId;
+    @Column(name = "id")
+    private int id;
 
-    @Column(name = "department_name", length = 30)
-    private String  departmentName;
+    @Column(name = "name", length = 30)
+    private String  nameString;
 }

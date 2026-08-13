@@ -12,8 +12,8 @@ public class AuthService {
     @Autowired
     private AuthDao authDao;
 
-    public Employee loginEmployee(String employeeNo) {
-        return authDao.findByEmployeeNoAndEmployeeStatus(employeeNo, "Y");
+    public Employee loginEmployee(String employeeNumber) {
+        return authDao.findByEmployeeNumberAndStatus(employeeNumber, "Y");
     }
 
 }

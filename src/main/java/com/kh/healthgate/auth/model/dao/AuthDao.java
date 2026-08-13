@@ -6,6 +6,6 @@ import com.kh.healthgate.employee.model.vo.Employee;
 
 public interface AuthDao extends JpaRepository<Employee, Integer> {
 
-    Employee findByEmployeeNoAndEmployeeStatus(String employeeNo, String employeeStatus);
+    Employee findByEmployeeNumberAndStatus(String employeeNumber, String status);
 
 }
