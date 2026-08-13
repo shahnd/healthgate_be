@@ -1,7 +1,5 @@
 package com.kh.healthgate.notice.model.vo;
 
-import java.time.LocalDateTime;
-
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -10,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +18,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="NOTICE")
+@Table(name="NOTICEFILES")
 
 @DynamicInsert
 @DynamicUpdate
@@ -28,28 +28,30 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class Notice {
- 
+public class NoticeFiles {
+
 	@Id
 	@Column(name="ID")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int id;
 	
-	@Column(name="TITLE", nullable=false, length=255)
-	private String title; // VARCHAR(255)
+	@Column(name="ORIGIN_NAME", nullable=false, length=255)
+	private String originName;
 	
-	@Column(name="CONTENT", nullable=false)
-	private String content;   //TEXT
+	@Column(name="SAVED_NAME", nullable=false, length=255)
+	private String savedName;
 	
-	@Column(name="STATUS", nullable=false, length=20)
-	private String status; // VARCHAR(20)
+	@Column(name="SAVED_PATH", nullable=false, length=255)
+	private String savedPath;
 	
-	@Column(name="CREATED_AT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime createdAt;
+	@Column(name="EXTENSION", nullable=false, length=255)
+	private String extension;
 	
-	@Column(name="UPDATEAT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime updatedAt;
+	// @Column(name="NOTICE_ID", nullable=false)
+	// private int noticeId;
 	
-	@Column(name="AUTHOR_ID", nullable=false)
-	private int authorId; 
+	@ManyToOne
+	@JoinColumn(name="NOTICE_ID")
+	private Notice notice;
+	
 }
