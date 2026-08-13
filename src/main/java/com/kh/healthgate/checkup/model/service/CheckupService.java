@@ -101,9 +101,9 @@ public class CheckupService {
                         // 검진일이 존재하면 검진 완료
                         checkup.getCheckupDate() != null,
 
-                        checkup.getEmployee().getEmployeeId(),
-                        checkup.getEmployee().getEmployeeNo(),
-                        checkup.getEmployee().getEmployeeName()
+                        checkup.getEmployee().getId(),
+                        checkup.getEmployee().getEmployeeNumber(),
+                        checkup.getEmployee().getName()
                 ))
                 .toList();
     }
