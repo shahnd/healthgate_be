@@ -13,7 +13,7 @@ package com.kh.healthgate.weather.external;
  * </p>
  */
 public record VilageFcstRequest(
-        String serviceKey,
+        // String serviceKey,
         int pageNo,
         int numOfRows,
         // String dataType;

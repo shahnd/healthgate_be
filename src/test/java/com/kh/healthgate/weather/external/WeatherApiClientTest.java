@@ -7,11 +7,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.kh.healthgate.opendata.config.OpendataProperties;
 
 @WireMockTest
 class WeatherApiClientTest {
@@ -51,12 +49,12 @@ class WeatherApiClientTest {
                         }
                                 """)));
         String baseUrl = wmRuntimeInfo.getHttpBaseUrl();
-        WeatherApiClient weatherApiClient = new WeatherApiClient(baseUrl);
+        OpendataProperties properties = new OpendataProperties("xxxxxxxx", baseUrl);
+        WeatherApiClient weatherApiClient = new WeatherApiClient(properties);
 
         // when
         VilageFcstResponse response = weatherApiClient.getVilageFcst(
                 new VilageFcstRequest(
-                        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                         1,
                         1,
                         "20260813",

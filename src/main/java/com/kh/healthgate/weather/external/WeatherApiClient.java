@@ -1,24 +1,25 @@
 package com.kh.healthgate.weather.external;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import com.kh.healthgate.opendata.config.OpendataProperties;
+
+@Component
 public class WeatherApiClient {
-    private final String baseUrl = "https://apis.data.go.kr";
+    private final OpendataProperties properties;
     private final RestClient restClient;
 
-    public WeatherApiClient() {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
-    }
-
-    public WeatherApiClient(String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public WeatherApiClient(OpendataProperties properties) {
+        this.properties = properties;
+        this.restClient = RestClient.builder().baseUrl(properties.getBaseUrl()).build();
     }
 
     public VilageFcstResponse getVilageFcst(VilageFcstRequest request) {
         VilageFcstResponse response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/1360000/VilageFcstInfoService_2.0/getVilageFcst")
-                        .queryParam("ServiceKey", request.serviceKey())
+                        .queryParam("ServiceKey", properties.getServiceKey())
                         .queryParam("pageNo", request.pageNo())
                         .queryParam("numOfRows", request.numOfRows())
                         .queryParam("dataType", request.dataType())
