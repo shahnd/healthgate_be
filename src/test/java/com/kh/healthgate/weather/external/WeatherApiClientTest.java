@@ -9,17 +9,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.wiremock.spring.EnableWireMock;
 
-@EnableWireMock
-@SpringBootTest(classes = WeatherApiClientTest.AppConfiguration.class)
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+
+@WireMockTest
 class WeatherApiClientTest {
-    @Value("${wiremock.server.baseUrl}")
-    private String wireMockUrl;
-
     @Test
-    void getsVilageFcst() {
+    void getsVilageFcst(WireMockRuntimeInfo wmRuntimeInfo) {
         // given
         stubFor(get(
                 urlPathEqualTo("/1360000/VilageFcstInfoService_2.0/getVilageFcst"))
@@ -53,7 +50,8 @@ class WeatherApiClientTest {
                           }
                         }
                                 """)));
-        WeatherApiClient weatherApiClient = new WeatherApiClient(wireMockUrl);
+        String baseUrl = wmRuntimeInfo.getHttpBaseUrl();
+        WeatherApiClient weatherApiClient = new WeatherApiClient(baseUrl);
 
         // when
         VilageFcstResponse response = weatherApiClient.getVilageFcst(
@@ -93,9 +91,5 @@ class WeatherApiClientTest {
                 .header()
                 .resultCode())
                 .isEqualTo(VilageFcstResponse.ResultCode.NORMAL_SERVICE);
-    }
-
-    @SpringBootApplication
-    static class AppConfiguration {
     }
 }
