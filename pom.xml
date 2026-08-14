@@ -44,6 +44,10 @@
 			1. jjwt-api
 			2. jjwt-impl
 			3. jjwt-jackson
+
+            개발용 라이브러리
+
+            1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
 		-->
 
 		<dependency>
