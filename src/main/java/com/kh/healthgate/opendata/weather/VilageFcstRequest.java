@@ -1,4 +1,4 @@
-package com.kh.healthgate.weather.external;
+package com.kh.healthgate.opendata.weather;
 
 /**
  * <p>

@@ -1,4 +1,4 @@
-package com.kh.healthgate.weather.external;
+package com.kh.healthgate.opendata.weather;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
