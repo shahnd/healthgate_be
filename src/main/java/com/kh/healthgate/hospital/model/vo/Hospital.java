@@ -53,8 +53,8 @@ public class Hospital {
 	@Column(name="IS_GENERAL_EXAM_AVAILABLE", nullable=false)
 	private boolean isGeneralExamAvailable;
 	
-	@Column(name="IS_STOMACH_CANCEL_EXAM_AVAILABLE", nullable=false)
-	private boolean isStomachCancelExamAvailable;
+	@Column(name="IS_STOMACH_CANCER_EXAM_AVAILABLE", nullable=false)
+	private boolean isStomachCancerExamAvailable;
 	
 	@Column(name="IS_COLON_CANCER_EXAM_AVAILABLE", nullable=false)
 	private boolean isColonCancerExamAvailable;
@@ -66,6 +66,6 @@ public class Hospital {
 	private boolean isLungCancerExamAvailable;
 	
 	@Column(name="CREATED_AT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime CreatedAt;
+	private LocalDateTime createdAt;
 
 }
