@@ -18,15 +18,15 @@ public class HospitalService {
 	
 	public Page<Hospital> selectHospitalList(Pageable pageable) {
 		
-		return hospitalDao.findOrderByIdDesc(pageable);
+		return hospitalDao.findByOrderByIdDesc(pageable);
 	}
 
-
+    /*
 	public Page<Hospital> selectSearchList(String keyword, Pageable pageable) {
 		
 		 return hospitalDao.findByNameContainingAndAddressContainingAndIsStomathCancelExamAvilableContainingAndIsColonCancerExamAvilableContainingAndIsLiverCancerExamAvilableContainingAndIsLungCancerExamAvilableContainingOrderByIdDesc(keyword, pageable);
 	}
-
+     */
 	
 	public Hospital selectHospital(int id) {
 		

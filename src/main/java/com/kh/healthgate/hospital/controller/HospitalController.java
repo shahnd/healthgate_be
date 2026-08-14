@@ -60,7 +60,7 @@ public class HospitalController {
 							 .body(hm);
 	}
 	
-
+    /*
 	// 검진가능 병원 검색용 컨트롤러
 	@GetMapping("/hospital")
 	public ResponseEntity<HashMap<String,Object>> searchHospitalList(
@@ -91,7 +91,7 @@ public class HospitalController {
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(hm);
 	}
-	
+	*/
 	
 	// 검진가능 병원 상세조회용 컨트롤러
 	@GetMapping("/hospital/{id}")

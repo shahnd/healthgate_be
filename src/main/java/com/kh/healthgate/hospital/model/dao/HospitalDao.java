@@ -14,7 +14,7 @@ public interface HospitalDao extends JpaRepository<Hospital,Integer>{
 	// 병원 목록 조회용 쿼리메소드
 	// > SELECT * FROM HOSPITAL  
 	//   ORDER BY ID DESC 
-	Page<Hospital> findOrderByIdDesc(Pageable pageable);
+	Page<Hospital> findByOrderByIdDesc(Pageable pageable);
 	
 	// 병원 검색용 쿼리메소드
 	// > SELECT * FORM HOSPITAL
@@ -26,9 +26,10 @@ public interface HospitalDao extends JpaRepository<Hospital,Integer>{
 	//      AND IS_LIVER_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
 	//      AND IS_LUNG_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
     //  ORDER BY ID DESC 
-	
+	/*
 	Page<Hospital> findByNameContainingAndAddressContainingAndIsStomathCancelExamAvilableContainingAndIsColonCancerExamAvilableContainingAndIsLiverCancerExamAvilableContainingAndIsLungCancerExamAvilableContainingOrderByIdDesc(String keyword,Pageable pageable);      
-
+    */
+	
     // 건강검진 병원 삭제 
 	@Modifying
 	@Query("""
