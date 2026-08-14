@@ -80,6 +80,19 @@ class WeatherApiClientTest {
                 .getFirst()
                 .fcstValue())
                 .isEqualTo("22");
+
+        assertThat(response.response()
+                .body()
+                .items()
+                .item()
+                .getFirst()
+                .category())
+                .isEqualTo(VilageFcstResponse.Category.TEMPERATURE);
+
+        assertThat(response.response()
+                .header()
+                .resultCode())
+                .isEqualTo(VilageFcstResponse.ResultCode.NORMAL_SERVICE);
     }
 
     @SpringBootApplication
