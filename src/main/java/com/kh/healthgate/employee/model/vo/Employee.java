@@ -80,4 +80,8 @@ public class Employee {
     @JoinColumn(name = "position_id")
     private Positions positions;
 
+
+    public void changeStatusToInactive() {
+        this.status = "N";
+    }
 }
