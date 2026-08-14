@@ -48,6 +48,8 @@
             개발용 라이브러리
 
             1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
+            2. Spring Boot Configuration Processor: 어노테이션으로 정의된 커스텀 properties가 IDE에 인식되도록 함
+               lombok과 함께 annotationProcessorPaths에 추가해야 함.
 		-->
 
 		<dependency>
@@ -121,6 +123,12 @@
             <artifactId>wiremock-spring-boot</artifactId>
             <version>4.0.9</version>
         </dependency>
+
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-configuration-processor</artifactId>
+	        <scope>annotationProcessor</scope>
+	    </dependency>
 	</dependencies>
 
 	<build>
@@ -145,6 +153,10 @@
 									<groupId>org.projectlombok</groupId>
 									<artifactId>lombok</artifactId>
 								</path>
+                                <path>
+	                                <groupId>org.springframework.boot</groupId>
+	                                <artifactId>spring-boot-configuration-processor</artifactId>
+								</path>
 							</annotationProcessorPaths>
 						</configuration>
 					</execution>
@@ -159,6 +171,10 @@
 								<path>
 									<groupId>org.projectlombok</groupId>
 									<artifactId>lombok</artifactId>
+								</path>
+                                <path>
+	                                <groupId>org.springframework.boot</groupId>
+	                                <artifactId>spring-boot-configuration-processor</artifactId>
 								</path>
 							</annotationProcessorPaths>
 						</configuration>
