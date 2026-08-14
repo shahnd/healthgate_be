@@ -33,5 +33,4 @@ public class WeatherApiClient {
 
         return response;
     }
-
 }
