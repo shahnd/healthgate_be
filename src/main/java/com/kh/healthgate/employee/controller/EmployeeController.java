@@ -45,7 +45,7 @@ public class EmployeeController {
     ) {}
 
     public record EmpSearchCondition(
-        String id,
+        String employeeNumber,
         String name,
         Integer departmentId,
         Integer positionId

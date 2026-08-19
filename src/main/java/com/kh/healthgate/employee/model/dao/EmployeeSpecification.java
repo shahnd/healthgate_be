@@ -17,8 +17,8 @@ public class EmployeeSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (StringUtils.hasText(condition.id())) {
-                predicates.add(cb.like(root.get("id"), "%" + condition.id() + "%"));
+            if (StringUtils.hasText(condition.employeeNumber())) {
+                predicates.add(cb.like(root.get("employeeNumber"), "%" + condition.employeeNumber() + "%"));
             }
 
             if (StringUtils.hasText(condition.name())) {
