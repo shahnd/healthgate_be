@@ -16,10 +16,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class VectorStoreRepository {
     private final VectorStore vectorStore;
-    private final SearchRequest.Builder searchRequestBuilder = SearchRequest.builder()
-            .query("noop")
-            .topK(Integer.MAX_VALUE)
-            .similarityThreshold(0.0);
+    private final SearchRequest.Builder searchRequestBuilder = SearchRequest.builder() // 모든 행을 매칭하는 SearchRequest 빌더
+            .query("noop") // 빈 문자열이나 null 입력 시 Exception 발생함
+            .topK(Integer.MAX_VALUE) // topK 미설정 시 행 누락 발생함
+            .similarityThreshold(0.0); // threshold를 0.0으로 설정하여 모든 행 매칭
     private final FilterExpressionBuilder b = new FilterExpressionBuilder();
 
     public Optional<Document> findById(UUID id) {
