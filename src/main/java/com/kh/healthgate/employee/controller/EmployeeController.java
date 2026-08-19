@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -43,16 +44,23 @@ public class EmployeeController {
         List<Positions> positionList
     ) {}
 
+    public record EmpSearchCondition(
+        String employeeNumber,
+        String name,
+        Integer departmentId,
+        Integer positionId
+    ) {}
 
     @GetMapping("/employees")
     public ResponseEntity<ApiResponse<Page<Employee>>> selectEmployeeList(
+        @ModelAttribute EmpSearchCondition condition,
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
 
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Employee> list = employeeService.selectEmployeeList(pageable);
+        Page<Employee> list = employeeService.selectEmployeeList(pageable, condition);
 
         return ResponseEntity.ok(ApiResponse.success(list));
     }
