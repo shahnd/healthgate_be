@@ -6,10 +6,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.kh.healthgate.employee.controller.EmployeeController.EmpSearchCondition;
 import com.kh.healthgate.employee.model.dao.DepartmentsDao;
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
+import com.kh.healthgate.employee.model.dao.EmployeeSpecification;
 import com.kh.healthgate.employee.model.vo.Departments;
 import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.employee.model.vo.Positions;
@@ -29,9 +32,9 @@ public class EmployeeService {
         this.positionsDao = positionsDao;
     }
 
-    public Page<Employee> selectEmployeeList(Pageable pageable) {
-
-        return employeeDao.findByStatus("Y", pageable);
+    public Page<Employee> selectEmployeeList(Pageable pageable, EmpSearchCondition condition) {
+        Specification<Employee> spec = EmployeeSpecification.search(condition);
+        return employeeDao.findAll(spec, pageable);
     }
 
     @Transactional
