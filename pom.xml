@@ -45,6 +45,14 @@
 			2. jjwt-impl
 			3. jjwt-jackson
 
+            AI 관련 라이브러리
+
+            1. Spring AI: AI 모듈
+            2. Google GenAI: Google Gemini Developer API 연동
+            3. spring-ai-starter-model-google-genai-embedding: Google Gemini Developer API embedding 모델
+            4. spring-ai-advisors-vector-store: RAG advisor
+            5. spring-ai-pdf-document-reader: RAG PDF Reader
+
             개발용 라이브러리
 
             1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
@@ -129,6 +137,24 @@
 	        <artifactId>spring-boot-configuration-processor</artifactId>
 	        <scope>annotationProcessor</scope>
 	    </dependency>
+
+	    <dependency>
+            <groupId>org.springframework.ai</groupId>
+	        <artifactId>spring-ai-starter-model-google-genai</artifactId>
+	    </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-google-genai-embedding</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-advisors-vector-store</artifactId>
+            <version>2.0.0-M8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-pdf-document-reader</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -184,4 +210,16 @@
 		</plugins>
 	</build>
 
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>2.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
