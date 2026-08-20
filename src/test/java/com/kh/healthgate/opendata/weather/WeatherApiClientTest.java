@@ -84,11 +84,11 @@ class WeatherApiClientTest {
                 .item()
                 .getFirst()
                 .category())
-                .isEqualTo(VilageFcstResponse.Category.TEMPERATURE);
+                .isEqualTo(Category.TEMPERATURE.getCode());
 
         assertThat(response.response()
                 .header()
                 .resultCode())
-                .isEqualTo(VilageFcstResponse.ResultCode.NORMAL_SERVICE);
+                .isEqualTo(ResultCode.NORMAL_SERVICE.getCode());
     }
 }
