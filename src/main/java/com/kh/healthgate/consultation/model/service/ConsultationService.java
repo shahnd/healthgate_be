@@ -28,8 +28,8 @@ public class ConsultationService {
 	
 	// 예약 신청(등록)
 	// 조회
-	public Consultation reservationSelectByDate(LocalDate scheduledDate) {
-		return consultationDao.findByScheduledDate(scheduledDate);
+	public List<Consultation> reservationSelectByDate(LocalDate scheduledDate) {
+		return consultationDao.reservationSelectByDate(scheduledDate);
 	}
 	
 	// 등록

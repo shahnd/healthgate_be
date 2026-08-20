@@ -39,7 +39,14 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	// 신청 가능 차시 조회
 	// > 예약일자 + 예약순번 일치하는 행이 없을 때
 	//	 또는 예약일자 일치, 예약순번 일치, 스테이터스 = EXCEL 일때
-	Consultation findByScheduledDate(LocalDate scheduledDate);
+
+	@Query("""
+			SELECT c
+			  FROM Consultation c
+			 WHERE c.scheduledDate = :scheduledDate
+			   AND c.status != 'CANCELED'
+			""")
+	List<Consultation> reservationSelectByDate(@Param("scheduledDate") LocalDate scheduledDate);
 	
 	
 	

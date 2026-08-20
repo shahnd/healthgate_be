@@ -39,38 +39,38 @@ public class Consultation {
 	@Id
 	@Column(name="ID")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Long id;		// id	상담예약번호(ID)
+	private Long id;						// consultations_id	상담예약번호(ID)
 	
 	@ManyToOne
 	@JoinColumn(name="EMPLOYEE_ID", nullable=false)
-	private Employee employee;		// employee	근로자(FK, NN)
+	private Employee employee;				// employee	근로자(FK, NN)
 	
 	@ManyToOne
 	@JoinColumn(name="MANAGER_ID")
-	private Employee manager;			// manager	상담사(FK, NN)
+	private Employee manager;				// manager	상담사(FK, NN)
 	
 	@Column(name="SCHEDULED_DATE", nullable=false,
 			columnDefinition="DATE")
-	private LocalDate scheduledDate;			// scheduled_date	예약일자(NN, DATE)
+	private LocalDate scheduledDate;		// scheduled_date	예약일자(NN, DATE)
 	
 	@Column(name="SCHEDULED_TURN", nullable=false,
 			columnDefinition="CHAR(2)")
-	private String scheduledTurn;		// scheduled_turn	예약순번(NN, CHAR(2) 'T1'/ 'T2/ ... / 'T6'(1차 ~ 6차)
+	private String scheduledTurn;			// scheduled_turn	예약순번(NN, CHAR(2) 'T1'/ 'T2/ ... / 'T6'(1차 ~ 6차)
 	
 	@Column(name="REASON", nullable=false, length=100)
-	private String reason;				// reason	신청사유(NN, VARCHAR(100))
+	private String reason;					// reason	신청사유(NN, VARCHAR(100))
 	
 	@Column(name="CONTENT",
 			columnDefinition="TEXT")
-	private String content;				// content	상담내용(NN, TEXT)
+	private String content;					// content	상담내용(NN, TEXT)
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name="STATUS", nullable=false, length=20,
 			columnDefinition="VARCHAR(20) DEFAULT 'RESERVED'")
-	private ConsultationStatus status;				// status	상담진행상태(NN), DEFAULT RESERVED
+	private ConsultationStatus status;		// status	상담진행상태(NN), DEFAULT RESERVED
 	
 	@Column(name="CONSULTATED_AT", columnDefinition="DATETIME")
-	private LocalDateTime consultatedAt;		// requested_at	일지작성일시(CURRENT_TIMESTAMP)
+	private LocalDateTime consultatedAt;	// requested_at	일지작성일시(CURRENT_TIMESTAMP)
 	
 	@Column(name="CREATED_AT", nullable=false,
 			columnDefinition="DATETIME DEFAULT CURRENT_TIMESTAMP")
