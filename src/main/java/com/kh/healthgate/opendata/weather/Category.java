@@ -33,7 +33,7 @@ public enum Category {
     private final String displayName;
 
     @JsonCreator
-    public static Category fromCode(String value) {
+    public static Category from(String value) {
         return Arrays.stream(values())
                 .filter(category -> category.code.equals(value))
                 .findFirst()

@@ -35,7 +35,7 @@ public enum ResultCode {
     private final String displayName;
 
     @JsonCreator
-    public static ResultCode fromCode(String value) {
+    public static ResultCode from(String value) {
         return Arrays.stream(values())
                 .filter(resultCode -> resultCode.code.equals(value))
                 .findFirst()
