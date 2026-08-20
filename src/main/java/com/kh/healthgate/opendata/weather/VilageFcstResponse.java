@@ -16,9 +16,9 @@ public record VilageFcstResponse(
         public record Body(
                 String dataType,
                 Items items,
-                Integer pageNo,
-                Integer numOfRows,
-                Integer totalCount) {
+                int pageNo,
+                int numOfRows,
+                int totalCount) {
 
             public record Items(
                     List<Item> item) {
