@@ -34,7 +34,7 @@ public class AuthController {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, role role) {}
+    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, role role, int id) {}
 
     @PostMapping("/auth/login")
     public ResponseEntity<LoginResponse> loginEmployee(@RequestBody Employee employee) {
@@ -54,7 +54,7 @@ public class AuthController {
                              .signWith(key, SignatureAlgorithm.HS256)
                              .compact();
 
-            LoginResponse responseBody = new LoginResponse(jwt, null, loginEmp.getEmployeeNumber(), loginEmp.getName(), loginEmp.getRole());
+            LoginResponse responseBody = new LoginResponse(jwt, null, loginEmp.getEmployeeNumber(), loginEmp.getName(), loginEmp.getRole(), loginEmp.getId());
 
             return ResponseEntity.ok(responseBody);
         }
