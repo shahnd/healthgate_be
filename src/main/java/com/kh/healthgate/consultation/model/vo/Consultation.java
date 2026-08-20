@@ -25,7 +25,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="HEALTH_CONSULTATIONS")
+@Table(name="CONSULTATIONS")
 @DynamicInsert
 @DynamicUpdate
 
@@ -37,9 +37,9 @@ import lombok.ToString;
 public class Consultation {
 
 	@Id
-	@Column(name="CONSULTATION_ID")
+	@Column(name="ID")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Long id;		// consultations_id	상담예약번호(ID)
+	private Long id;		// id	상담예약번호(ID)
 	
 	@ManyToOne
 	@JoinColumn(name="EMPLOYEE_ID", nullable=false)
@@ -49,27 +49,27 @@ public class Consultation {
 	@JoinColumn(name="MANAGER_ID")
 	private Employee manager;			// manager	상담사(FK, NN)
 	
-	@Column(name="CONSULTATION_SCHEDULED_DATE", nullable=false,
+	@Column(name="SCHEDULED_DATE", nullable=false,
 			columnDefinition="DATE")
 	private LocalDate scheduledDate;			// scheduled_date	예약일자(NN, DATE)
 	
-	@Column(name="CONSULTATION_SCHEDULED_TURN", nullable=false,
+	@Column(name="SCHEDULED_TURN", nullable=false,
 			columnDefinition="CHAR(2)")
 	private String scheduledTurn;		// scheduled_turn	예약순번(NN, CHAR(2) 'T1'/ 'T2/ ... / 'T6'(1차 ~ 6차)
 	
-	@Column(name="CONSULTATION_REASON", nullable=false, length=100)
+	@Column(name="REASON", nullable=false, length=100)
 	private String reason;				// reason	신청사유(NN, VARCHAR(100))
 	
-	@Column(name="CONSULTATION_CONTENT",
+	@Column(name="CONTENT",
 			columnDefinition="TEXT")
 	private String content;				// content	상담내용(NN, TEXT)
 	
 	@Enumerated(EnumType.STRING)
-	@Column(name="CONSULTATION_STATUS", nullable=false, length=20,
+	@Column(name="STATUS", nullable=false, length=20,
 			columnDefinition="VARCHAR(20) DEFAULT 'RESERVED'")
 	private ConsultationStatus status;				// status	상담진행상태(NN), DEFAULT RESERVED
 	
-	@Column(name="CONSULTATION_CONSULTATED_AT", columnDefinition="DATETIME")
+	@Column(name="CONSULTATED_AT", columnDefinition="DATETIME")
 	private LocalDateTime consultatedAt;		// requested_at	일지작성일시(CURRENT_TIMESTAMP)
 	
 	@Column(name="CREATED_AT", nullable=false,

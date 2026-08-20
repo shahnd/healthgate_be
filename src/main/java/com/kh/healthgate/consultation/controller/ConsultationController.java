@@ -22,7 +22,7 @@ import com.kh.healthgate.consultation.model.vo.Consultation;
 
 @CrossOrigin
 @RestController
-@RequestMapping("healthgate")
+@RequestMapping("consultation")
 public class ConsultationController {
 
 	@Autowired
@@ -42,9 +42,9 @@ public class ConsultationController {
         int month = consultationScheduledDate.getMonthValue();
 
         // 디버깅
-        System.out.println("원본 LocalDate : " + consultationScheduledDate);
-        System.out.println("추출된 연도 : " + year);
-        System.out.println("추출된 월 : " + month);
+//        System.out.println("원본 LocalDate : " + consultationScheduledDate);
+//        System.out.println("추출된 연도 : " + year);
+//        System.out.println("추출된 월 : " + month);
 		
         // 서비스 호출
 		List<Consultation> list = consultationService.selectAllReservation(year, month);
@@ -57,12 +57,12 @@ public class ConsultationController {
 	
 	
 	// 예약 단건 조회
-	@GetMapping("reservations/details/{consultationId}")
-	public ResponseEntity<Consultation> selectReservation(@PathVariable Long consultationId) {
+	@GetMapping("reservations/details/{id}")
+	public ResponseEntity<Consultation> selectReservation(@PathVariable Long id) {
 		
 		// 예약번호와 일치한 행 조회
-		Consultation c = consultationService.selectReservation(consultationId);
-		
+		Consultation c = consultationService.selectReservation(id);
+		System.out.println(c);
 		// 결과 반환
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(c);
@@ -104,8 +104,8 @@ public class ConsultationController {
 	
 	
 	// 예약 수정
-	@PutMapping("reservations/{consultationId}")
-	public ResponseEntity<String> updateReservation(@PathVariable Long consultationId, @RequestBody Consultation c) {
+	@PutMapping("reservations/{id}")
+	public ResponseEntity<String> updateReservation(@PathVariable Long id, @RequestBody Consultation c) {
 		
 		// 신청사유 XSS 방어
 		
@@ -121,11 +121,11 @@ public class ConsultationController {
 	
 	
 	// 예약 취소
-	@DeleteMapping("reservations/{consultationId}")
-	public ResponseEntity<String> deleteReservation(@PathVariable Long consultationId) {
+	@DeleteMapping("reservations/{id}")
+	public ResponseEntity<String> deleteReservation(@PathVariable Long id) {
 		
 		// soft delete
-		int result = consultationService.deleteReservation(consultationId);
+		int result = consultationService.deleteReservation(id);
 		
 		String msg = (result > 0) ? "success" : "fail";
 		
@@ -152,11 +152,11 @@ public class ConsultationController {
 	
 	
 	// 상담 단건 조회
-	@GetMapping("consultations/detail/{consultationId}")
-	public ResponseEntity<Consultation> selectConsultation(@PathVariable Long consultationId) {
+	@GetMapping("consultations/detail/{id}")
+	public ResponseEntity<Consultation> selectConsultation(@PathVariable Long id) {
 		
 		// 예약번호와 일치한 행 조회
-		Consultation c = consultationService.selectReservation(consultationId);
+		Consultation c = consultationService.selectReservation(id);
 		
 		// 결과 반환
 		return ResponseEntity.status(HttpStatus.OK)
@@ -165,8 +165,8 @@ public class ConsultationController {
 	
 	
 	// 상담 일지 작성/수정
-	@PutMapping("consultations/{consultationId}")
-	public ResponseEntity<String> saveConsultation(@PathVariable Long consultationId, @RequestBody Consultation c) {
+	@PutMapping("consultations/{consultidationId}")
+	public ResponseEntity<String> saveConsultation(@PathVariable Long id, @RequestBody Consultation c) {
 		
 		// 상담 내용 XSS 방어
 		

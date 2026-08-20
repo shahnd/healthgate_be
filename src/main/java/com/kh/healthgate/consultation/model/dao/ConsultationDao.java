@@ -63,10 +63,10 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	@Query("""
 			UPDATE Consultation c 
 			   SET c.status = 'CANCELED'
-			 WHERE c.id = :consultationId
+			 WHERE c.id = :id
 			   AND c.status = 'RESERVED'
 			""")
-	int deleteReservation(@Param("consultationId") Long consultationId);
+	int deleteReservation(@Param("consultationId") Long id);
 
 
 	
