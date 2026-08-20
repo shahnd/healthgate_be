@@ -44,8 +44,8 @@ public class VectorStoreRepository {
                 .build());
     }
 
-    public boolean existsByFileName(String name) {
-        return !findByFileName(name).isEmpty();
+    public boolean existsByFileName(String fileName) {
+        return !findByFileName(fileName).isEmpty();
     }
 
     public int count() {
