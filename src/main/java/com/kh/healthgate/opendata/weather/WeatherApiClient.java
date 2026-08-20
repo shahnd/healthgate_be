@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.kh.healthgate.opendata.config.OpendataProperties;
+import com.kh.healthgate.opendata.weather.exceptions.WeatherApiException;
 
 @Component
 public class WeatherApiClient {
@@ -30,6 +31,13 @@ public class WeatherApiClient {
                         .build())
                 .retrieve()
                 .body(VilageFcstResponse.class);
+
+        ResultCode resultCode = ResultCode.from(response.response().header().resultCode());
+
+        if (!resultCode.equals(ResultCode.NORMAL_SERVICE)) {
+            throw new WeatherApiException(
+                    "예보 정보를 불러오지 못 했습니다: " + resultCode.name() + ": " + resultCode.getDisplayName() + "\n" + request);
+        }
 
         return response;
     }
