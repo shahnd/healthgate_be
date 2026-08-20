@@ -31,7 +31,7 @@ public class HospitalController {
 	private HospitalService hospitalService;
 	
 	// 검진가능 병원 조회용 컨트롤러
-	@GetMapping("/hospital")
+	@GetMapping("/hospitals")
 	public ResponseEntity<HashMap<String,Object>> selectHospitalList(
 			            @RequestParam(value="cpage", defaultValue="1") int currentPage) {
 		
@@ -60,12 +60,18 @@ public class HospitalController {
 							 .body(hm);
 	}
 	
-    /*
+    
 	// 검진가능 병원 검색용 컨트롤러
-	@GetMapping("/hospital")
+	@GetMapping("/hospitals/search")
 	public ResponseEntity<HashMap<String,Object>> searchHospitalList(
 			          @RequestParam(value="cpage", defaultValue="1") int currentPage,
-			          String keyword) {
+			          @RequestParam(value ="name", required = false) String name,
+			          @RequestParam(value ="address", required = false) String address,
+			          @RequestParam(value ="isGeneralExamAvailable", required = false) Boolean isGeneralExamAvailable,
+			          @RequestParam(value ="isStomachCancerExamAvailable", required = false) Boolean isStomachCancerExamAvailable,
+			          @RequestParam(value ="isColonCancerExamAvailable", required = false) Boolean isColonCancerExamAvailable,
+			          @RequestParam(value = "isLiverCancerExamAvailable", required = false) Boolean isLiverCancerExamAvailable,
+			          @RequestParam(value = "isLungCancerExamAvailable", required = false) Boolean isLungCancerExamAvailable) {
 		
 		int boardLimit = 5;
 		int pageLimit = 5;
@@ -74,7 +80,14 @@ public class HospitalController {
 		Pageable pageable = PageRequest.of(currentPage - 1, boardLimit);
 		
 		// > Pageable 을 넘기면서 조회
-		Page<Hospital> page = hospitalService.selectSearchList(keyword, pageable);
+		Page<Hospital> page = hospitalService.selectSearchList(name, 
+				                                               address,
+															   isGeneralExamAvailable,
+															   isStomachCancerExamAvailable,
+															   isColonCancerExamAvailable,
+															   isLiverCancerExamAvailable,
+															   isLungCancerExamAvailable,
+				                                               pageable);
 		
 		// > 각각의 응답데이터 셋팅
 		List<Hospital> list = page.getContent();
@@ -91,30 +104,30 @@ public class HospitalController {
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(hm);
 	}
-	*/
+
 	
 	// 검진가능 병원 상세조회용 컨트롤러
-	@GetMapping("/hospital/{id}")
+	@GetMapping("/hospitals/{id}")
 	public ResponseEntity<Hospital> selectHospital(@PathVariable int id) {
 		
 		Hospital h = hospitalService.selectHospital(id);
 		
 		return ResponseEntity.status(HttpStatus.OK)
-				             .body(null);
+				             .body(h);
 	}
 	
 	// 검진가능 병원 수정용 상세조회용 컨트롤러
-	@GetMapping("/hospital/{id}/new")
+	@GetMapping("/hospitals/{id}/form")
 	public ResponseEntity<Hospital> selectHospitalForm(@PathVariable int id) {
 		
 		Hospital h = hospitalService.selectHospital(id);
 		
 		return ResponseEntity.status(HttpStatus.OK)
-				             .body(null);
+				             .body(h);
 	}
 	
-	// 검진가능 병원 작성용 컨트롤러
-	@PostMapping("/hospital/create")
+	// 검진가능 병원 등록용 컨트롤러
+	@PostMapping("/hospitals/new")
 	public ResponseEntity<String> insertHospital(Hospital h) {
 		
 		// 서비스 호출 
@@ -127,7 +140,7 @@ public class HospitalController {
 	}
 	
 	// 검진가능 병원 삭제용 컨트롤러
-	@DeleteMapping("/hospital/{id}")
+	@DeleteMapping("/hospitals/{id}")
 	public ResponseEntity<String> deleteHospital(@PathVariable int id) {
 		
 		// 서비스 호출

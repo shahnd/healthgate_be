@@ -21,12 +21,18 @@ public class HospitalService {
 		return hospitalDao.findByOrderByIdDesc(pageable);
 	}
 
-    /*
-	public Page<Hospital> selectSearchList(String keyword, Pageable pageable) {
+	public Page<Hospital> selectSearchList(String name, String address, Boolean isGeneralExamAvailable,
+			Boolean isStomachCancerExamAvailable, Boolean isColonCancerExamAvailable,
+			Boolean isLiverCancerExamAvailable, Boolean isLungCancerExamAvailable, Pageable pageable) {
 		
-		 return hospitalDao.findByNameContainingAndAddressContainingAndIsStomathCancelExamAvilableContainingAndIsColonCancerExamAvilableContainingAndIsLiverCancerExamAvilableContainingAndIsLungCancerExamAvilableContainingOrderByIdDesc(keyword, pageable);
+		return hospitalDao.selectSearchList(name, address, 
+											isGeneralExamAvailable, 
+											isStomachCancerExamAvailable,
+											isColonCancerExamAvailable,
+											isLiverCancerExamAvailable, 
+											isLungCancerExamAvailable, 
+											pageable);
 	}
-     */
 	
 	public Hospital selectHospital(int id) {
 		

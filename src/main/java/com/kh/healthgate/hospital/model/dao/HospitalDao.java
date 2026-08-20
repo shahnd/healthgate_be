@@ -21,14 +21,34 @@ public interface HospitalDao extends JpaRepository<Hospital,Integer>{
 	//    WHERE NAME LIKE '%' || ? || '%'
 	//      AND ADDRESS LIKE '%' || ? || '%'   
 	//      AND IS_GENERAL_EXAM_AVAILABLE = '%' || ? || '%'
-	//      AND IS_STOMACH_CANCEL_EXAM_AVAILABLE = '%' || ? || '%'
+	//      AND IS_STOMACH_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
 	//      AND IS_COLON_CANCER_EXAM_AVILABLE = '%' || ? || '%'
 	//      AND IS_LIVER_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
 	//      AND IS_LUNG_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
     //  ORDER BY ID DESC 
-	/*
-	Page<Hospital> findByNameContainingAndAddressContainingAndIsStomathCancelExamAvilableContainingAndIsColonCancerExamAvilableContainingAndIsLiverCancerExamAvilableContainingAndIsLungCancerExamAvilableContainingOrderByIdDesc(String keyword,Pageable pageable);      
-    */
+	
+	@Query("""
+		    SELECT h 
+		    FROM Hospital h
+		    WHERE (:name IS NULL OR :name = '' OR h.name LIKE CONCAT('%', :name, '%'))
+		      AND (:address IS NULL OR :address = '' OR h.address LIKE CONCAT('%', :address, '%'))
+		      AND (:isGeneralExamAvailable IS NULL OR h.isGeneralExamAvailable = :isGeneralExamAvailable)
+		      AND (:isStomachCancerExamAvailable IS NULL OR h.isStomachCancerExamAvailable = :isStomachCancerExamAvailable)
+		      AND (:isColonCancerExamAvailable IS NULL OR h.isColonCancerExamAvailable = :isColonCancerExamAvailable)
+		      AND (:isLiverCancerExamAvailable IS NULL OR h.isLiverCancerExamAvailable =:isLiverCancerExamAvailable)
+		      AND (:isLungCancerExamAvailable IS NULL OR h.isLungCancerExamAvailable = :isLungCancerExamAvailable)
+		    ORDER BY h.id DESC
+		""")
+		Page<Hospital> selectSearchList(
+		    @Param("name") String name,
+		    @Param("address") String address,
+		    @Param("isGeneralExamAvailable") Boolean isGeneralExamAvailable,
+		    @Param("isStomachCancerExamAvailable") Boolean isStomachCancerExamAvailable,
+		    @Param("isColonCancerExamAvailable") Boolean isColonCancerExamAvailable,
+		    @Param("isLiverCancerExamAvailable") Boolean isLiverCancerExamAvailable,
+		    @Param("isLungCancerExamAvailable") Boolean isLungCancerExamAvailable,
+		    Pageable pageable 
+		);
 	
     // 건강검진 병원 삭제 
 	@Modifying
