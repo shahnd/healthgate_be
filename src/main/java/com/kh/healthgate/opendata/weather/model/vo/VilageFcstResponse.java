@@ -1,4 +1,4 @@
-package com.kh.healthgate.opendata.weather;
+package com.kh.healthgate.opendata.weather.model.vo;
 
 import java.util.List;
 

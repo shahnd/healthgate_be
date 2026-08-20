@@ -1,4 +1,4 @@
-package com.kh.healthgate.opendata.weather;
+package com.kh.healthgate.opendata.weather.model.vo;
 
 import java.util.Arrays;
 
@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum Category {
+public enum VilageFcstCategory {
     // @formatter:off
     PRECIPITATION_PROBABILITY("POP", "강수확률"),
     PRECIPITATION_TYPE(       "PTY", "강수형태"),
@@ -33,7 +33,7 @@ public enum Category {
     private final String displayName;
 
     @JsonCreator
-    public static Category from(String value) {
+    public static VilageFcstCategory from(String value) {
         return Arrays.stream(values())
                 .filter(category -> category.code.equals(value))
                 .findFirst()

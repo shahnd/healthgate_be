@@ -1,4 +1,4 @@
-package com.kh.healthgate.opendata.weather;
+package com.kh.healthgate.opendata.weather.model.vo;
 
 import java.util.Arrays;
 
@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum ResultCode {
+public enum VilageFcstResultCode {
     // @formatter:off
     NORMAL_SERVICE(                                  "00", "정상"),
     APPLICATION_ERROR(                               "01", "애플리케이션 에러"),
@@ -35,7 +35,7 @@ public enum ResultCode {
     private final String displayName;
 
     @JsonCreator
-    public static ResultCode from(String value) {
+    public static VilageFcstResultCode from(String value) {
         return Arrays.stream(values())
                 .filter(resultCode -> resultCode.code.equals(value))
                 .findFirst()

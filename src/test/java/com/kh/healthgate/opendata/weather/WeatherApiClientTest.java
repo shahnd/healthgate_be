@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.kh.healthgate.opendata.config.OpendataProperties;
+import com.kh.healthgate.opendata.weather.model.vo.VilageFcstCategory;
+import com.kh.healthgate.opendata.weather.model.vo.VilageFcstRequest;
+import com.kh.healthgate.opendata.weather.model.vo.VilageFcstResponse;
+import com.kh.healthgate.opendata.weather.model.vo.VilageFcstResultCode;
 
 @WireMockTest
 class WeatherApiClientTest {
@@ -84,11 +88,11 @@ class WeatherApiClientTest {
                 .item()
                 .getFirst()
                 .category())
-                .isEqualTo(Category.TEMPERATURE.getCode());
+                .isEqualTo(VilageFcstCategory.TEMPERATURE.getCode());
 
         assertThat(response.response()
                 .header()
                 .resultCode())
-                .isEqualTo(ResultCode.NORMAL_SERVICE.getCode());
+                .isEqualTo(VilageFcstResultCode.NORMAL_SERVICE.getCode());
     }
 }
