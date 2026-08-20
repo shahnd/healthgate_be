@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.healthgate.consultation.model.service.ConsultationService;
@@ -29,10 +30,10 @@ public class ConsultationController {
 	
 	// 예약 전체 조회(캘린더 형식, 선택된 월별)
 	@GetMapping("reservations/list")
-	public ResponseEntity<List<Consultation>> selectAllReservation(/* @RequestParam LocalDate consultationScheduledDate */) {
+	public ResponseEntity<List<Consultation>> selectAllReservation(@RequestParam LocalDate consultationScheduledDate) {
 		
 		// 프론트엔드에서 넘어왔다고 가정하는 Date 객체 생성 (예: 2026년 6월 15일)
-		LocalDate consultationScheduledDate = LocalDate.of(2026, 6, 15);
+		// LocalDate consultationScheduledDate = LocalDate.of(2026, 6, 15);
 		
         
 		// 전체 조회

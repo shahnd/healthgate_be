@@ -23,13 +23,13 @@ public class ConsultationService {
 
 	// 예약 단건 조회
 	public Consultation selectReservation(Long consultationId) {
-		return consultationDao.findByConsultationId(consultationId);
+		return consultationDao.selectReservation(consultationId);
 	}
 	
 	// 예약 신청(등록)
 	// 조회
 	public Consultation reservationSelectByDate(LocalDate consultationScheduledDate) {
-		return consultationDao.findByConsultationScheduledDate(consultationScheduledDate);
+		return consultationDao.findByScheduledDate(consultationScheduledDate);
 	}
 	
 	// 등록
