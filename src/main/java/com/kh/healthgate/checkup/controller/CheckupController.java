@@ -3,6 +3,7 @@ package com.kh.healthgate.checkup.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.healthgate.checkup.model.dto.CheckupExcelUploadResponse;
 import com.kh.healthgate.checkup.model.dto.CheckupStatisticsResponse;
 import com.kh.healthgate.checkup.model.dto.CheckupTargetResponse;
 import com.kh.healthgate.checkup.model.dto.ManualReminderRequest;
@@ -36,7 +39,6 @@ public class CheckupController {
     /**
      * 연도별 건강검진 완료율 통계 조회
      *
-     * 요청 예시:
      * GET /healthgate/checkups/statistics?year=2026
      */
     @GetMapping("/statistics")
@@ -53,7 +55,6 @@ public class CheckupController {
     /**
      * 연도별 건강검진 대상자 목록 조회
      *
-     * 요청 예시:
      * GET /healthgate/checkups/targets?year=2026
      */
     @GetMapping("/targets")
@@ -68,12 +69,37 @@ public class CheckupController {
     }
 
     /**
+     * 건강검진 결과 Excel 파일 업로드
+     *
+     * 요청 주소:
+     * POST /healthgate/checkups/excel-upload
+     *
+     * 요청 형식:
+     * multipart/form-data
+     *
+     * 파일 필드명:
+     * file
+     */
+    @PostMapping(
+        value = "/excel-upload",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<CheckupExcelUploadResponse>
+            uploadCheckupExcel(
+                    @RequestParam("file") MultipartFile file) {
+
+        CheckupExcelUploadResponse response =
+                checkupService.uploadCheckupExcel(file);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * 건강검진 수동 알림 발송
      *
      * 현재는 실제 SMS·이메일 서비스 연동 전이므로
      * 발송 정보를 성공 상태로 알림 이력 테이블에 저장한다.
      *
-     * 요청 주소:
      * POST /healthgate/checkups/reminders/manual
      */
     @PostMapping("/reminders/manual")
