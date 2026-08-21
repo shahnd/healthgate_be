@@ -9,24 +9,10 @@ import org.springframework.data.repository.query.Param;
 
 import com.kh.healthgate.hospital.model.vo.Hospital;
 
-public interface HospitalDao extends JpaRepository<Hospital,Integer>{
+public interface HospitalDao extends JpaRepository<Hospital,Long>{
    
-	// 병원 목록 조회용 쿼리메소드
-	// > SELECT * FROM HOSPITAL  
-	//   ORDER BY ID DESC 
-	Page<Hospital> findByOrderByIdDesc(Pageable pageable);
 	
-	// 병원 검색용 쿼리메소드
-	// > SELECT * FORM HOSPITAL
-	//    WHERE NAME LIKE '%' || ? || '%'
-	//      AND ADDRESS LIKE '%' || ? || '%'   
-	//      AND IS_GENERAL_EXAM_AVAILABLE = '%' || ? || '%'
-	//      AND IS_STOMACH_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
-	//      AND IS_COLON_CANCER_EXAM_AVILABLE = '%' || ? || '%'
-	//      AND IS_LIVER_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
-	//      AND IS_LUNG_CANCER_EXAM_AVAILABLE = '%' || ? || '%'
-    //  ORDER BY ID DESC 
-	
+	// 병원 검색용+ 목록 조회용 쿼리메소드
 	@Query("""
 		    SELECT h 
 		    FROM Hospital h
@@ -37,7 +23,7 @@ public interface HospitalDao extends JpaRepository<Hospital,Integer>{
 		      AND (:isColonCancerExamAvailable IS NULL OR h.isColonCancerExamAvailable = :isColonCancerExamAvailable)
 		      AND (:isLiverCancerExamAvailable IS NULL OR h.isLiverCancerExamAvailable =:isLiverCancerExamAvailable)
 		      AND (:isLungCancerExamAvailable IS NULL OR h.isLungCancerExamAvailable = :isLungCancerExamAvailable)
-		    ORDER BY h.id DESC
+		    ORDER BY h.hospitalId DESC
 		""")
 		Page<Hospital> selectSearchList(
 		    @Param("name") String name,
@@ -54,7 +40,7 @@ public interface HospitalDao extends JpaRepository<Hospital,Integer>{
 	@Modifying
 	@Query("""
 			  DELETE Hospital h
-			     WHERE h.id = :id
+			     WHERE h.hospitalId = :hospitalId
 		   """)
-	int deleteHospital(@Param("id") int id);
+	int deleteHospital(@Param("hospitalId") Long hospitalId);
 }

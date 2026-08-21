@@ -15,12 +15,6 @@ public class HospitalService {
 	@Autowired
 	private HospitalDao hospitalDao;
 
-	
-	public Page<Hospital> selectHospitalList(Pageable pageable) {
-		
-		return hospitalDao.findByOrderByIdDesc(pageable);
-	}
-
 	public Page<Hospital> selectSearchList(String name, String address, Boolean isGeneralExamAvailable,
 			Boolean isStomachCancerExamAvailable, Boolean isColonCancerExamAvailable,
 			Boolean isLiverCancerExamAvailable, Boolean isLungCancerExamAvailable, Pageable pageable) {
@@ -34,9 +28,9 @@ public class HospitalService {
 											pageable);
 	}
 	
-	public Hospital selectHospital(int id) {
+	public Hospital selectHospital(Long hospitalId) {
 		
-		return hospitalDao.findById(id).orElse(null);
+		return hospitalDao.findById(hospitalId).orElse(null);
 	}
 
     @Transactional
@@ -46,8 +40,14 @@ public class HospitalService {
 	}
 
     @Transactional
-	public int deleteHospital(int id) {
+	public int deleteHospital(Long hospitalId) {
 		
-		return hospitalDao.deleteHospital(id);
+		return hospitalDao.deleteHospital(hospitalId);
+	}
+    
+    @Transactional
+	public Hospital updateHospital(Hospital h) {
+		
+		return hospitalDao.save(h);
 	}
 }
