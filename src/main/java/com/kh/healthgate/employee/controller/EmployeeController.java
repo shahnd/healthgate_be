@@ -66,7 +66,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/employees/{id}")
-    public ResponseEntity<ApiResponse<Employee>> selectEmployee(@PathVariable int id) {
+    public ResponseEntity<ApiResponse<Employee>> selectEmployee(@PathVariable Long id) {
 
         Employee emp = employeeService.selectEmployee(id);
 
@@ -86,7 +86,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/employees/{id}")
-    public ResponseEntity<ApiResponse<Void>> updateEmployee(@PathVariable int id, @RequestBody Employee employee) {
+    public ResponseEntity<ApiResponse<Void>> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
 
         employee.setId(id);
         
@@ -96,7 +96,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/employees/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable int id) {
+    public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable Long id) {
 
         employeeService.deleteEmployee(id);
 

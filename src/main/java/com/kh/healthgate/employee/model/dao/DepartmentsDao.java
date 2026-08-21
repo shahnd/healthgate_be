@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.kh.healthgate.employee.model.vo.Departments;
 
-public interface DepartmentsDao extends JpaRepository<Departments, Integer> {
+public interface DepartmentsDao extends JpaRepository<Departments, Long> {
 
 }
