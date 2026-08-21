@@ -13,7 +13,7 @@ import com.kh.healthgate.employee.model.vo.Employee;
  * 직원 정보의 DB 접근을 담당하는 Repository
  */
 public interface EmployeeDao
-        extends JpaRepository<Employee, Integer>,
+        extends JpaRepository<Employee, Long>,
                 JpaSpecificationExecutor<Employee> {
 
     /**

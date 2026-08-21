@@ -34,7 +34,7 @@ public class AuthController {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, role role, int id) {}
+    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, role role, Long id) {}
 
     @PostMapping("/auth/login")
     public ResponseEntity<LoginResponse> loginEmployee(@RequestBody Employee employee) {

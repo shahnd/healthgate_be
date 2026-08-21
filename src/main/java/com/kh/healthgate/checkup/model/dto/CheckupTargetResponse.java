@@ -45,7 +45,7 @@ public class CheckupTargetResponse {
     /**
      * 직원 식별자
      */
-    private int employeeId;
+    private Long employeeId;
 
     /**
      * 사번
