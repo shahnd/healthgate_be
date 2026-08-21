@@ -39,7 +39,8 @@ public class WeatherApiClient {
 
         if (!resultCode.equals(VilageFcstResultCode.NORMAL_SERVICE)) {
             throw new WeatherApiException(
-                    "예보 정보를 불러오지 못 했습니다: " + resultCode.name() + ": " + resultCode.getDisplayName() + "\n" + request);
+                    "예보 정보를 불러오지 못 했습니다: " + resultCode.name() + ": " + resultCode.getDisplayName() + "\n" + request
+                            + "\n" + response);
         }
 
         return response;
