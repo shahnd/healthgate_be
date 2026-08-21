@@ -26,7 +26,7 @@ public class Positions {
 
     @Id
     @Column(name = "id")
-    private int id;
+    private Long id;
 
     @Column(name = "name", length = 30)
     private String name;

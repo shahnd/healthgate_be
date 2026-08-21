@@ -42,7 +42,7 @@ public class EmployeeService {
         return employeeDao.save(employee);
     }
 
-    public Employee selectEmployee(int id) {
+    public Employee selectEmployee(Long id) {
         return employeeDao.findById(id).orElse(null);
     }
 
@@ -52,7 +52,7 @@ public class EmployeeService {
     }
 
     @Transactional
-    public void deleteEmployee(int id) {
+    public void deleteEmployee(Long id) {
 
         Employee employee = employeeDao.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 직원이 존재하지 않습니다."));
 

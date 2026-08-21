@@ -1,5 +1,4 @@
-package com.kh.healthgate.employee.model.vo;
-
+package com.kh.healthgate.biometric.model.vo;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -16,21 +15,26 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "departments")
-
+@Table(name = "risk_threshold_settings")
 @DynamicInsert
 @DynamicUpdate
-
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-public class Departments {
+public class RiskThresholdSettings {
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(name = "metric_name", length = 30, nullable = false)
+    private String metricName;
 
-    @Column(name = "name", length = 30)
-    private String  name;
+    @Column(name = "risk_level", length = 20, nullable = false)
+    private String riskLevel;
+
+    @Column(name = "value", nullable = false)
+    private Float value;
 }
