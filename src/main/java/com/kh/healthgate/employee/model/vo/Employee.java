@@ -39,7 +39,7 @@ public class Employee {
     @Id
     @Column(name = "id", nullable=false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name = "employee_number", nullable = false, length = 100, unique = true)
     private String employeeNumber;
