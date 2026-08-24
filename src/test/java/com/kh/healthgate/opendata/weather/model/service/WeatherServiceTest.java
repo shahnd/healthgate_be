@@ -77,10 +77,12 @@ public class WeatherServiceTest {
                 WeatherForecastLocation.YEOKSAM1);
 
         // DB에 없음
-        when(weatherForecastRepository.existsByForecastAt(forecastAt)).thenReturn(false);
+        when(weatherForecastRepository.existsByForecastAtAndLocation(forecastAt, WeatherForecastLocation.YEOKSAM1))
+                .thenReturn(false);
 
         // 서비스가 인덱싱한 이후에는 예상되는 값 반환
-        when(weatherForecastRepository.findByForecastAt(forecastAt)).thenReturn(Optional.of(expected));
+        when(weatherForecastRepository.findByForecastAtAndLocation(forecastAt, WeatherForecastLocation.YEOKSAM1))
+                .thenReturn(Optional.of(expected));
 
         // when
         weatherService.getWeatherForecastAt(forecastAt, location);

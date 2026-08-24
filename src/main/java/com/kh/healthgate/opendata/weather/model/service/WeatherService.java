@@ -87,7 +87,7 @@ public class WeatherService {
             throw new IllegalArgumentException("forecastAt은 정각이어야 합니다: " + forecastAt);
         }
 
-        if (!weatherForecastRepository.existsByForecastAt(forecastAt)) {
+        if (!weatherForecastRepository.existsByForecastAtAndLocation(forecastAt, location)) {
             log.warn("예보가 DB에 존재하지 않습니다: " + forecastAt + ": " + location);
 
             if (!isValidForecastDateTime(forecastAt)) {
@@ -98,7 +98,7 @@ public class WeatherService {
         }
 
         log.info(weatherForecastRepository.findAll().stream().map(forecast -> forecast.getForecastAt()).toString());
-        return weatherForecastRepository.findByForecastAt(forecastAt)
+        return weatherForecastRepository.findByForecastAtAndLocation(forecastAt, location)
                 .orElseThrow(() -> new WeatherForecastException(
                         "해당 예보를 불러올 수 없습니다: " + forecastAt + ": " + location.getDisplayName()));
     }
