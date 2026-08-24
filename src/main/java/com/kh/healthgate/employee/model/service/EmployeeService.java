@@ -14,27 +14,25 @@ import com.kh.healthgate.employee.model.dao.DepartmentsDao;
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
 import com.kh.healthgate.employee.model.dao.EmployeeSpecification;
 import com.kh.healthgate.employee.model.vo.Departments;
+import com.kh.healthgate.employee.model.vo.EmpListResponse;
 import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.employee.model.vo.Positions;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class EmployeeService {
 
-    private final PositionsDao positionsDao;
     private final DepartmentsDao departmentsDao;
-    @Autowired
-    private EmployeeDao employeeDao;
+    private final PositionsDao positionsDao;
+    private final EmployeeDao employeeDao;
 
-    EmployeeService(DepartmentsDao departmentsDao, PositionsDao positionsDao) {
-        this.departmentsDao = departmentsDao;
-        this.positionsDao = positionsDao;
-    }
-
-    public Page<Employee> selectEmployeeList(Pageable pageable, EmpSearchCondition condition) {
+    public Page<EmpListResponse> selectEmployeeList(Pageable pageable, EmpSearchCondition condition) {
         Specification<Employee> spec = EmployeeSpecification.search(condition);
-        return employeeDao.findAll(spec, pageable);
+        Page<Employee> employPage = employeeDao.findAll(spec, pageable);
+        return employPage.map(EmpListResponse::new);
     }
 
     @Transactional
