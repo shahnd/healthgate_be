@@ -34,22 +34,11 @@ public class ConsultationController {
 	@GetMapping("reservations/list")
 	public ResponseEntity<List<Consultation>> selectAllReservation(@RequestParam LocalDate scheduledDate) {
 		
-		// 프론트엔드에서 넘어왔다고 가정하는 Date 객체 생성 (예: 2026년 6월 15일)
-		// LocalDate consultationScheduledDate = LocalDate.of(2026, 6, 15);
-		
+		LocalDate startDate = scheduledDate.withDayOfMonth(1);
+		LocalDate endDate = startDate.plusMonths(4);
         
-		// 전체 조회
-		// 예약일에서 각각 연, 월로 추출 후 서비스로 넘기기
-        int year = scheduledDate.getYear();
-        int month = scheduledDate.getMonthValue();
-
-        // 디버깅
-//        System.out.println("원본 LocalDate : " + consultationScheduledDate);
-//        System.out.println("추출된 연도 : " + year);
-//        System.out.println("추출된 월 : " + month);
-		
         // 서비스 호출
-		List<Consultation> list = consultationService.selectAllReservation(year, month);
+		List<Consultation> list = consultationService.selectAllReservation(startDate, endDate);
 		
 		// 결과 반환
 		return ResponseEntity.status(HttpStatus.OK)
@@ -64,7 +53,7 @@ public class ConsultationController {
 		
 		// 예약번호와 일치한 행 조회
 		Consultation c = consultationService.selectReservation(id);
-		System.out.println(c);
+		// System.out.println(c);
 		
 		// 결과 반환
 		return ResponseEntity.status(HttpStatus.OK)
@@ -73,7 +62,6 @@ public class ConsultationController {
 	
 	
 	// 예약 신청/수정을 위한 조회
-	@ResponseBody
 	@GetMapping("reservations/views")
 	public ResponseEntity<List<Consultation>> reservationSelectByDate(@RequestParam LocalDate scheduledDate) {
 		
@@ -173,7 +161,7 @@ public class ConsultationController {
 	
 	
 	// 상담 일지 작성/수정
-	@PutMapping("consultations/{consultidationId}")
+	@PutMapping("consultations/{id}")
 	public ResponseEntity<String> saveConsultation(@PathVariable Long id, @RequestBody Consultation c) {
 		
 		// 상담 내용 XSS 방어

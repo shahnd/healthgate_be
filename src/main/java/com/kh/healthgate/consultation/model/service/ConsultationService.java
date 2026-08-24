@@ -17,13 +17,13 @@ public class ConsultationService {
 	private ConsultationDao consultationDao;
 	
 	// 예약 전체 조회
-	public List<Consultation> selectAllReservation(int year, int month) {
-		return consultationDao.selectAllReservation(year, month);
+	public List<Consultation> selectAllReservation(LocalDate startDate, LocalDate endDate) {
+		return consultationDao.selectAllReservation(startDate, endDate);
 	}
 
 	// 예약 단건 조회
 	public Consultation selectReservation(Long id) {
-		return consultationDao.selectReservation(id);
+		return consultationDao.findById(id).orElse(null);
 	}
 	
 	// 예약 신청(등록)

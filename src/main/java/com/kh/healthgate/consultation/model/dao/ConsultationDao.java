@@ -27,12 +27,13 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	@Query("""
 				SELECT c
 				  FROM Consultation c
-				 WHERE YEAR(scheduledDate) = :year
-				   AND MONTH(scheduledDate) = :month
+				 WHERE c.scheduledDate >= :startDate
+				   AND c.scheduledDate < :endDate
+				   AND c.status != 'CANCELED'
 				 ORDER BY c.scheduledDate DESC,
 						  c.scheduledTurn ASC
 			""")
-	List<Consultation> selectAllReservation(@Param("year") int year, @Param("month") int month);
+	List<Consultation> selectAllReservation(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 	
 	
 	// 예약 신청
@@ -51,14 +52,7 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	
 	
 	// 예약 단건 조회
-	// > CONSULTATION_ID 일치
-	@Query("""
-			SELECT c
-			  FROM Consultation c
-			 WHERE c.id = :id
-			""")
-	Consultation selectReservation(@Param("id") Long id);
-	
+	// > findById	
 	
 	// 예약 수정
 	// > 예약신청조건 동일
@@ -73,7 +67,7 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 			 WHERE c.id = :id
 			   AND c.status = 'RESERVED'
 			""")
-	int deleteReservation(@Param("consultationId") Long id);
+	int deleteReservation(@Param("id") Long id);
 
 
 	
