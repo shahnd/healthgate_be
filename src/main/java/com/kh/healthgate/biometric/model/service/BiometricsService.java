@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.kh.healthgate.attendance.model.dao.AttendanceDao;
+import com.kh.healthgate.attendance.model.service.AttendanceService;
 import com.kh.healthgate.biometric.controller.BiometricsController.BiometricsInput;
 import com.kh.healthgate.biometric.model.dao.BiometricsDao;
 import com.kh.healthgate.biometric.model.vo.Biometrics;
@@ -21,6 +23,9 @@ public class BiometricsService {
 
     @Autowired
     private EmployeeDao employeeDao;
+
+    @Autowired
+    private AttendanceService attendanceService;
 
 
     public List<Biometrics> selectBiometricsList(Long employeeId) {
@@ -51,6 +56,12 @@ public class BiometricsService {
         biometrics.setHeartRate(b.heartRate());
         biometrics.setRiskLevel(riskLevel);
         biometrics.setEmployee(employee);
+
+        if (riskLevel.equals("HIGH")) {
+            attendanceService.insertAttendance("DENY", employee.getId());
+        } else {
+            attendanceService.insertAttendance("ATTENDANCE", employee.getId());
+        }
 
 
 
