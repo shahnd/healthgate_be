@@ -5,11 +5,16 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import com.kh.healthgate.employee.model.vo.Employee;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="NOTICE")
+@Table(name="notices")
 
 @DynamicInsert
 @DynamicUpdate
@@ -31,25 +36,32 @@ import lombok.ToString;
 public class Notice {
  
 	@Id
-	@Column(name="ID")
+	@Column(name="notice_id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int id;
+	private Long noticeId;   
 	
-	@Column(name="TITLE", nullable=false, length=255)
-	private String title; // VARCHAR(255)
+	@Column(name="title", nullable=false, length=255)
+	private String title; // VARCHAR(255)  
 	
-	@Column(name="CONTENT", nullable=false, columnDefinition="TEXT")
+	@Column(name="content", nullable=false, columnDefinition="TEXT")
 	private String content;   //TEXT
 	
-	@Column(name="STATUS", nullable=false, length=20)
+	@Column(name="status", columnDefinition="CHAR(1) DEFAULT 'Y'")
 	private String status; // VARCHAR(20)
 	
-	@Column(name="CREATED_AT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	@Column(name="created_at", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
 	
-	@Column(name="UPDATEAT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	@Column(name="update_at", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime updatedAt;
 	
-	@Column(name="AUTHOR_ID", nullable=false)
-	private int authorId; 
+	// @Column(name="author_id", nullable=false)
+	// private int authorId; 
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="author_id", nullable=false)
+	private Employee employee;   // 작성자 식별자
+	
+	@Column(name="count", columnDefinition="INT DEFAULT 0")
+	private int count;	         // 공지사항 조회수 
 }

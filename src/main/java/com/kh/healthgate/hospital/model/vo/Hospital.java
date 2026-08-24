@@ -18,7 +18,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="HOSPITAL")
+@Table(name="hospitals")
 
 @DynamicInsert
 @DynamicUpdate
@@ -31,41 +31,41 @@ import lombok.ToString;
 public class Hospital {
     
 	@Id
-	@Column(name="ID")
+	@Column(name="hospital_id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int id; 
+	private Long hospitalId; 
 	
-	@Column(name="NAME", nullable=false, length=255)
+	@Column(name="name", nullable=false, length=255)
 	private String name; // VARCHAR(255)
 	
-	@Column(name="ADDRESS", nullable=false, length=500)
+	@Column(name="address", nullable=false, length=500)
 	private String address; // VARCHAR(500)
 	
-	@Column(name="PHONE", length=20)
+	@Column(name="phone", length=20)
 	private String phone; // VARCHAR(20)
 	
-	@Column(name="URL", length=255)
+	@Column(name="url", length=255)
 	private String url; // VARCHAR(255)
 	
-	@Column(name="DESCIPTION", columnDefinition="TEXT")
+	@Column(name="description", columnDefinition="TEXT")
 	private String description; // TEXT
 	
-	@Column(name="IS_GENERAL_EXAM_AVAILABLE", nullable=false)
+	@Column(name="is_general_exam_available", nullable=false )
 	private boolean isGeneralExamAvailable;
 	
-	@Column(name="IS_STOMACH_CANCER_EXAM_AVAILABLE", nullable=false)
+	@Column(name="is_stomach_cancer_exam_available", nullable=false)
 	private boolean isStomachCancerExamAvailable;
 	
-	@Column(name="IS_COLON_CANCER_EXAM_AVAILABLE", nullable=false)
+	@Column(name="is_colon_cancer_exam_available", nullable=false)
 	private boolean isColonCancerExamAvailable;
 	
-	@Column(name="IS_LIVER_CANCER_EXAM_AVAILABLE", nullable=false)
+	@Column(name="is_liver_cancer_exam_available", nullable=false)
 	private boolean isLiverCancerExamAvailable;
 	
-	@Column(name="IS_LUNG_CANCER_EXAM_AVAILABLE", nullable=false)
+	@Column(name="is_lung_cancer_exam_available", nullable=false)
 	private boolean isLungCancerExamAvailable;
 	
-	@Column(name="CREATED_AT", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	@Column(name="created_at", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
 
 }

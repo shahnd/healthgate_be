@@ -5,6 +5,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,7 +19,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="NOTICEFILES")
+@Table(name="notice_files")
 
 @DynamicInsert
 @DynamicUpdate
@@ -28,30 +29,30 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class NoticeFiles {
+public class NoticeFile {
 
 	@Id
-	@Column(name="ID")
+	@Column(name="notice_file_id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int id;
+	private Long noticeFileId;
 	
-	@Column(name="ORIGIN_NAME", nullable=false, length=255)
-	private String originName;
+	@Column(name="origin_name", nullable=false, length=255)
+	private String originName;      // 원본 파일명
 	
-	@Column(name="SAVED_NAME", nullable=false, length=255)
-	private String savedName;
+	@Column(name="saved_name", nullable=false, length=255)
+	private String savedName;      // 저장된 파일명 
 	
-	@Column(name="SAVED_PATH", nullable=false, length=255)
-	private String savedPath;
+	@Column(name="saved_path", nullable=false, length=255)
+	private String savedPath;      // 저장된 경로
 	
-	@Column(name="EXTENSION", nullable=false, length=255)
-	private String extension;
+	@Column(name="extension", nullable=false, length=255)
+	private String extension;      // 확장자
 	
-	// @Column(name="NOTICE_ID", nullable=false)
+	// @Column(name="notice_id", nullable=false)
 	// private int noticeId;
 	
-	@ManyToOne
-	@JoinColumn(name="NOTICE_ID")
-	private Notice notice;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="notice_id",  nullable=false)
+	private Notice notice;    // 공지사항 식별자
 	
 }

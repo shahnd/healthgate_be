@@ -29,7 +29,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "employee")
+@Table(name = "employees")
 
 @DynamicInsert
 @DynamicUpdate
