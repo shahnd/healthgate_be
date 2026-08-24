@@ -102,4 +102,19 @@ public class WeatherService {
     public WeatherForecast getLatestForecast(LocalDateTime forecastAt, WeatherForecastLocation location) {
         return getWeatherForecastAt(latestForecastDateTimeBefore(forecastAt), location);
     }
+
+    @Transactional
+    public List<WeatherForecast> findTodayBusinessHoursForecasts(WeatherForecastLocation location) {
+        LocalDateTime start = LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0));
+        LocalDateTime end = LocalDateTime.of(LocalDate.now(), LocalTime.of(18, 0));
+
+        if (!weatherForecastRepository.existsByForecastAtBetweenAndLocation(start, end, location)) {
+            log.warn("예보가 DB에 존재하지 않습니다: " + start + ": " + end + ": " + location);
+
+            indexVilageFcst(location);
+        }
+
+        log.info(weatherForecastRepository.findAll().stream().map(forecast -> forecast.getForecastAt()).toString());
+        return weatherForecastRepository.findByForecastAtBetweenAndLocation(start, end, location);
+    }
 }
