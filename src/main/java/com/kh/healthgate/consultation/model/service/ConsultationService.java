@@ -17,19 +17,19 @@ public class ConsultationService {
 	private ConsultationDao consultationDao;
 	
 	// 예약 전체 조회
-	public List<Consultation> selectAllReservation(int year, int month) {
-		return consultationDao.selectAllReservation(year, month);
+	public List<Consultation> selectAllReservation(LocalDate startDate, LocalDate endDate) {
+		return consultationDao.selectAllReservation(startDate, endDate);
 	}
 
 	// 예약 단건 조회
-	public Consultation selectReservation(Long consultationId) {
-		return consultationDao.findByConsultationId(consultationId);
+	public Consultation selectReservation(Long id) {
+		return consultationDao.findById(id).orElse(null);
 	}
 	
 	// 예약 신청(등록)
 	// 조회
-	public Consultation reservationSelectByDate(LocalDate consultationScheduledDate) {
-		return consultationDao.findByConsultationScheduledDate(consultationScheduledDate);
+	public List<Consultation> reservationSelectByDate(LocalDate scheduledDate) {
+		return consultationDao.reservationSelectByDate(scheduledDate);
 	}
 	
 	// 등록
@@ -46,8 +46,8 @@ public class ConsultationService {
 	
 	// 예약 취소
 	@Transactional
-	public int deleteReservation(Long consultationId) {
-		return consultationDao.deleteReservation(consultationId);
+	public int deleteReservation(Long id) {
+		return consultationDao.deleteReservation(id);
 	}
 	
 	// ================================================================ 

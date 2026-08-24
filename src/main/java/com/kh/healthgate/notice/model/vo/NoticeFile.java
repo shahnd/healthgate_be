@@ -19,7 +19,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="notice_file")
+@Table(name="notice_files")
 
 @DynamicInsert
 @DynamicUpdate

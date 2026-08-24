@@ -19,34 +19,40 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	 	권한 유무 상관 없이 전체 조회 (FE 에서 권한에 따라 구분할 예정)
 	 	SELECT *
 	 	  FROM CONSULTATIONS
-	 	 WHERE YEAR(CONSULTATION_SCHEDULED_DATE) = ?
-	 	   AND MONTH(CONSULTATION_SCHEDULED_DATE) = ?
-	 	 ORDER BY CONSULTATION_SCHEDULED_DATE DESC,
-	 	 		  CONSULTATION_SCHEDULED_TURN ASC
+	 	 WHERE YEAR(SCHEDULED_DATE) = ?
+	 	   AND MONTH(SCHEDULED_DATE) = ?
+	 	 ORDER BY SCHEDULED_DATE DESC,
+	 	 		  SCHEDULED_TURN ASC
 	 */
 	@Query("""
 				SELECT c
 				  FROM Consultation c
-				 WHERE YEAR(consultationScheduledDate) = :year
-				   AND MONTH(consultationScheduledDate) = :month
-				 ORDER BY c.consultationScheduledDate DESC,
-						  c.consultationScheduledTurn ASC
+				 WHERE c.scheduledDate >= :startDate
+				   AND c.scheduledDate < :endDate
+				   AND c.status != 'CANCELED'
+				 ORDER BY c.scheduledDate DESC,
+						  c.scheduledTurn ASC
 			""")
-	List<Consultation> selectAllReservation(@Param("year") int year, @Param("month") int month);
+	List<Consultation> selectAllReservation(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 	
 	
 	// 예약 신청
 	// 신청 가능 차시 조회
 	// > 예약일자 + 예약순번 일치하는 행이 없을 때
 	//	 또는 예약일자 일치, 예약순번 일치, 스테이터스 = EXCEL 일때
-	Consultation findByConsultationScheduledDate(LocalDate consultationScheduledDate);
+
+	@Query("""
+			SELECT c
+			  FROM Consultation c
+			 WHERE c.scheduledDate = :scheduledDate
+			   AND c.status != 'CANCELED'
+			""")
+	List<Consultation> reservationSelectByDate(@Param("scheduledDate") LocalDate scheduledDate);
 	
 	
 	
 	// 예약 단건 조회
-	// > CONSULTATION_ID 일치
-	Consultation findByConsultationId(Long consultationId);
-	
+	// > findById	
 	
 	// 예약 수정
 	// > 예약신청조건 동일
@@ -57,11 +63,11 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	@Modifying
 	@Query("""
 			UPDATE Consultation c 
-			   SET c.consultationStatus = 'CANCELED'
-			 WHERE c.consultationId = :consultationId
-			   AND c.consultationStatus = 'RESERVED'
+			   SET c.status = 'CANCELED'
+			 WHERE c.id = :id
+			   AND c.status = 'RESERVED'
 			""")
-	int deleteReservation(@Param("consultationId") Long consultationId);
+	int deleteReservation(@Param("id") Long id);
 
 
 	
@@ -75,8 +81,8 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	@Query("""
 			SELECT c
 			  FROM Consultation c
-			 ORDER BY c.consultationScheduledDate DESC
-				 	, c.consultationScheduledTurn DESC
+			 ORDER BY c.scheduledDate DESC
+				 	, c.scheduledTurn DESC
 			""")
 	List<Consultation> selectAllConsultation();
 
