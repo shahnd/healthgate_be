@@ -76,22 +76,26 @@ public class WeatherServiceTest {
                 WeatherForecastSkyCondition.CLOUDY,
                 WeatherForecastLocation.YEOKSAM1);
 
+        // DB에 없음
         when(weatherForecastRepository.existsByForecastAt(forecastAt)).thenReturn(false);
+
+        // 서비스가 인덱싱한 이후에는 예상되는 값 반환
         when(weatherForecastRepository.findByForecastAt(forecastAt)).thenReturn(Optional.of(expected));
 
         // when
         weatherService.getWeatherForecastAt(forecastAt, location);
 
         // then
-
+        // DB에 저장된 값 캡처
         verify(weatherForecastRepository)
                 .saveAll(forecastListCaptor.capture());
 
         WeatherForecast actual = forecastListCaptor.getValue().getFirst();
 
+        // DB에 저장된 값은 예상과 같아야 함
         assertThat(actual)
                 .usingRecursiveComparison()
-                .ignoringFields("createdAt")
+                .ignoringFields("createdAt") // createdAt 필드는 제외
                 .isEqualTo(expected);
     }
 }
