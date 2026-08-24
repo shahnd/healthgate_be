@@ -90,10 +90,6 @@ public class WeatherService {
         if (!weatherForecastRepository.existsByForecastAtAndLocation(forecastAt, location)) {
             log.warn("예보가 DB에 존재하지 않습니다: " + forecastAt + ": " + location);
 
-            if (!isValidForecastDateTime(forecastAt)) {
-                throw new WeatherForecastException("해당 일시의 예보는 불러올 수 없습니다: " + forecastAt);
-            }
-
             indexVilageFcst(location);
         }
 
