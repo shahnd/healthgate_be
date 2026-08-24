@@ -1,10 +1,23 @@
 package com.kh.healthgate.employee.model.vo;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +25,11 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "employees") // 실제 DB 테이블명과 매칭
+@Table(name = "employee")
+
+@DynamicInsert
+@DynamicUpdate
+
 @NoArgsConstructor
 @Getter
 @Setter
@@ -20,10 +37,51 @@ import lombok.ToString;
 public class Employee {
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id", nullable=false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 식별자 (필수)
+    private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name; // 상담 내용 매핑 시 직원 이름(item.employee.name)을 쓰기 때문에 name은 필수로 있어야 합니다!
+    @Column(name = "employee_number", nullable = false, length = 100, unique = true)
+    private String employeeNumber;
+
+    @Column(name = "password", nullable = false, length = 100)
+    private String password;
+
+    @Column(name = "name", nullable = false, length = 20)
+    private String name;
+
+    @Column(name = "hire_date")
+    private LocalDate hireDate;
+
+    @Column(name = "email", length = 100)
+    private String email;
+
+    @Column(name = "phone", length = 13)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private role role;
+
+    @Column(name = "status", length = 1)
+    private String status = "Y";
+
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="department_id")
+    private Departments departments;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
+    private Positions positions;
+
+
+    public void changeStatusToInactive() {
+        this.status = "N";
+    }
 }

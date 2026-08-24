@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	
+    <!-- 1. 콘솔 출력 설정-->
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+            <charset>UTF-8</charset>
+			<pattern>%-5level: %logger - %msg %d{yyyy-MM-dd HH:mm:ss} %n</pattern>
+		</encoder>
+	</appender>
+	
+    <!-- 2. 단일 파일 출력 설정
+	<appender name="fileout" class="ch.qos.logback.core.FileAppender">
+		
+		<file>log.out</file>
+		
+		<append>true</append>
+		
+		<encoder>
+			<pattern>%-5level: %logger - %msg %d{yyyy-MM-dd HH:mm:ss} %n</pattern>
+		</encoder>
+	</appender> -->
+	
+    <!-- 3. 일별 롤링 파일 출력 설정
+	<appender name="daily" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		
+		<file>C:/mylog/daily.log</file>
+		
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>C:/mylog/daily_%d{yyyyMMdd}.log</fileNamePattern>
+			
+			<maxHistory>30</maxHistory>
+			
+		</rollingPolicy>
+		
+		<encoder>
+			<pattern>%-5level: %logger - %msg %d{yyyy-MM-dd HH:mm:ss} %n</pattern>
+		</encoder>
+	</appender> -->
+	
+	<!-- -->
+	<logger name="com.kh.healthgate" level="debug" />
+
+    <root level="info">
+        <appender-ref ref="console" />
+    </root>
+
+</configuration>
+
+
+
+
+
+
+
+
+
