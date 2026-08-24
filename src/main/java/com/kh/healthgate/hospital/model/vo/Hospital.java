@@ -18,7 +18,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="hospital")
+@Table(name="hospitals")
 
 @DynamicInsert
 @DynamicUpdate

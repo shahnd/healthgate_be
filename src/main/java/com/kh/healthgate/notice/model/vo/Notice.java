@@ -23,7 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name="notice")
+@Table(name="notices")
 
 @DynamicInsert
 @DynamicUpdate
