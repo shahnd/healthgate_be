@@ -12,18 +12,23 @@ import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.kh.healthgate.safety.ai.dao.VectorStoreRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class EtlPipeline {
     private final VectorStore vectorStore;
     private final VectorStoreRepository vectorStoreRepository;
+    private final FilterExpressionBuilder b = new FilterExpressionBuilder();
+
     private Resource resource;
     private List<Document> documents;
 
@@ -40,6 +45,30 @@ public class EtlPipeline {
                 document.getText(),
                 metadata);
     };
+
+    private static final String SOURCE_CHUNK_COUNT = "source_chunk_count";
+    private final Function<Document, Document> addSourceChunkCountToMetadata = document -> {
+        Map<String, Object> metadata = document.getMetadata();
+        metadata.put(SOURCE_CHUNK_COUNT, documents.size());
+        return new Document(
+                document.getId(),
+                document.getText(),
+                metadata);
+    };
+
+    private void clean(String fileName) {
+        if (!vectorStoreRepository.existsByFileName(fileName)) {
+            return;
+        }
+
+        List<Document> documents = vectorStoreRepository.findByFileName(fileName);
+        int indexed = documents.size();
+        int total = (int) documents.getFirst().getMetadata().get(SOURCE_CHUNK_COUNT);
+        if (indexed != total) {
+            log.warn("clean partially indexed document");
+            vectorStore.delete(b.eq("file_name", fileName).build());
+        }
+    }
 
     public EtlPipeline extract(Resource resource) {
         DocumentReader reader = new PagePdfDocumentReader(resource, PdfDocumentReaderConfig.builder()
@@ -62,12 +91,15 @@ public class EtlPipeline {
         this.documents = transformer.apply(documents).stream()
                 .map(normalizeSpace)
                 .map(addIdToMetadata)
+                .map(addSourceChunkCountToMetadata)
                 .toList();
         return this;
     }
 
     public List<Document> load() {
         String fileName = resource.getFilename();
+
+        clean(fileName);
 
         if (vectorStoreRepository.existsByFileName(fileName)) {
             throw new RuntimeException("이미 인덱싱된 파일입니다: " + fileName);
