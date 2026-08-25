@@ -75,10 +75,7 @@ public class WeatherService {
 
         weatherForecastRepository.saveAll(forecasts);
 
-        log.info("forecast indexed:");
-        forecasts.stream().forEach((forecast) -> {
-            log.info(forecast.toString());
-        });
+        log.info("forecast indexed");
     }
 
     @Transactional
@@ -93,7 +90,6 @@ public class WeatherService {
             indexVilageFcst(location);
         }
 
-        log.info(weatherForecastRepository.findAll().stream().map(forecast -> forecast.getForecastAt()).toString());
         return weatherForecastRepository.findByForecastAtAndLocation(forecastAt, location)
                 .orElseThrow(() -> new WeatherForecastException(
                         "해당 예보를 불러올 수 없습니다: " + forecastAt + ": " + location.getDisplayName()));
@@ -114,7 +110,6 @@ public class WeatherService {
             indexVilageFcst(location);
         }
 
-        log.info(weatherForecastRepository.findAll().stream().map(forecast -> forecast.getForecastAt()).toString());
         return weatherForecastRepository.findByForecastAtBetweenAndLocation(start, end, location);
     }
 }
