@@ -27,6 +27,20 @@ public class EtlPipeline {
     private Resource resource;
     private List<Document> documents;
 
+    private final Function<Document, Document> normalizeSpace = document -> new Document(
+            document.getId(),
+            document.getText().strip().replaceAll("\\s+", " "),
+            document.getMetadata());
+
+    private final Function<Document, Document> addIdToMetadata = document -> {
+        Map<String, Object> metadata = document.getMetadata();
+        metadata.put("id", document.getId());
+        return new Document(
+                document.getId(),
+                document.getText(),
+                metadata);
+    };
+
     public EtlPipeline extract(Resource resource) {
         DocumentReader reader = new PagePdfDocumentReader(resource, PdfDocumentReaderConfig.builder()
                 .withPageTopMargin(0)
@@ -44,20 +58,6 @@ public class EtlPipeline {
     public EtlPipeline transform() {
         DocumentTransformer transformer = TokenTextSplitter.builder()
                 .build();
-
-        Function<Document, Document> normalizeSpace = document -> new Document(
-                document.getId(),
-                document.getText().strip().replaceAll("\\s+", " "),
-                document.getMetadata());
-
-        Function<Document, Document> addIdToMetadata = document -> {
-            Map<String, Object> metadata = document.getMetadata();
-            metadata.put("id", document.getId());
-            return new Document(
-                    document.getId(),
-                    document.getText(),
-                    metadata);
-        };
 
         this.documents = transformer.apply(documents).stream()
                 .map(normalizeSpace)
