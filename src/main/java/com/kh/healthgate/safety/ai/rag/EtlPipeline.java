@@ -16,6 +16,7 @@ import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import com.google.genai.errors.ClientException;
 import com.kh.healthgate.safety.ai.dao.VectorStoreRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -105,7 +106,28 @@ public class EtlPipeline {
             throw new RuntimeException("이미 인덱싱된 파일입니다: " + fileName);
         }
 
-        vectorStore.add(documents);
+        try {
+            for (Document document : documents) {
+                while (true) {
+                    try {
+                        Thread.sleep(100);
+                        vectorStore.add(List.of(document));
+                        break;
+                    } catch (ClientException ex) {
+                        if (ex.code() == 429) { // Rate Limit으로 인한 429 Too Many Requests 발생 시
+                            log.warn("429 Too Many Requests");
+                            Thread.sleep(1000 * 60); // 1분 대기
+                        } else {
+                            throw ex;
+                        }
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+
         return documents;
     }
 
