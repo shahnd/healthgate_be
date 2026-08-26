@@ -81,10 +81,14 @@ public interface ConsultationDao extends JpaRepository<Consultation, Long>{
 	@Query("""
 			SELECT c
 			  FROM Consultation c
+			 WHERE c.status != 'CANCELED'
+			   AND c.scheduledDate >= :startDate
+			   AND c.scheduledDate < :endDate
 			 ORDER BY c.scheduledDate DESC
 				 	, c.scheduledTurn DESC
 			""")
-	List<Consultation> selectAllConsultation();
+	List<Consultation> selectAllConsultation(@Param("startDate") LocalDate startMonth,
+											 @Param("endDate")LocalDate endMonth);
 
 
 	
