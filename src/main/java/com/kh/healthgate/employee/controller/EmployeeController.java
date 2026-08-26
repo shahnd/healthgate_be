@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.healthgate.common.model.vo.ApiResponse;
 import com.kh.healthgate.employee.model.service.EmployeeService;
 import com.kh.healthgate.employee.model.vo.Departments;
+import com.kh.healthgate.employee.model.vo.EmpListResponse;
 import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.employee.model.vo.Positions;
 import com.kh.healthgate.employee.model.vo.role;
@@ -47,12 +49,15 @@ public class EmployeeController {
     public record EmpSearchCondition(
         String employeeNumber,
         String name,
-        Integer departmentId,
-        Integer positionId
+        Long departmentId,
+        Long positionId,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate searchDate,
+        String status
     ) {}
 
     @GetMapping("/employees")
-    public ResponseEntity<ApiResponse<Page<Employee>>> selectEmployeeList(
+    public ResponseEntity<ApiResponse<Page<EmpListResponse>>> selectEmployeeList(
         @ModelAttribute EmpSearchCondition condition,
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int size
@@ -60,7 +65,7 @@ public class EmployeeController {
 
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Employee> list = employeeService.selectEmployeeList(pageable, condition);
+        Page<EmpListResponse> list = employeeService.selectEmployeeList(pageable, condition);
 
         return ResponseEntity.ok(ApiResponse.success(list));
     }
