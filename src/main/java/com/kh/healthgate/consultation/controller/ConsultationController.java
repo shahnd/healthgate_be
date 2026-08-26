@@ -1,5 +1,7 @@
 package com.kh.healthgate.consultation.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,19 +18,33 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.healthgate.auth.controller.AuthController;
 import com.kh.healthgate.consultation.model.service.ConsultationService;
 import com.kh.healthgate.consultation.model.vo.Consultation;
+import com.kh.healthgate.employee.model.service.EmployeeService;
+import com.kh.healthgate.employee.model.vo.Employee;
+import com.kh.healthgate.employee.model.vo.role;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 
 @CrossOrigin
 @RestController
 @RequestMapping("consultation")
 public class ConsultationController {
 
+//	@Value("${jwt.secret}")
+//	private String secretKey;
+	
 	@Autowired
 	private ConsultationService consultationService;
+	
+	@Autowired
+	private EmployeeService employeeService;
 	
 	// 예약 전체 조회(캘린더 형식, 선택된 월별)
 	@GetMapping("reservations/list")
@@ -136,10 +152,39 @@ public class ConsultationController {
 	
 	// 상담 전체 조회 (리스트 형식)
 	@GetMapping("consultations/list")
-	public ResponseEntity<List<Consultation>> selectAllConsultation() {
+	public ResponseEntity<List<Consultation>> selectAllConsultation(@RequestParam String startMonth,
+																	@RequestParam String endMonth,
+																	HttpServletRequest request) {
+		// 로그인 정보 추출
+		String authHeader = request.getHeader("Authorization");
+		String jwtTokenString = authHeader.substring(7);
+		
+		Key key = Keys.hmacShaKeyFor(AuthController.SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+		
+		Claims claims = Jwts.parserBuilder()
+							.setSigningKey(key)
+							.build()
+							.parseClaimsJws(jwtTokenString)
+							.getBody();
+		
+		Long userId = claims.get("id", Long.class);
+
+		Employee e = employeeService.selectEmployee(userId);
+
+
+		// 페이지네이션
+		
+		// 'YYYY-MM' -> LocalDate
+		LocalDate startDate = LocalDate.parse(startMonth + "-01");
+		LocalDate endDate = LocalDate.parse(endMonth + "-01").plusMonths(1);
 		
 		// 조회
-		List<Consultation> list = consultationService.selectAllConsultation();
+		List<Consultation> list = consultationService.selectAllConsultation(startDate, endDate);
+		
+		// 권한 검증
+		if (!role.HEALTH_ADMIN.equals(e.getRole())) {
+			list = list.stream().filter(item -> item.getEmployee().getId().equals(userId)).toList();
+		}
 		
 		// 결과 반환
 		return ResponseEntity.status(HttpStatus.OK)
@@ -149,10 +194,33 @@ public class ConsultationController {
 	
 	// 상담 단건 조회
 	@GetMapping("consultations/detail/{id}")
-	public ResponseEntity<Consultation> selectConsultation(@PathVariable Long id) {
+	public ResponseEntity<Consultation> selectConsultation(@PathVariable Long id,
+														   HttpServletRequest request) {
+		// 로그인 정보 추출
+		String authHeader = request.getHeader("Authorization");
+		String jwtTokenString = authHeader.substring(7);
+		
+		Key key = Keys.hmacShaKeyFor(AuthController.SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+		
+		Claims claims = Jwts.parserBuilder()
+		.setSigningKey(key)
+		.build()
+		.parseClaimsJws(jwtTokenString)
+		.getBody();
+		
+		Long userId = claims.get("id", Long.class);
+		
+		Employee e = employeeService.selectEmployee(userId);
 		
 		// 예약번호와 일치한 행 조회
 		Consultation c = consultationService.selectReservation(id);
+		
+		// 권한 검증
+		if (!role.HEALTH_ADMIN.equals(e.getRole())) {
+			if(c == null || c.getEmployee() == null || !c.getEmployee().getId().equals(userId))
+				return ResponseEntity.status(HttpStatus.FORBIDDEN) // FORBIDDEN : 권한 없음
+									 .build();
+		}
 		
 		// 결과 반환
 		return ResponseEntity.status(HttpStatus.OK)
@@ -162,7 +230,33 @@ public class ConsultationController {
 	
 	// 상담 일지 작성/수정
 	@PutMapping("consultations/{id}")
-	public ResponseEntity<String> saveConsultation(@PathVariable Long id, @RequestBody Consultation c) {
+	public ResponseEntity<String> saveConsultation(@PathVariable Long id,
+												   @RequestBody Consultation c,
+												   HttpServletRequest request) {
+		// 로그인 정보 추출
+		String authHeader = request.getHeader("Authorization");
+		String jwtTokenString = authHeader.substring(7);
+		
+		Key key = Keys.hmacShaKeyFor(AuthController.SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+		
+		Claims claims = Jwts.parserBuilder()
+							.setSigningKey(key)
+							.build()
+							.parseClaimsJws(jwtTokenString)
+							.getBody();
+		
+		Long userId = claims.get("id", Long.class);
+
+		Employee e = employeeService.selectEmployee(userId);
+		c.setManager(e);
+		c.setId(id);
+		
+		// 권한 검증
+		if (!role.HEALTH_ADMIN.equals(e.getRole())) {
+			if(c == null || c.getEmployee() == null || !c.getEmployee().getId().equals(userId))
+				return ResponseEntity.status(HttpStatus.FORBIDDEN) // FORBIDDEN : 권한 없음
+									 .build();
+		}
 		
 		// 상담 내용 XSS 방어
 		
