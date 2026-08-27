@@ -16,4 +16,6 @@ import lombok.Setter;
 @Setter
 public class AiProperties {
     private String vectorStoreFilePath;
+    private String pipelineVersion = "pdf-page-v1";
+    private String embeddingModel = "google-genai-embedding";
 }

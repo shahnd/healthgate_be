@@ -30,10 +30,10 @@ public class VectorStoreConfiguration {
      * PersistentSimpleVectorStore
      * 개발용 임시 VectorStore
      */
-    public class PersistentSimpleVectorStore extends SimpleVectorStore {
+    private class PersistentSimpleVectorStore extends SimpleVectorStore {
         private final File file;
 
-        public PersistentSimpleVectorStore(
+        private PersistentSimpleVectorStore(
                 EmbeddingModel embeddingModel,
                 File file) {
             super(SimpleVectorStore.builder(embeddingModel));
