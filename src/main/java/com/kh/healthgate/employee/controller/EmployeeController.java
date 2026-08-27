@@ -30,6 +30,8 @@ import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.employee.model.vo.Positions;
 import com.kh.healthgate.employee.model.vo.role;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 
 @CrossOrigin
 @RestController
@@ -54,6 +56,11 @@ public class EmployeeController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate searchDate,
         String status
+    ) {}
+
+    public record PasswordUpdateRequest(
+        String currentPassword,
+        String newPassword
     ) {}
 
     @GetMapping("/employees")
@@ -98,6 +105,15 @@ public class EmployeeController {
         Employee resultEmp = employeeService.updateEmployee(employee);
 
         return ResponseEntity.ok(ApiResponse.successWithNoData(null));
+    }
+
+    @PutMapping("/employees/me/password")
+    public ResponseEntity<ApiResponse<Void>> updatePassword(HttpServletRequest request, @RequestBody PasswordUpdateRequest passwordReq) {
+        
+        Long userId = (Long)request.getAttribute("empId");
+        employeeService.updatePassword(userId, passwordReq.currentPassword(), passwordReq.newPassword());
+
+        return ResponseEntity.ok(ApiResponse.successWithNoData("success"));
     }
 
     @DeleteMapping("/employees/{id}")
