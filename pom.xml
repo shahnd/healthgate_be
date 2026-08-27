@@ -53,6 +53,10 @@
             4. spring-ai-rag: RAG 코어 모듈
             5. spring-ai-pdf-document-reader: RAG PDF Reader
 
+            공통 유틸리티
+
+            1. Apache Commons Codec: 안전 브리핑 컨텍스트의 SHA-256 지문 생성
+
             개발용 라이브러리
 
             1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
@@ -143,6 +147,12 @@
 	        <artifactId>spring-boot-configuration-processor</artifactId>
 	        <scope>compile</scope>
 	    </dependency>
+
+		<!-- 안전 브리핑 컨텍스트의 SHA-256 지문 생성 -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
 
 	    <dependency>
             <groupId>org.springframework.ai</groupId>
