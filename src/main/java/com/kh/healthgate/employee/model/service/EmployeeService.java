@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kh.healthgate.employee.controller.EmployeeController.EmpSearchCondition;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EmployeeService {
 
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final DepartmentsDao departmentsDao;
     private final PositionsDao positionsDao;
     private final EmployeeDao employeeDao;
@@ -63,6 +65,20 @@ public class EmployeeService {
     
     public List<Positions> selectPositionsList() {
         return positionsDao.findAll();
+    }
+
+    @Transactional
+    public void updatePassword(Long userId, String currentPassword, String newPassword) {
+
+        Employee employee = employeeDao.findById(userId).orElse(null);
+
+        if (!bCryptPasswordEncoder.matches(currentPassword, employee.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        String encodedPwd = bCryptPasswordEncoder.encode(newPassword);
+        employee.setPassword(encodedPwd);
+        employeeDao.save(employee);
     }
 
 
