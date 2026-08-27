@@ -1,6 +1,9 @@
 package com.kh.healthgate.biometric.model.service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +15,6 @@ import com.kh.healthgate.biometric.model.dao.BiometricsDao;
 import com.kh.healthgate.biometric.model.vo.Biometrics;
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
 import com.kh.healthgate.employee.model.vo.Employee;
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -28,8 +30,8 @@ public class BiometricsService {
     private AttendanceService attendanceService;
 
 
-    public List<Biometrics> selectBiometricsList(Long employeeId) {
-        return biometricsDao.findByEmployeeId(employeeId);
+    public List<Biometrics> selectBiometricsList(Long employeeId, LocalDateTime startDate, LocalDateTime endDate) {
+        return biometricsDao.findDailyLastByEmployeeIdAndDateRange(employeeId, startDate, endDate);
     }
 
 
