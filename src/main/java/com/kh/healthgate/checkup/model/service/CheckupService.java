@@ -137,7 +137,7 @@ public class CheckupService {
      *
      * 첫 번째 행은 제목 행이므로 처리하지 않는다.
      */
-    @Transactional
+    
     public CheckupExcelUploadResponse uploadCheckupExcel(
             MultipartFile file) {
 
@@ -179,9 +179,16 @@ public class CheckupService {
                     );
 
                 } catch (Exception e) {
+
+                    // STS 콘솔에서 실제 오류 원인을 확인하기 위한 출력
+                    e.printStackTrace();
+
                     errors.add(
                             excelRowNumber
-                            + "행: 데이터를 처리하는 중 오류가 발생했습니다."
+                            + "행: "
+                            + e.getClass().getSimpleName()
+                            + " - "
+                            + e.getMessage()
                     );
                 }
             }

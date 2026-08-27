@@ -59,6 +59,8 @@ public class BiometricsService {
 
         if (riskLevel.equals("HIGH")) {
             attendanceService.insertAttendance("DENY", employee.getId());
+        } else if (riskLevel.equals("WARN")) {
+            attendanceService.insertAttendance("WARNING", employee.getId());
         } else {
             attendanceService.insertAttendance("ATTENDANCE", employee.getId());
         }

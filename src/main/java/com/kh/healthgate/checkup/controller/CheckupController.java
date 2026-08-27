@@ -1,8 +1,13 @@
 package com.kh.healthgate.checkup.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +29,7 @@ import com.kh.healthgate.checkup.model.dto.ReminderResponse;
 import com.kh.healthgate.checkup.model.dto.ReminderSettingRequest;
 import com.kh.healthgate.checkup.model.dto.ReminderSettingResponse;
 import com.kh.healthgate.checkup.model.service.CheckupService;
+import com.kh.healthgate.checkup.model.service.CheckupReminderLogService;
 
 /**
  * 건강검진 관련 API 요청을 처리하는 Controller
@@ -35,6 +41,8 @@ public class CheckupController {
 
     @Autowired
     private CheckupService checkupService;
+    @Autowired
+    private CheckupReminderLogService checkupReminderLogService;
 
     /**
      * 연도별 건강검진 완료율 통계 조회
@@ -178,4 +186,62 @@ public class CheckupController {
 
         return ResponseEntity.ok(historyList);
     }
+    
+    /**
+     * 건강검진 알림 발송 이력 Excel 다운로드
+     *
+     * GET /healthgate/checkups/reminders/history/excel
+     */
+    @GetMapping("/reminders/history/excel")
+    public ResponseEntity<byte[]> downloadReminderHistoryExcel(
+            @RequestParam(
+                value = "channel",
+                required = false
+            ) String channel,
+
+            @RequestParam(
+                value = "manual",
+                required = false
+            ) Boolean manual) {
+
+        byte[] excelData =
+                checkupReminderLogService
+                        .downloadReminderHistoryExcel(
+                                channel,
+                                manual
+                        );
+
+        String downloadDate =
+                LocalDate.now().format(
+                        DateTimeFormatter.BASIC_ISO_DATE
+                );
+
+        String fileName =
+                "건강검진_알림발송이력_"
+                + downloadDate
+                + ".xlsx";
+
+        ContentDisposition contentDisposition =
+                ContentDisposition
+                        .attachment()
+                        .filename(
+                                fileName,
+                                StandardCharsets.UTF_8
+                        )
+                        .build();
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        contentDisposition.toString()
+                )
+                .contentType(
+                        MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                )
+                .contentLength(excelData.length)
+                .body(excelData);
+    }
+    
 }

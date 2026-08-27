@@ -8,6 +8,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import com.kh.healthgate.employee.model.vo.Employee;
 
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -80,4 +81,15 @@ public class Checkup {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+    
+    /**
+     * 건강검진 기록이 처음 저장될 때 생성 일시를 자동 입력한다.
+     */
+    @PrePersist
+    public void prePersist() {
+
+        if (this.checkupCreatedAt == null) {
+            this.checkupCreatedAt = LocalDateTime.now();
+        }
+    }
 }
