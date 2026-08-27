@@ -16,31 +16,35 @@ public interface HospitalDao extends JpaRepository<Hospital,Long>{
 	@Query("""
 		    SELECT h 
 		    FROM Hospital h
-		    WHERE (:name IS NULL OR :name = '' OR h.name LIKE CONCAT('%', :name, '%'))
-		      AND (:address IS NULL OR :address = '' OR h.address LIKE CONCAT('%', :address, '%'))
-		      AND (:isGeneralExamAvailable IS NULL OR h.isGeneralExamAvailable = :isGeneralExamAvailable)
-		      AND (:isStomachCancerExamAvailable IS NULL OR h.isStomachCancerExamAvailable = :isStomachCancerExamAvailable)
-		      AND (:isColonCancerExamAvailable IS NULL OR h.isColonCancerExamAvailable = :isColonCancerExamAvailable)
-		      AND (:isLiverCancerExamAvailable IS NULL OR h.isLiverCancerExamAvailable =:isLiverCancerExamAvailable)
-		      AND (:isLungCancerExamAvailable IS NULL OR h.isLungCancerExamAvailable = :isLungCancerExamAvailable)
+		    WHERE (:keywordName IS NULL OR :keywordName = '' OR h.name LIKE CONCAT('%', :keywordName, '%'))
+		      AND (:keywordAddress IS NULL OR :keywordAddress = '' OR h.address LIKE CONCAT('%', :keywordAddress, '%'))
+		      AND (:isGeneral IS NULL OR :isGeneral = false OR h.isGeneralExamAvailable = :isGeneral)
+		      AND (:isStomachCancer IS NULL OR :isStomachCancer = false OR h.isStomachCancerExamAvailable = :isStomachCancer)
+		      AND (:isColonCancer IS NULL OR :isColonCancer = false OR h.isColonCancerExamAvailable = :isColonCancer)
+		      AND (:isLiverCancer IS NULL OR :isLiverCancer = false OR h.isLiverCancerExamAvailable =:isLiverCancer)
+		      AND (:isLungCancer IS NULL OR :isLungCancer = false OR h.isLungCancerExamAvailable = :isLungCancer)
+		      AND h.status = 'Y'
 		    ORDER BY h.hospitalId DESC
 		""")
 		Page<Hospital> selectSearchList(
-		    @Param("name") String name,
-		    @Param("address") String address,
-		    @Param("isGeneralExamAvailable") Boolean isGeneralExamAvailable,
-		    @Param("isStomachCancerExamAvailable") Boolean isStomachCancerExamAvailable,
-		    @Param("isColonCancerExamAvailable") Boolean isColonCancerExamAvailable,
-		    @Param("isLiverCancerExamAvailable") Boolean isLiverCancerExamAvailable,
-		    @Param("isLungCancerExamAvailable") Boolean isLungCancerExamAvailable,
+		    @Param("keywordName") String keywordName,
+		    @Param("keywordAddress") String keywordAddress,
+		    @Param("isGeneral") Boolean isGeneral,
+		    @Param("isStomachCancer") Boolean isStomachCancer,
+		    @Param("isColonCancer") Boolean isColonCancer,
+		    @Param("isLiverCancer") Boolean isLiverCancer,
+		    @Param("isLungCancer") Boolean isLungCancer,
+		    String status,
 		    Pageable pageable 
 		);
 	
     // 건강검진 병원 삭제 
 	@Modifying
 	@Query("""
-			  DELETE Hospital h
-			     WHERE h.hospitalId = :hospitalId
+			  UPDATE Hospital h
+			     SET h.status = 'N'
+			   WHERE h.hospitalId = :hospitalId
+			     AND h.status = 'Y'
 		   """)
 	int deleteHospital(@Param("hospitalId") Long hospitalId);
 }
