@@ -101,8 +101,15 @@ public class WeatherService {
 
     @Transactional
     public List<WeatherForecast> findTodayBusinessHoursForecasts(WeatherForecastLocation location) {
-        LocalDateTime start = LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0));
-        LocalDateTime end = LocalDateTime.of(LocalDate.now(), LocalTime.of(18, 0));
+        return findBusinessHoursForecasts(LocalDate.now(), location);
+    }
+
+    @Transactional
+    public List<WeatherForecast> findBusinessHoursForecasts(
+            LocalDate forecastDate,
+            WeatherForecastLocation location) {
+        LocalDateTime start = LocalDateTime.of(forecastDate, LocalTime.of(9, 0));
+        LocalDateTime end = LocalDateTime.of(forecastDate, LocalTime.of(18, 0));
 
         if (!weatherForecastRepository.existsByForecastAtBetweenAndLocation(start, end, location)) {
             log.warn("예보가 DB에 존재하지 않습니다: " + start + ": " + end + ": " + location);

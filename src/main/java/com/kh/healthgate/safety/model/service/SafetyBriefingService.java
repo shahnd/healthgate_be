@@ -1,0 +1,54 @@
+package com.kh.healthgate.safety.model.service;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.kh.healthgate.opendata.weather.model.service.WeatherService;
+import com.kh.healthgate.opendata.weather.model.vo.WeatherForecast;
+import com.kh.healthgate.opendata.weather.model.vo.WeatherForecastLocation;
+import com.kh.healthgate.safety.ai.rag.SafetyBriefingGenerator;
+import com.kh.healthgate.safety.model.dao.SafetyBriefingRepository;
+import com.kh.healthgate.safety.model.dto.SafetyBriefingResponse;
+import com.kh.healthgate.safety.model.vo.SafetyBriefing;
+import com.kh.healthgate.safety.model.vo.SafetyBriefingContext;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class SafetyBriefingService {
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+
+    private final SafetyBriefingGenerator generator;
+    private final WeatherService weatherService;
+    private final SafetyBriefingRepository safetyBriefingRepository;
+
+    public SafetyBriefingResponse getTodayBriefing() {
+        LocalDate briefingDate = LocalDate.now(SEOUL);
+        WeatherForecastLocation location = WeatherForecastLocation.YEOKSAM1;
+        List<WeatherForecast> forecasts = weatherService
+                .findBusinessHoursForecasts(briefingDate, location);
+        SafetyBriefingContext context = SafetyBriefingContext.of(briefingDate, location, forecasts);
+        String contextFingerprint = context.fingerprint();
+
+        return safetyBriefingRepository
+                .findByBriefingDateAndContextFingerprint(briefingDate, contextFingerprint)
+                .map(SafetyBriefingResponse::from)
+                .orElseGet(() -> createBriefing(context, contextFingerprint));
+    }
+
+    private SafetyBriefingResponse createBriefing(
+            SafetyBriefingContext context,
+            String contextFingerprint) {
+        String content = generator.generateSafetyBriefing(context.weatherContext());
+        SafetyBriefing briefing = safetyBriefingRepository.save(new SafetyBriefing(
+                context.briefingDate(),
+                contextFingerprint,
+                content));
+
+        return SafetyBriefingResponse.from(briefing);
+    }
+}

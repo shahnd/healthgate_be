@@ -1,7 +1,5 @@
 package com.kh.healthgate.safety.ai.rag;
 
-import java.util.List;
-
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.Builder;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -11,8 +9,6 @@ import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugment
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
-
-import com.kh.healthgate.opendata.weather.model.vo.WeatherForecast;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,11 +36,7 @@ public class SafetyBriefingGenerator {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public String generateSafetyBriefing(List<WeatherForecast> weatherForecasts) {
-        String weatherContext = weatherForecasts.stream()
-                .map(WeatherContextTransformer.toWeatherContextLine)
-                .reduce("", (s1, s2) -> s1 + "\n" + s2);
-
+    public String generateSafetyBriefing(String weatherContext) {
         String answer = chatClient
                 .prompt(
                         """

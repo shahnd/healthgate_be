@@ -1,7 +1,6 @@
 package com.kh.healthgate.safety.ai.rag;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Function;
@@ -72,11 +71,12 @@ public class WeatherContextTransformer {
                 + 0.3965 * windFactor * ta;
     }
 
-    public static Function<WeatherForecast, String> toWeatherContextLine = (WeatherForecast forecast) -> {
+    public static final Function<WeatherForecast, String> toWeatherContextLine = (WeatherForecast forecast) -> {
+        int forecastMonth = forecast.getForecastAt().getMonthValue();
         boolean isSummer = List.of(5, 6, 7, 8, 9) // 기상청 여름철 기준
-                .contains(LocalDate.now().getMonth().getValue());
+                .contains(forecastMonth);
         boolean isWinter = List.of(10, 11, 12, 1, 2, 3, 4) // 기상청 겨울철 기준
-                .contains(LocalDate.now().getMonth().getValue());
+                .contains(forecastMonth);
 
         StringBuilder sb = new StringBuilder();
 
