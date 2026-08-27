@@ -1,6 +1,8 @@
 package com.kh.healthgate.biometric.controller;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.healthgate.biometric.model.service.BiometricsService;
@@ -33,9 +36,14 @@ public class BiometricsController {
     ) {}
 
     @GetMapping("/biometrics/{employeeId}")
-    public ResponseEntity<ApiResponse<List<Biometrics>>> selectBiometricsList(@PathVariable Long employeeId) {
-        
-        List<Biometrics> list = biometricsService.selectBiometricsList(employeeId);
+    public ResponseEntity<ApiResponse<List<Biometrics>>> selectBiometricsList(
+            @PathVariable Long employeeId,
+            @RequestParam(defaultValue = "1") int months) {
+
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(months);
+
+        List<Biometrics> list = biometricsService.selectBiometricsList(employeeId, startDate, endDate);
 
         return ResponseEntity.ok(ApiResponse.success(list));
     }
@@ -43,7 +51,7 @@ public class BiometricsController {
     @PostMapping("/biometrics")
     public ResponseEntity<ApiResponse<Void>> insertBiometrics(@RequestBody BiometricsInput b) {
 
-        Biometrics biometrics = biometricsService.insertBiometrics(b);
+        biometricsService.insertBiometrics(b);
 
         return ResponseEntity.ok(ApiResponse.successWithNoData("success"));
     }
