@@ -7,13 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.healthgate.notice.model.dao.NoticeDao;
+import com.kh.healthgate.notice.model.dao.NoticeFileDao;
 import com.kh.healthgate.notice.model.vo.Notice;
+import com.kh.healthgate.notice.model.vo.NoticeFile;
 
 @Service
 public class NoticeService {
 
 	@Autowired
 	private NoticeDao noticeDao;
+	
+	@Autowired
+	private NoticeFileDao noticeFileDao;
 	
 	public Page<Notice> selectNoticeList(Pageable pageable) {
 		
@@ -42,6 +47,11 @@ public class NoticeService {
 		return noticeDao.findById(noticeId).orElse(null);
 	}
 	
+	public NoticeFile selectNoticeFile(Long noticeId) {
+	
+		return noticeFileDao.selectNoticeFile(noticeId);
+	}
+	
 	@Transactional
 	public int deleteNotice(Long noticeId) {
 		
@@ -53,5 +63,12 @@ public class NoticeService {
 		
 		return noticeDao.save(n);
 	}
+    
+	@Transactional
+	public NoticeFile updateNoticeFile(NoticeFile nf) {
+		
+		return noticeFileDao.save(nf);
+	}
+
 
 }

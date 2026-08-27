@@ -53,6 +53,6 @@ public class NoticeFile {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="notice_id",  nullable=false)
-	private Notice notice;    // 공지사항 식별자
+	private Notice notices;    // 공지사항 식별자
 	
 }

@@ -53,8 +53,8 @@ public class ConsultationService {
 	// ================================================================ 
 	
 	// 상담 전체 조회
-	public List<Consultation> selectAllConsultation() {
-		return consultationDao.selectAllConsultation();
+	public List<Consultation> selectAllConsultation(LocalDate startDate, LocalDate endDate) {
+		return consultationDao.selectAllConsultation(startDate, endDate);
 	}
 
 	// 상담 단건 조회 - selectReservation

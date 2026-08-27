@@ -77,7 +77,7 @@ public class HospitalController {
 	}
 	
 	// 공지사항 수정용 컨트롤러
-	@PutMapping("/hospitals/{hospitalId}")
+	@PutMapping("/hospitals/{hospitalId}/edit")
 	public ResponseEntity<String> updateBoard(@PathVariable Long hospitalId,
 											  Hospital h ) {
 		
@@ -104,7 +104,7 @@ public class HospitalController {
 	}
 	
 	// 검진가능 병원 등록(생성)용 컨트롤러
-	@PostMapping("/hospitals")
+	@PostMapping("/hospitals/new")
 	public ResponseEntity<String> insertHospital(Hospital h) {
 		
 		// 서비스 호출 
