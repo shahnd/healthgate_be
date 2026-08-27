@@ -222,6 +222,31 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!--
+				Java 21 이상에서 Mockito inline mock maker가 동적으로 Java Agent를
+				self-attach하지 않도록 테스트 JVM 시작 시 Mockito Agent를 명시적으로 로드한다.
+
+				maven-dependency-plugin: Mockito 의존성 JAR 경로를 Maven 속성으로 제공
+				maven-surefire-plugin: 해당 JAR을 -javaagent 옵션으로 테스트 JVM에 전달
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>properties</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
