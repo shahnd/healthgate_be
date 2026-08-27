@@ -10,6 +10,7 @@ import com.kh.healthgate.opendata.weather.model.service.WeatherService;
 import com.kh.healthgate.opendata.weather.model.vo.WeatherForecast;
 import com.kh.healthgate.opendata.weather.model.vo.WeatherForecastLocation;
 import com.kh.healthgate.safety.ai.rag.SafetyBriefingGenerator;
+import com.kh.healthgate.safety.exception.SafetyBriefingGenerationException;
 import com.kh.healthgate.safety.model.dao.SafetyBriefingRepository;
 import com.kh.healthgate.safety.model.dto.SafetyBriefingResponse;
 import com.kh.healthgate.safety.model.vo.SafetyBriefing;
@@ -43,7 +44,12 @@ public class SafetyBriefingService {
     private SafetyBriefingResponse createBriefing(
             SafetyBriefingContext context,
             String contextFingerprint) {
-        String content = generator.generateSafetyBriefing(context.weatherContext());
+        String content;
+        try {
+            content = generator.generateSafetyBriefing(context.weatherContext());
+        } catch (RuntimeException exception) {
+            throw new SafetyBriefingGenerationException(exception);
+        }
         SafetyBriefing briefing = safetyBriefingRepository.save(new SafetyBriefing(
                 context.briefingDate(),
                 contextFingerprint,
