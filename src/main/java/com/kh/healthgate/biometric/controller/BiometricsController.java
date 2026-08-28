@@ -1,5 +1,6 @@
 package com.kh.healthgate.biometric.controller;
 
+import com.kh.healthgate.biometric.model.service.RiskThresholdService;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
@@ -11,20 +12,33 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.healthgate.biometric.model.service.BiometricsService;
 import com.kh.healthgate.biometric.model.vo.Biometrics;
+import com.kh.healthgate.biometric.model.vo.RiskThresholdSettings;
 import com.kh.healthgate.common.model.vo.ApiResponse;
 
 @CrossOrigin
 @RestController
 public class BiometricsController {
 
+    public record RiskDTO(
+        Long id,
+        float value
+    ) {}
+
+    private final RiskThresholdService riskThresholdService;
+
     @Autowired
     private BiometricsService biometricsService;
+
+    BiometricsController(RiskThresholdService riskThresholdService) {
+        this.riskThresholdService = riskThresholdService;
+    }
 
     public record BiometricsInput(
         LocalDateTime measuredAt,
@@ -55,6 +69,24 @@ public class BiometricsController {
 
         return ResponseEntity.ok(ApiResponse.successWithNoData("success"));
     }
+
+    @PutMapping("/risks")
+    public ResponseEntity<ApiResponse<Void>> updateRiskThresholds(@RequestBody List<RiskDTO> requests) {
+
+        riskThresholdService.updateThreshold(requests);
+
+        return ResponseEntity.ok(ApiResponse.successWithNoData("success"));
+    }
+
+    @GetMapping("/risks")
+    public ResponseEntity<ApiResponse<List<RiskThresholdSettings>>> getRiskThresholds() {
+        List<RiskThresholdSettings> list = riskThresholdService.getRiskThresholds();
+
+        System.out.println(list);
+
+        return ResponseEntity.ok(ApiResponse.success(list));
+    }
+    
 
 
 

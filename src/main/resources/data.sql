@@ -9,6 +9,16 @@
 -- ============================================
 
 -- ------------------------------
+-- 0. risk threshold settings
+-- ------------------------------
+
+INSERT INTO risk_threshold_settings (metric_name, risk_level, value) VALUES
+('SYSTOLIC_BP', 'HIGH', 140),
+('SYSTOLIC_BP', 'WARN', 130),
+('DIASTOLIC_BP', 'HIGH', 90),
+('DIASTOLIC_BP', 'WARN', 80);
+
+-- ------------------------------
 -- 1. departments
 -- ------------------------------
 INSERT IGNORE INTO departments (id, name) VALUES (1, '인사팀');
