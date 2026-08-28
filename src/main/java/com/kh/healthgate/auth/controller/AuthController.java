@@ -51,6 +51,7 @@ public class AuthController {
                              .claim("id", loginEmp.getId())
                              .claim("name", loginEmp.getName())
                              .claim("role", loginEmp.getRole())
+                             .claim("id", loginEmp.getId())
                              .setIssuedAt(new Date(System.currentTimeMillis() + 1 * 60 * 60 * 1000))
                              .signWith(key, SignatureAlgorithm.HS256)
                              .compact();
