@@ -2,25 +2,31 @@ package com.kh.healthgate.opendata.weather.model.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.kh.healthgate.opendata.weather.WeatherApiClient;
 import com.kh.healthgate.opendata.weather.model.dao.WeatherForecastRepository;
+import com.kh.healthgate.opendata.weather.model.vo.VilageFcstRequest;
 import com.kh.healthgate.opendata.weather.model.vo.VilageFcstResponse;
 import com.kh.healthgate.opendata.weather.model.vo.WeatherForecast;
 import com.kh.healthgate.opendata.weather.model.vo.WeatherForecastLocation;
@@ -39,11 +45,18 @@ public class WeatherServiceTest {
     @Mock
     private WeatherApiClient client;
 
-    @InjectMocks
     private WeatherService weatherService;
 
     @Captor
     private ArgumentCaptor<List<WeatherForecast>> forecastListCaptor;
+
+    @BeforeEach
+    void setUp() {
+        Clock clock = Clock.fixed(
+                Instant.parse("2026-08-21T00:00:00Z"),
+                ZoneId.of("Asia/Seoul"));
+        weatherService = new WeatherService(weatherForecastRepository, client, clock);
+    }
 
     private VilageFcstResponse loadFixture(String filename) throws IOException {
 
@@ -53,6 +66,36 @@ public class WeatherServiceTest {
                 getClass()
                         .getResourceAsStream("/fixture/weather/" + filename),
                 VilageFcstResponse.class);
+    }
+
+    @Test
+    void recomputesForecastDatesForEveryIndexingRequest() throws IOException {
+        // given
+        Clock clock = mock(Clock.class);
+        ZoneId seoul = ZoneId.of("Asia/Seoul");
+        when(clock.getZone()).thenReturn(seoul);
+        when(clock.instant()).thenReturn(
+                Instant.parse("2026-08-20T15:00:00Z"),
+                Instant.parse("2026-08-21T15:00:00Z"));
+        weatherService = new WeatherService(weatherForecastRepository, client, clock);
+        when(client.getVilageFcst(any())).thenReturn(loadFixture("vilage-fcst-success.json"));
+
+        // when
+        weatherService.indexVilageFcst(WeatherForecastLocation.YEOKSAM1);
+        weatherService.indexVilageFcst(WeatherForecastLocation.YEOKSAM1);
+
+        // then
+        ArgumentCaptor<VilageFcstRequest> requestCaptor = ArgumentCaptor.forClass(VilageFcstRequest.class);
+        verify(client, times(2)).getVilageFcst(requestCaptor.capture());
+        assertThat(requestCaptor.getAllValues())
+                .extracting(VilageFcstRequest::baseDate)
+                .containsExactly("20260821", "20260822");
+
+        verify(weatherForecastRepository, times(2)).saveAll(forecastListCaptor.capture());
+        assertThat(forecastListCaptor.getAllValues().get(0).getFirst().getForecastAt())
+                .isEqualTo(LocalDateTime.of(2026, 8, 21, 9, 0));
+        assertThat(forecastListCaptor.getAllValues().get(1).getFirst().getForecastAt())
+                .isEqualTo(LocalDateTime.of(2026, 8, 22, 9, 0));
     }
 
     @Test

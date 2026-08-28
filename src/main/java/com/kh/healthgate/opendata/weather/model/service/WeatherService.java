@@ -2,6 +2,7 @@ package com.kh.healthgate.opendata.weather.model.service;
 
 import static com.kh.healthgate.opendata.weather.utils.VilageFcstDateTimeUtils.latestForecastDateTimeBefore;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,21 +33,25 @@ import lombok.extern.slf4j.Slf4j;
 public class WeatherService {
     private final WeatherForecastRepository weatherForecastRepository;
     private final WeatherApiClient client;
+    private final Clock clock;
 
     private static final Long DETAILED_DURATION_DAYS = 3L;
-    private final LocalDateTime detailedUntil = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
-            .plusDays(DETAILED_DURATION_DAYS);
 
-    private final LocalDate baseDate = LocalDate.now();
-    private final LocalTime baseTime = VilageFcstBaseTime.T3.toLocalTime();
-    private final LocalDateTime baseDateTime = LocalDateTime.of(baseDate, baseTime);
-
-    private boolean isValidForecastDateTime(LocalDateTime dateTime) {
-        return dateTime.isAfter(baseDateTime) && (dateTime.isBefore(detailedUntil) || dateTime.isEqual(detailedUntil));
+    private boolean isValidForecastDateTime(
+            LocalDateTime dateTime,
+            LocalDateTime baseDateTime,
+            LocalDateTime detailedUntil) {
+        return dateTime.isAfter(baseDateTime)
+                && (dateTime.isBefore(detailedUntil) || dateTime.isEqual(detailedUntil));
     }
 
     @Transactional
     public void indexVilageFcst(WeatherForecastLocation location) {
+        LocalDate baseDate = LocalDate.now(clock);
+        LocalTime baseTime = VilageFcstBaseTime.T3.toLocalTime();
+        LocalDateTime baseDateTime = LocalDateTime.of(baseDate, baseTime);
+        LocalDateTime detailedUntil = baseDate.atStartOfDay().plusDays(DETAILED_DURATION_DAYS);
+
         VilageFcstResponse response = client.getVilageFcst(new VilageFcstRequest(
                 1,
                 10000,
@@ -61,7 +66,7 @@ public class WeatherService {
                         .toLocalDateTime(item.fcstDate(), item.fcstTime())))
                 .entrySet().stream()
                 // 상세 데이터만 필터링
-                .filter((entry) -> isValidForecastDateTime(entry.getKey()))
+                .filter((entry) -> isValidForecastDateTime(entry.getKey(), baseDateTime, detailedUntil))
                 // 그룹을 WeatherForecast로 매핑
                 .map(entry -> WeatherForecast.of(
                         entry.getKey(),
