@@ -88,7 +88,7 @@ public class WeatherServiceTest {
         ArgumentCaptor<VilageFcstRequest> requestCaptor = ArgumentCaptor.forClass(VilageFcstRequest.class);
         verify(client, times(2)).getVilageFcst(requestCaptor.capture());
         assertThat(requestCaptor.getAllValues())
-                .extracting(VilageFcstRequest::baseDate)
+                .extracting(request -> request.baseDate())
                 .containsExactly("20260821", "20260822");
 
         verify(weatherForecastRepository, times(2)).saveAll(forecastListCaptor.capture());
