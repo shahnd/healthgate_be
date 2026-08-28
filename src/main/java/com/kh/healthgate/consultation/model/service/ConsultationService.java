@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,18 +18,22 @@ public class ConsultationService {
 	@Autowired
 	private ConsultationDao consultationDao;
 	
-	// 예약 전체 조회
-	public List<Consultation> selectAllReservation(LocalDate startDate, LocalDate endDate) {
-		return consultationDao.selectAllReservation(startDate, endDate);
+	// 전체 조회
+	public List<Consultation> selectAllConsultation(LocalDate startDate, LocalDate endDate) {
+		return consultationDao.selectAllConsultation(startDate, endDate);
 	}
-
-	// 예약 단건 조회
+	
+	public List<Consultation> selectConsultationByUserId(LocalDate startDate, LocalDate endDate, Long userId) {
+		return consultationDao.selectConsultationByUserId(startDate, endDate, userId);
+	}
+	
+	// 단건 조회
 	public Consultation selectReservation(Long id) {
 		return consultationDao.findById(id).orElse(null);
 	}
 	
-	// 예약 신청(등록)
-	// 조회
+	// 신청(등록)
+	// 등록/수정 전 기존 데이터 조회
 	public List<Consultation> reservationSelectByDate(LocalDate scheduledDate) {
 		return consultationDao.reservationSelectByDate(scheduledDate);
 	}
@@ -38,29 +44,10 @@ public class ConsultationService {
 		return consultationDao.save(c);
 	}
 	
-	
-	// 예약 수정
-	// 조회 - reservationSelectByDate
-	// 수정 - selectReservation
-	
-	
 	// 예약 취소
 	@Transactional
 	public int deleteReservation(Long id) {
 		return consultationDao.deleteReservation(id);
 	}
-	
-	// ================================================================ 
-	
-	// 상담 전체 조회
-	public List<Consultation> selectAllConsultation(LocalDate startDate, LocalDate endDate) {
-		return consultationDao.selectAllConsultation(startDate, endDate);
-	}
-
-	// 상담 단건 조회 - selectReservation
-	
-	// 상담 등록, 수정
-	// 조회 - reservationSelectByDate
-	// 등록, 수정 - saveReservation
 	
 }
