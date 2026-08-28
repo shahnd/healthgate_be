@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -67,5 +68,18 @@ public class Hospital {
 	
 	@Column(name="created_at", nullable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
+	
+	@Column(name="status", columnDefinition="CHAR(1) DEFAULT 'Y'")
+	private String status; 
+	
+	@PrePersist
+	public void prePersist() {
+	    if (this.createdAt == null) {
+	        this.createdAt = LocalDateTime.now();
+	    }
+	    if (this.status == null) {
+	        this.status = "Y";
+	    }
+	}
 
 }
