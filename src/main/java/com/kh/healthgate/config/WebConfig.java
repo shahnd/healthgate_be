@@ -7,7 +7,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.kh.healthgate.auth.config.AuthenticatedEmployeeArgumentResolver;
+import com.kh.healthgate.auth.web.AuthenticatedEmployeeArgumentResolver;
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
 
 @Configuration

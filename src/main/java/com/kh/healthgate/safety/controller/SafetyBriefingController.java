@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kh.healthgate.safety.model.dto.SafetyBriefingResponse;
-import com.kh.healthgate.safety.model.service.SafetyBriefingService;
+import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
+import com.kh.healthgate.safety.service.SafetyBriefingService;
 
 import lombok.RequiredArgsConstructor;
 

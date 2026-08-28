@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.kh.healthgate.common.exception.ApiExceptionHandler;
 import com.kh.healthgate.safety.controller.SafetyBriefingController;
-import com.kh.healthgate.safety.model.service.SafetyBriefingService;
+import com.kh.healthgate.safety.service.SafetyBriefingService;
 
 @ExtendWith(MockitoExtension.class)
 class SafetyExceptionHandlerTest {
