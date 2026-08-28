@@ -29,6 +29,9 @@ public class BiometricsService {
     @Autowired
     private AttendanceService attendanceService;
 
+    @Autowired
+    private RiskThresholdService riskThresholdService;
+
 
     public List<Biometrics> selectBiometricsList(Long employeeId, LocalDateTime startDate, LocalDateTime endDate) {
         return biometricsDao.findDailyLastByEmployeeIdAndDateRange(employeeId, startDate, endDate);
@@ -38,11 +41,16 @@ public class BiometricsService {
     @Transactional
     public Biometrics insertBiometrics(BiometricsInput b) {
 
+        float sysHigh = riskThresholdService.getThreshold("SYSTOLIC_BP", "HIGH");
+        float sysWarn = riskThresholdService.getThreshold("SYSTOLIC_BP", "WARN");
+        float diaHigh = riskThresholdService.getThreshold("DIASTOLIC_BP", "HIGH");
+        float diaWarn = riskThresholdService.getThreshold("DIASTOLIC_BP", "HIGH");
+
         //최저 혈압 수치 판정
         String riskLevel;
-        if (b.systolicBp() >= 140 || b.diastolicBp() >= 90) {
+        if (b.systolicBp() >= sysHigh || b.diastolicBp() >= diaHigh) {
             riskLevel = "HIGH";
-        } else if(b.systolicBp() >= 130 || b.diastolicBp() >= 80) {
+        } else if(b.systolicBp() >= sysWarn || b.diastolicBp() >= diaWarn) {
             riskLevel = "WARN";
         } else {
             riskLevel = "NORMAL";
