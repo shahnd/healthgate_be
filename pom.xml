@@ -40,10 +40,28 @@
 			6. Spring Security
 
 			JWT 관련 라이브러리(JDK21 호환 고려 0.11.5 버전으로 연동)
-			
+
 			1. jjwt-api
 			2. jjwt-impl
 			3. jjwt-jackson
+
+            AI 관련 라이브러리
+
+            1. Spring AI: AI 모듈
+            2. Google GenAI: Google Gemini Developer API 연동
+            3. spring-ai-starter-model-google-genai-embedding: Google Gemini Developer API embedding 모델
+            4. spring-ai-rag: RAG 코어 모듈
+            5. spring-ai-pdf-document-reader: RAG PDF Reader
+
+            공통 유틸리티
+
+            1. Apache Commons Codec: 안전 브리핑 컨텍스트의 SHA-256 지문 생성
+
+            개발용 라이브러리
+
+            1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
+            2. Spring Boot Configuration Processor: 어노테이션으로 정의된 커스텀 properties가 IDE에 인식되도록 함
+               lombok과 함께 annotationProcessorPaths에 추가해야 함.
 		-->
 
 		<dependency>
@@ -116,6 +134,42 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+
+        <!-- Source: https://wiremock.org/docs/spring-boot/ -->
+        <dependency>
+            <groupId>org.wiremock.integrations</groupId>
+            <artifactId>wiremock-spring-boot</artifactId>
+            <version>4.0.9</version>
+        </dependency>
+
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-configuration-processor</artifactId>
+	        <scope>compile</scope>
+	    </dependency>
+
+		<!-- 안전 브리핑 컨텍스트의 SHA-256 지문 생성 -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
+
+	    <dependency>
+            <groupId>org.springframework.ai</groupId>
+	        <artifactId>spring-ai-starter-model-google-genai</artifactId>
+	    </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-google-genai-embedding</artifactId>
+        </dependency>
+        <dependency>
+           <groupId>org.springframework.ai</groupId>
+           <artifactId>spring-ai-rag</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-pdf-document-reader</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -140,6 +194,10 @@
 									<groupId>org.projectlombok</groupId>
 									<artifactId>lombok</artifactId>
 								</path>
+                                <path>
+	                                <groupId>org.springframework.boot</groupId>
+	                                <artifactId>spring-boot-configuration-processor</artifactId>
+								</path>
 							</annotationProcessorPaths>
 						</configuration>
 					</execution>
@@ -155,12 +213,53 @@
 									<groupId>org.projectlombok</groupId>
 									<artifactId>lombok</artifactId>
 								</path>
+                                <path>
+	                                <groupId>org.springframework.boot</groupId>
+	                                <artifactId>spring-boot-configuration-processor</artifactId>
+								</path>
 							</annotationProcessorPaths>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			<!--
+				Java 21 이상에서 Mockito inline mock maker가 동적으로 Java Agent를
+				self-attach하지 않도록 테스트 JVM 시작 시 Mockito Agent를 명시적으로 로드한다.
+
+				maven-dependency-plugin: Mockito 의존성 JAR 경로를 Maven 속성으로 제공
+				maven-surefire-plugin: 해당 JAR을 -javaagent 옵션으로 테스트 JVM에 전달
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>properties</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>2.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
