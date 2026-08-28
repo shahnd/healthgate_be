@@ -46,7 +46,7 @@ class SafetyBriefingContextTest {
                 new BigDecimal("70"),
                 new BigDecimal("20"),
                 "강수없음",
-                new BigDecimal("0.0"),
+                "적설없음",
                 new BigDecimal("1.5"),
                 WeatherForecastPrecipitationType.NONE,
                 WeatherForecastSkyCondition.CLEAR,

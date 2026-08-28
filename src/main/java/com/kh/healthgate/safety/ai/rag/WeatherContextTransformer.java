@@ -1,6 +1,5 @@
 package com.kh.healthgate.safety.ai.rag;
 
-import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Function;
@@ -9,7 +8,6 @@ import com.kh.healthgate.opendata.weather.model.vo.WeatherForecast;
 
 public class WeatherContextTransformer {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private static final BigDecimal SNOWFALL_ZERO = new BigDecimal("0.0");
 
     /**
      * 기상청 습구온도 추정
@@ -107,15 +105,15 @@ public class WeatherContextTransformer {
         sb.append("Precipitation probability: %s%%".formatted(forecast.getPrecipitationProbability()));
         sb.append(" | ");
 
-        if (!forecast.getPrecipitation().equals("강수없음")) {
+        if (forecast.hasPrecipitation()) {
             sb.append("Precipitation type: %s".formatted(forecast.getPrecipitationType()));
             sb.append(" | ");
             sb.append("Precipitation: %s".formatted(forecast.getPrecipitation()));
             sb.append(" | ");
         }
 
-        if (forecast.getSnowfall().equals(SNOWFALL_ZERO)) {
-            sb.append("Snowfall: %s cm".formatted(forecast.getSnowfall()));
+        if (forecast.hasSnowfall()) {
+            sb.append("Snowfall: %s".formatted(forecast.getSnowfall()));
             sb.append(" | ");
         }
 

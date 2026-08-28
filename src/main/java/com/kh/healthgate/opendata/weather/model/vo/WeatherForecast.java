@@ -36,7 +36,7 @@ public class WeatherForecast {
     private BigDecimal humidity;
     private BigDecimal precipitationProbability;
     private String precipitation;
-    private BigDecimal snowfall;
+    private String snowfall;
     private BigDecimal windSpeed;
 
     @Enumerated(EnumType.STRING)
@@ -56,7 +56,7 @@ public class WeatherForecast {
             BigDecimal humidity,
             BigDecimal precipitationProbability,
             String precipitation,
-            BigDecimal snowfall,
+            String snowfall,
             BigDecimal windSpeed,
             WeatherForecastPrecipitationType precipitationType,
             WeatherForecastSkyCondition skyCondition,
@@ -77,14 +77,13 @@ public class WeatherForecast {
             LocalDateTime forecastAt,
             WeatherForecastLocation location,
             Map<VilageFcstCategory, String> forecastValues) {
-        String snow = forecastValues.get(VilageFcstCategory.SNOWFALL_AMOUNT);
         return new WeatherForecast(
                 forecastAt,
                 new BigDecimal(forecastValues.get(VilageFcstCategory.TEMPERATURE)),
                 new BigDecimal(forecastValues.get(VilageFcstCategory.HUMIDITY)),
                 new BigDecimal(forecastValues.get(VilageFcstCategory.PRECIPITATION_PROBABILITY)),
                 forecastValues.get(VilageFcstCategory.PRECIPITATION_AMOUNT),
-                new BigDecimal(snow.equals("적설없음") ? "0.0" : snow),
+                forecastValues.get(VilageFcstCategory.SNOWFALL_AMOUNT),
                 new BigDecimal(forecastValues.get(VilageFcstCategory.WIND_SPEED)),
                 WeatherForecastPrecipitationType.from(forecastValues.get(VilageFcstCategory.PRECIPITATION_TYPE)),
                 WeatherForecastSkyCondition.from(forecastValues.get(VilageFcstCategory.SKY_CONDITION)),
@@ -100,5 +99,21 @@ public class WeatherForecast {
         this.windSpeed = forecast.windSpeed;
         this.precipitationType = forecast.precipitationType;
         this.skyCondition = forecast.skyCondition;
+    }
+
+    public boolean hasPrecipitation() {
+        return hasWeatherAmount(precipitation, "강수없음");
+    }
+
+    public boolean hasSnowfall() {
+        return hasWeatherAmount(snowfall, "적설없음");
+    }
+
+    private static boolean hasWeatherAmount(String amount, String noAmountValue) {
+        return amount != null
+                && !amount.isBlank()
+                && !amount.equals("-")
+                && !amount.equals("0")
+                && !amount.equals(noAmountValue);
     }
 }

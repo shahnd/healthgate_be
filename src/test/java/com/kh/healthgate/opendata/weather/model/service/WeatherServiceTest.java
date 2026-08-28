@@ -108,7 +108,7 @@ public class WeatherServiceTest {
                 new BigDecimal("50"),
                 new BigDecimal("0"),
                 "강수없음",
-                new BigDecimal("0.0"),
+                "5.0cm 이상",
                 new BigDecimal("1.0"),
                 WeatherForecastPrecipitationType.NONE,
                 WeatherForecastSkyCondition.CLEAR,
@@ -131,6 +131,7 @@ public class WeatherServiceTest {
         assertThat(savedForecast.getHumidity()).isEqualByComparingTo("85");
         assertThat(savedForecast.getPrecipitationProbability()).isEqualByComparingTo("60");
         assertThat(savedForecast.getPrecipitation()).isEqualTo("1mm 미만");
+        assertThat(savedForecast.getSnowfall()).isEqualTo("적설없음");
         assertThat(savedForecast.getWindSpeed()).isEqualByComparingTo("0.1");
         assertThat(savedForecast.getPrecipitationType()).isEqualTo(WeatherForecastPrecipitationType.RAIN);
         assertThat(savedForecast.getSkyCondition()).isEqualTo(WeatherForecastSkyCondition.CLOUDY);
@@ -151,7 +152,7 @@ public class WeatherServiceTest {
                 new BigDecimal("85"),
                 new BigDecimal("60"),
                 "1mm 미만",
-                new BigDecimal("0.0"),
+                "적설없음",
                 new BigDecimal("0.1"),
                 WeatherForecastPrecipitationType.RAIN,
                 WeatherForecastSkyCondition.CLOUDY,
