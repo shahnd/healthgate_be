@@ -23,8 +23,6 @@ import com.kh.healthgate.common.template.Pagination;
 import com.kh.healthgate.hospital.model.service.HospitalService;
 import com.kh.healthgate.hospital.model.vo.Hospital;
 
-
-
 @CrossOrigin
 @RestController
 public class HospitalController {
@@ -35,14 +33,14 @@ public class HospitalController {
 	// 검진가능 병원 검색용 + 목록 조회 컨트롤러
 	@GetMapping("/hospitals")
 	public ResponseEntity<HashMap<String,Object>> searchHospitalList(
-			          @RequestParam(value="cpage", defaultValue="1") int currentPage,
-			          @RequestParam(value ="name", required = false) String name,
-			          @RequestParam(value ="address", required = false) String address,
-			          @RequestParam(value ="isGeneralExamAvailable", required = false) Boolean isGeneralExamAvailable,
-			          @RequestParam(value ="isStomachCancerExamAvailable", required = false) Boolean isStomachCancerExamAvailable,
-			          @RequestParam(value ="isColonCancerExamAvailable", required = false) Boolean isColonCancerExamAvailable,
-			          @RequestParam(value ="isLiverCancerExamAvailable", required = false) Boolean isLiverCancerExamAvailable,
-			          @RequestParam(value ="isLungCancerExamAvailable", required = false) Boolean isLungCancerExamAvailable) {
+			           @RequestParam(value="cpage", defaultValue="1") int currentPage,
+			           @RequestParam(value = "keywordName", required = false)String keywordName,
+			           @RequestParam(value = "keywordAddress", required = false)String keywordAddress,
+			           @RequestParam(value = "isGeneral", required = false)Boolean isGeneral,
+			           @RequestParam(value = "isStomachCancer", required = false)Boolean isStomachCancer,
+			           @RequestParam(value = "isColonCancer", required = false)Boolean isColonCancer,
+			           @RequestParam(value = "isLiverCancer", required = false)Boolean isLiverCancer,
+			           @RequestParam(value = "isLungCancer", required = false)Boolean isLungCancer) {
 		
 		int boardLimit = 5;
 		int pageLimit = 5;
@@ -51,13 +49,13 @@ public class HospitalController {
 		Pageable pageable = PageRequest.of(currentPage - 1, boardLimit);
 		
 		// > Pageable 을 넘기면서 조회
-		Page<Hospital> page = hospitalService.selectSearchList(name, 
-				                                               address,
-															   isGeneralExamAvailable,
-															   isStomachCancerExamAvailable,
-															   isColonCancerExamAvailable,
-															   isLiverCancerExamAvailable,
-															   isLungCancerExamAvailable,
+		Page<Hospital> page = hospitalService.selectSearchList(keywordName, 
+				                                               keywordAddress,
+													           isGeneral,
+													           isStomachCancer,
+													           isColonCancer,
+													           isLiverCancer,
+													           isLungCancer,
 				                                               pageable);
 		
 		// > 각각의 응답데이터 셋팅
@@ -77,11 +75,9 @@ public class HospitalController {
 	}
 	
 	// 공지사항 수정용 컨트롤러
-	@PutMapping("/hospitals/{hospitalId}/edit")
+	@PutMapping("/hospitals/{hospitalId}")
 	public ResponseEntity<String> updateBoard(@PathVariable Long hospitalId,
-											  Hospital h ) {
-		
-		System.out.println(h);
+											  Hospital h) {
 		
 		// 서비스 호출
 		Hospital updateHo = hospitalService.updateHospital(h);
@@ -107,6 +103,7 @@ public class HospitalController {
 	@PostMapping("/hospitals/new")
 	public ResponseEntity<String> insertHospital(Hospital h) {
 		
+		h.setStatus("Y");
 		// 서비스 호출 
 		Hospital insertHo = hospitalService.insertHospital(h);
 		

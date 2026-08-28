@@ -15,16 +15,23 @@ public class HospitalService {
 	@Autowired
 	private HospitalDao hospitalDao;
 
-	public Page<Hospital> selectSearchList(String name, String address, Boolean isGeneralExamAvailable,
-			Boolean isStomachCancerExamAvailable, Boolean isColonCancerExamAvailable,
-			Boolean isLiverCancerExamAvailable, Boolean isLungCancerExamAvailable, Pageable pageable) {
+	public Page<Hospital> selectSearchList(String keywordName,
+								           String keywordAddress,
+								           Boolean isGeneral,
+								           Boolean isStomachCancer,
+								           Boolean isColonCancer,
+								           Boolean isLiverCancer,
+								           Boolean isLungCancer, 
+								           Pageable pageable) {
 		
-		return hospitalDao.selectSearchList(name, address, 
-											isGeneralExamAvailable, 
-											isStomachCancerExamAvailable,
-											isColonCancerExamAvailable,
-											isLiverCancerExamAvailable, 
-											isLungCancerExamAvailable, 
+		return hospitalDao.selectSearchList(keywordName,
+								            keywordAddress,
+								            isGeneral,
+								            isStomachCancer,
+								            isColonCancer,
+								            isLiverCancer,
+								            isLungCancer, 
+								            "Y",
 											pageable);
 	}
 	
