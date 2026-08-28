@@ -13,13 +13,13 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @ToString
-public class LoginUser {
+public class AuthenticatedEmployee {
     private Long id;
     private String name;
     private role role;
 
-    public static LoginUser from(Employee employee) {
-        return new LoginUser(
+    public static AuthenticatedEmployee from(Employee employee) {
+        return new AuthenticatedEmployee(
                 employee.getId(),
                 employee.getName(),
                 employee.getRole());

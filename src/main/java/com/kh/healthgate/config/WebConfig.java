@@ -7,11 +7,11 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.kh.healthgate.auth.config.LoginUserArgumentResolver;
+import com.kh.healthgate.auth.config.AuthenticatedEmployeeArgumentResolver;
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
 
 @Configuration
-public class WebConfig  implements WebMvcConfigurer{
+public class WebConfig implements WebMvcConfigurer {
 
     private final EmployeeDao employeeDao;
     private final JwtAuthInterceptor jwtAuthInterceptor;
@@ -27,13 +27,12 @@ public class WebConfig  implements WebMvcConfigurer{
                 .order(1)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                            "/auth/login",
-                            "/error"
-                );
+                        "/auth/login",
+                        "/error");
     }
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(new LoginUserArgumentResolver(employeeDao));
+        resolvers.add(new AuthenticatedEmployeeArgumentResolver(employeeDao));
     }
 }
