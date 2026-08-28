@@ -1,10 +1,10 @@
-package com.kh.healthgate.safety.exception;
+package com.kh.healthgate.common.exception;
 
 import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 
-enum SafetyProblemType {
+public enum ProblemType {
     WEATHER_FORECAST_UNAVAILABLE(
             "/problems/weather-forecast-unavailable",
             "기상예보 조회 실패",
@@ -30,7 +30,7 @@ enum SafetyProblemType {
     private final String code;
     private final String detail;
 
-    SafetyProblemType(String type, String title, HttpStatus status, String code, String detail) {
+    ProblemType(String type, String title, HttpStatus status, String code, String detail) {
         this.type = URI.create(type);
         this.title = title;
         this.status = status;
@@ -38,23 +38,23 @@ enum SafetyProblemType {
         this.detail = detail;
     }
 
-    URI type() {
+    public URI type() {
         return type;
     }
 
-    String title() {
+    public String title() {
         return title;
     }
 
-    HttpStatus status() {
+    public HttpStatus status() {
         return status;
     }
 
-    String code() {
+    public String code() {
         return code;
     }
 
-    String detail() {
+    public String detail() {
         return detail;
     }
 }
