@@ -11,12 +11,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "weather_forecasts")
+@Table(
+        name = "weather_forecasts",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_weather_forecast_at_location",
+                columnNames = { "forecast_at", "location" }))
 @Getter
 @ToString
 @NoArgsConstructor
@@ -84,5 +89,16 @@ public class WeatherForecast {
                 WeatherForecastPrecipitationType.from(forecastValues.get(VilageFcstCategory.PRECIPITATION_TYPE)),
                 WeatherForecastSkyCondition.from(forecastValues.get(VilageFcstCategory.SKY_CONDITION)),
                 location);
+    }
+
+    public void updateFrom(WeatherForecast forecast) {
+        this.temperature = forecast.temperature;
+        this.humidity = forecast.humidity;
+        this.precipitationProbability = forecast.precipitationProbability;
+        this.precipitation = forecast.precipitation;
+        this.snowfall = forecast.snowfall;
+        this.windSpeed = forecast.windSpeed;
+        this.precipitationType = forecast.precipitationType;
+        this.skyCondition = forecast.skyCondition;
     }
 }

@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -60,7 +62,7 @@ public class WeatherService {
                 location.getX(),
                 location.getY()));
 
-        List<WeatherForecast> forecasts = response.response().body().items().item().stream()
+        List<WeatherForecast> incomingForecasts = response.response().body().items().item().stream()
                 // 예보일시 기준 그룹화
                 .collect(Collectors.groupingBy(item -> VilageFcstDateTimeFormatter
                         .toLocalDateTime(item.fcstDate(), item.fcstTime())))
@@ -76,6 +78,23 @@ public class WeatherService {
                                 item -> item.fcstValue()))))
                 // 예보일시 기준 정렬
                 .sorted(Comparator.comparing(forecast -> forecast.getForecastAt()))
+                .toList();
+
+        Map<LocalDateTime, WeatherForecast> existingForecasts = weatherForecastRepository
+                .findByForecastAtBetweenAndLocation(baseDateTime, detailedUntil, location)
+                .stream()
+                .collect(Collectors.toMap(forecast -> forecast.getForecastAt(), Function.identity()));
+
+        List<WeatherForecast> forecasts = incomingForecasts.stream()
+                .map(incomingForecast -> {
+                    WeatherForecast existingForecast = existingForecasts.get(incomingForecast.getForecastAt());
+                    if (existingForecast == null) {
+                        return incomingForecast;
+                    }
+
+                    existingForecast.updateFrom(incomingForecast);
+                    return existingForecast;
+                })
                 .toList();
 
         weatherForecastRepository.saveAll(forecasts);

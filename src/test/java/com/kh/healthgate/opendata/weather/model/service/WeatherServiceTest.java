@@ -99,6 +99,44 @@ public class WeatherServiceTest {
     }
 
     @Test
+    void updatesExistingForecastsInsteadOfInsertingDuplicates() throws IOException {
+        // given
+        LocalDateTime forecastAt = LocalDateTime.of(2026, 8, 21, 9, 0);
+        WeatherForecast existingForecast = new WeatherForecast(
+                forecastAt,
+                new BigDecimal("20"),
+                new BigDecimal("50"),
+                new BigDecimal("0"),
+                "강수없음",
+                new BigDecimal("0.0"),
+                new BigDecimal("1.0"),
+                WeatherForecastPrecipitationType.NONE,
+                WeatherForecastSkyCondition.CLEAR,
+                WeatherForecastLocation.YEOKSAM1);
+        when(client.getVilageFcst(any())).thenReturn(loadFixture("vilage-fcst-success.json"));
+        when(weatherForecastRepository.findByForecastAtBetweenAndLocation(
+                LocalDateTime.of(2026, 8, 21, 8, 0),
+                LocalDateTime.of(2026, 8, 24, 0, 0),
+                WeatherForecastLocation.YEOKSAM1))
+                .thenReturn(List.of(existingForecast));
+
+        // when
+        weatherService.indexVilageFcst(WeatherForecastLocation.YEOKSAM1);
+
+        // then
+        verify(weatherForecastRepository).saveAll(forecastListCaptor.capture());
+        WeatherForecast savedForecast = forecastListCaptor.getValue().getFirst();
+        assertThat(savedForecast).isSameAs(existingForecast);
+        assertThat(savedForecast.getTemperature()).isEqualByComparingTo("26");
+        assertThat(savedForecast.getHumidity()).isEqualByComparingTo("85");
+        assertThat(savedForecast.getPrecipitationProbability()).isEqualByComparingTo("60");
+        assertThat(savedForecast.getPrecipitation()).isEqualTo("1mm 미만");
+        assertThat(savedForecast.getWindSpeed()).isEqualByComparingTo("0.1");
+        assertThat(savedForecast.getPrecipitationType()).isEqualTo(WeatherForecastPrecipitationType.RAIN);
+        assertThat(savedForecast.getSkyCondition()).isEqualTo(WeatherForecastSkyCondition.CLOUDY);
+    }
+
+    @Test
     public void getsForecastAt() throws IOException {
         // given
         LocalDateTime forecastAt = VilageFcstDateTimeFormatter.toLocalDateTime("202608210900");
