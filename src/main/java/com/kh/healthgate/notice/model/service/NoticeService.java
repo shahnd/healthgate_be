@@ -77,4 +77,9 @@ public class NoticeService {
 		return noticeFileDao.save(nf);
 	}
 
+	public NoticeFile selectNoticeFileId(Long noticeFileId) {
+		
+		return noticeFileDao.selectNoticeFile(noticeFileId);
+	}
+
 }

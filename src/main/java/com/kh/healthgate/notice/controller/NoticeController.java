@@ -2,12 +2,15 @@ package com.kh.healthgate.notice.controller;
 
 
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Key;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -162,21 +165,35 @@ public class NoticeController {
 		Notice insertNo = noticeService.insertNotice(n);
 		
 		// 넘어온 첨부파일이 있을 경우
-		// > 파일명 수정작업 후 서버로 업로드 (공통코드), originName, savedName 필드값을 셋팅
-		if(upfile != null) {
+		// > 파일명 수정작업 후 서버로 업로드 (공통코드), originName, savedName, extension, savedPath 필드값을 셋팅
+		if(upfile != null && !upfile.isEmpty()) {
 			
 			String originName = upfile.getOriginalFilename();
 			
-			String savedName 
-						= FileRenamePolicy.saveFile(upfile, session, 
-													"/resources/notice_upfiles/");
-			
-			String savedPath = "/resources/notice_upfiles/";
-			
 			String extension = "";
-			   if (originName != null && originName.contains(".")) {
-			       extension = originName.substring(originName.lastIndexOf(".") + 1);
+		    if (originName != null && originName.contains(".")) {
+		        extension = originName.substring(originName.lastIndexOf(".") + 1);
 			}
+			   
+			String savedName 
+						= new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + "." + extension;
+			
+			String savedPath = "C:/notice_upfiles/";
+			
+			File dir = new File(savedPath);
+			if (!dir.exists()) {
+				dir.mkdirs();
+	
+			}
+			
+			// 지정된 실제 경로에 파일 저장
+			try {
+		        upfile.transferTo(new File(savedPath + savedName));
+		        
+		    } catch (IOException e) {
+		    	
+		        e.printStackTrace();
+		    }
 			
 			nf.setOriginName(originName);
 			nf.setSavedName(savedName);
@@ -311,14 +328,14 @@ public class NoticeController {
 			
 			String originName = reupfile.getOriginalFilename();
 			
-			String savedName = FileRenamePolicy.saveFile(reupfile, session, 
-															"/resources/notice_upfiles/");
-			String savedPath = "/resources/notice_upfiles/";
+			String savedPath = "C:/notice_upfiles/";
 			
 			String extension = "";
 			   if (originName != null && originName.contains(".")) {
 			       extension = originName.substring(originName.lastIndexOf(".") + 1);
 			}
+			   
+			String savedName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + "."+ extension;   
 					
 			nf.setOriginName(originName);
 			nf.setSavedName(savedName);
@@ -350,14 +367,16 @@ public class NoticeController {
 	}
 	
 	// 첨부파일 다운로드용 컨트롤러
-	@GetMapping("/notices/download/{savedName}/{originName}")
+	@GetMapping("/notices/download/{savedName}/{noticeFileId}")
 	public ResponseEntity<Resource> upfileDownload(@PathVariable String savedName, 
-												   @PathVariable String originName,
-												   @PathVariable String savedPath,
+			                                       @PathVariable Long noticeFileId,
 												   HttpSession session) throws IOException {
 		
+		NoticeFile noticeFile = noticeService.selectNoticeFileId(noticeFileId); 
+	    String originName = (noticeFile != null) ? noticeFile.getOriginName() : savedName;
+	    
 		// 다운로드할 파일의 물리적인 경로
-		savedPath = session.getServletContext().getRealPath("/resources/notice_upfiles/");
+		String savedPath = "C:/notice_upfiles/";
 		
 		// 파일을 그냥 응답데이터로는 못보내고, 응답데이터로 내보낼 수 있게끔 포장
 		Resource resource = new FileSystemResource(savedPath + savedName);
@@ -374,7 +393,7 @@ public class NoticeController {
 			
 			// 이번에는 응답데이터가 파일로 넘어가야하는 특이케이스이기 때문에 설정이 이것저것 붙는다!!
 			// 우선 한글 파일명 깨짐을 방지
-			String encodedName = URLEncoder.encode(originName, "UTF-8");
+			String encodedName = URLEncoder.encode(originName, "UTF-8").replaceAll("\\+", "%20");
 			// > 사용자가 보기 좋게 원본파일명으로 다운로드를 하기 위함
 			
 			return ResponseEntity.status(HttpStatus.OK)

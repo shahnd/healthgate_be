@@ -14,4 +14,11 @@ public interface NoticeFileDao  extends JpaRepository<NoticeFile, Long>{
 			  WHERE nf.notices.noticeId = :noticeId
 			""")
 	NoticeFile selectNoticeFile(@Param("noticeId") Long noticeId); 
+	
+	@Query("""
+			  SELECT nf 
+			    FROM NoticeFile nf 
+			  WHERE nf.noticeFileId = :noticeFileId
+			""")
+	NoticeFile selectNoticeFileId(@Param("noticeFileId") Long noticeFileId); 
 }
