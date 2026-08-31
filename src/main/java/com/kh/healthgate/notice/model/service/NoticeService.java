@@ -35,6 +35,13 @@ public class NoticeService {
 		
 		return noticeDao.save(n);
 	}
+	
+	@Transactional
+	public NoticeFile insertNoticeFile(NoticeFile nf) {
+		
+		return noticeFileDao.save(nf);
+	}
+
     
 	@Transactional
 	public int increaseCount(Long noticeId) {
@@ -69,6 +76,5 @@ public class NoticeService {
 		
 		return noticeFileDao.save(nf);
 	}
-
 
 }

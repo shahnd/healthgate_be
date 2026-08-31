@@ -156,6 +156,11 @@ public class NoticeController {
 		
 		n.setEmployee(emp);
 		
+        n.setStatus("Y");
+		
+		// 서비스 호출
+		Notice insertNo = noticeService.insertNotice(n);
+		
 		// 넘어온 첨부파일이 있을 경우
 		// > 파일명 수정작업 후 서버로 업로드 (공통코드), originName, savedName 필드값을 셋팅
 		if(upfile != null) {
@@ -166,19 +171,27 @@ public class NoticeController {
 						= FileRenamePolicy.saveFile(upfile, session, 
 													"/resources/notice_upfiles/");
 			
+			String savedPath = "/resources/notice_upfiles/";
+			
+			String extension = "";
+			   if (originName != null && originName.contains(".")) {
+			       extension = originName.substring(originName.lastIndexOf(".") + 1);
+			}
+			
 			nf.setOriginName(originName);
 			nf.setSavedName(savedName);
+			nf.setSavedPath(savedPath);
+			nf.setExtension(extension);
+			nf.setNotices(insertNo);
+			
+			noticeService.insertNoticeFile(nf);
 		}
-		
-		n.setStatus("Y");
-		
-		// 서비스 호출
-		Notice insertNo = noticeService.insertNotice(n);
 		
 		String message = (insertNo != null) ? "success" : "fail";
 		
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(message);
+		
 	}
 	
 	// 공지사항 상세조회용 컨트롤러
