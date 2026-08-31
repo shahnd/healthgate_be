@@ -13,6 +13,12 @@ public enum SafetyDocumentProblem implements ProblemDefinition {
             HttpStatus.BAD_REQUEST,
             "SAFETY_DOCUMENT_INVALID_FILE",
             "비어 있지 않은 20MB 이하의 파일을 첨부해 주세요."),
+    DUPLICATE_FILE(
+            "/problems/safety-document-duplicate-file",
+            "중복 안전문서",
+            HttpStatus.CONFLICT,
+            "SAFETY_DOCUMENT_DUPLICATE_FILE",
+            "동일한 내용의 안전문서가 이미 등록되어 있습니다."),
     FORBIDDEN(
             "/problems/safety-document-forbidden",
             "안전문서 등록 권한 없음",

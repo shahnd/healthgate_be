@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -69,7 +70,7 @@ class SafetyDocumentServiceTest {
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
         when(fileStorage.store(eq("manual.pdf"), eq("application/pdf"), any(InputStream.class)))
                 .thenReturn(storedFile);
-        when(safetyDocumentRepository.save(any(SafetyDocument.class)))
+        when(safetyDocumentRepository.saveAndFlush(any(SafetyDocument.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -81,7 +82,7 @@ class SafetyDocumentServiceTest {
 
         // then
         ArgumentCaptor<SafetyDocument> documentCaptor = ArgumentCaptor.forClass(SafetyDocument.class);
-        verify(safetyDocumentRepository).save(documentCaptor.capture());
+        verify(safetyDocumentRepository).saveAndFlush(documentCaptor.capture());
         SafetyDocument savedDocument = documentCaptor.getValue();
 
         assertSame(savedDocument, result);
@@ -153,6 +154,79 @@ class SafetyDocumentServiceTest {
         verifyNoInteractions(safetyDocumentRepository);
     }
 
+    @Test
+    void deletesStoredFileWhenContentIsDuplicated() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        MockMultipartFile file = file();
+        StoredFile storedFile = storedFile(file);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(fileStorage.store(eq("manual.pdf"), eq("application/pdf"), any(InputStream.class)))
+                .thenReturn(storedFile);
+        when(safetyDocumentRepository.existsByContentChecksum("checksum")).thenReturn(true);
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.create("안전수칙", null, file, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.DUPLICATE_FILE, exception.problemType());
+        verify(fileStorage).delete("documents/manual.pdf");
+    }
+
+    @Test
+    void deletesStoredFileWhenDatabaseSaveFails() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        MockMultipartFile file = file();
+        StoredFile storedFile = storedFile(file);
+        IllegalStateException databaseException = new IllegalStateException("DB 저장 실패");
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(fileStorage.store(eq("manual.pdf"), eq("application/pdf"), any(InputStream.class)))
+                .thenReturn(storedFile);
+        when(safetyDocumentRepository.saveAndFlush(any(SafetyDocument.class)))
+                .thenThrow(databaseException);
+
+        // when
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> safetyDocumentService.create("안전수칙", null, file, loggedInEmployee));
+
+        // then
+        assertSame(databaseException, exception);
+        verify(fileStorage).delete("documents/manual.pdf");
+    }
+
+    @Test
+    void keepsOriginalExceptionWhenCompensationDeleteFails() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        MockMultipartFile file = file();
+        StoredFile storedFile = storedFile(file);
+        FileStorageException deleteException = new FileStorageException("삭제 실패");
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(fileStorage.store(eq("manual.pdf"), eq("application/pdf"), any(InputStream.class)))
+                .thenReturn(storedFile);
+        when(safetyDocumentRepository.existsByContentChecksum("checksum")).thenReturn(true);
+        doThrow(deleteException).when(fileStorage).delete("documents/manual.pdf");
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.create("안전수칙", null, file, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.DUPLICATE_FILE, exception.problemType());
+        assertSame(deleteException, exception.getSuppressed()[0]);
+    }
+
     private AuthenticatedEmployee loggedInEmployee() {
         return new AuthenticatedEmployee(1L, "admin01", "HEALTH_ADMIN");
     }
@@ -169,5 +243,14 @@ class SafetyDocumentServiceTest {
                 "manual.pdf",
                 "application/pdf",
                 "file-content".getBytes());
+    }
+
+    private StoredFile storedFile(MockMultipartFile file) {
+        return new StoredFile(
+                "documents/manual.pdf",
+                "manual.pdf",
+                "application/pdf",
+                file.getSize(),
+                "checksum");
     }
 }

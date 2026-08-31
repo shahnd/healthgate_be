@@ -21,7 +21,9 @@ import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SafetyDocumentService {
@@ -46,17 +48,27 @@ public class SafetyDocumentService {
 
         validateFile(file);
         StoredFile storedFile = storeFile(file);
-        SafetyDocument document = new SafetyDocument(
-                title.strip(),
-                normalizeDescription(description),
-                storedFile.originalFilename(),
-                storedFile.storageKey(),
-                storedFile.contentType(),
-                storedFile.size(),
-                storedFile.checksum(),
-                employee);
 
-        return safetyDocumentRepository.save(document);
+        try {
+            if (safetyDocumentRepository.existsByContentChecksum(storedFile.checksum())) {
+                throw new SafetyDocumentException(SafetyDocumentProblem.DUPLICATE_FILE);
+            }
+
+            SafetyDocument document = new SafetyDocument(
+                    title.strip(),
+                    normalizeDescription(description),
+                    storedFile.originalFilename(),
+                    storedFile.storageKey(),
+                    storedFile.contentType(),
+                    storedFile.size(),
+                    storedFile.checksum(),
+                    employee);
+
+            return safetyDocumentRepository.saveAndFlush(document);
+        } catch (RuntimeException exception) {
+            deleteStoredFile(storedFile.storageKey(), exception);
+            throw exception;
+        }
     }
 
     private void validateFile(MultipartFile file) {
@@ -84,5 +96,14 @@ public class SafetyDocumentService {
 
     private String normalizeDescription(String description) {
         return StringUtils.hasText(description) ? description.strip() : null;
+    }
+
+    private void deleteStoredFile(String storageKey, RuntimeException originalException) {
+        try {
+            fileStorage.delete(storageKey);
+        } catch (RuntimeException deleteException) {
+            log.error("파일 삭제에 실패했습니다. storageKey={}", storageKey, deleteException);
+            originalException.addSuppressed(deleteException);
+        }
     }
 }
