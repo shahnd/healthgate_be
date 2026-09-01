@@ -45,12 +45,14 @@ public class BiometricsService {
         float sysWarn = riskThresholdService.getThreshold("SYSTOLIC_BP", "WARN");
         float diaHigh = riskThresholdService.getThreshold("DIASTOLIC_BP", "HIGH");
         float diaWarn = riskThresholdService.getThreshold("DIASTOLIC_BP", "HIGH");
+        float heartHigh = riskThresholdService.getThreshold("HEART_RATE", "HIGH");
+        float heartWarn = riskThresholdService.getThreshold("HEART_RATE", "WARN");
 
         //최저 혈압 수치 판정
         String riskLevel;
-        if (b.systolicBp() >= sysHigh || b.diastolicBp() >= diaHigh) {
+        if (b.systolicBp() >= sysHigh || b.diastolicBp() >= diaHigh || b.heartRate() >= heartHigh) {
             riskLevel = "HIGH";
-        } else if(b.systolicBp() >= sysWarn || b.diastolicBp() >= diaWarn) {
+        } else if(b.systolicBp() >= sysWarn || b.diastolicBp() >= diaWarn || b.heartRate() >= heartWarn) {
             riskLevel = "WARN";
         } else {
             riskLevel = "NORMAL";
