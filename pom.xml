@@ -45,6 +45,9 @@
 			2. jjwt-impl
 			3. jjwt-jackson
 
+            Spring Boot 모듈
+            1. spring-boot-starter-validation: DTO validation 어노테이션
+
             AI 관련 라이브러리
 
             1. Spring AI: AI 모듈
@@ -75,6 +78,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
 		<dependency>
