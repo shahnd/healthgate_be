@@ -16,6 +16,7 @@ import com.kh.healthgate.checkup.model.vo.Checkup;
 import com.kh.healthgate.checkup.model.vo.CheckupReminder;
 import com.kh.healthgate.checkup.model.vo.CheckupReminderSetting;
 import com.kh.healthgate.checkup.model.vo.NotificationChannel;
+import com.kh.healthgate.checkup.model.service.EmailService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,8 @@ public class CheckupReminderScheduler {
     private final CheckupReminderSettingDao
             checkupReminderSettingDao;
 
+    private final EmailService emailService;
+    
     /**
      * 매분 0초마다 활성화된 자동 알림 설정을 확인한다.
      *
@@ -105,7 +108,8 @@ public class CheckupReminderScheduler {
     }
 
     /**
-     * 현재 연도의 미수검자에게 자동 알림 이력을 저장한다.
+     * 현재 연도의 미검진 직원에게 실제 이메일을 발송하고
+     * 대상자별 성공·실패 결과를 알림 이력에 저장한다.
      */
     private void sendAutomaticReminders(
             CheckupReminderSetting setting,
@@ -121,7 +125,7 @@ public class CheckupReminderScheduler {
                         );
 
         log.info(
-                "{}년 건강검진 자동 알림 실행: 미수검자 {}명",
+                "{}년 건강검진 자동 이메일 알림 실행: 미검진자 {}명",
                 currentYear,
                 incompleteCheckups.size()
         );
@@ -142,22 +146,65 @@ public class CheckupReminderScheduler {
                                     endTime
                             );
 
-            // 같은 실행 시각에 이미 자동 발송 이력이 있으면 저장하지 않는다.
+            /*
+             * 같은 실행 시간에 이미 자동 발송 이력이 있다면
+             * 중복 이메일을 보내지 않는다.
+             */
             if (alreadySent) {
 
                 log.info(
-                        "자동 알림 중복 저장 생략: checkupId={}",
+                        "자동 이메일 중복 발송 생략: checkupId={}",
                         checkup.getCheckupId()
                 );
 
                 continue;
             }
 
+            String status;
+
+            try {
+                /*
+                 * 건강검진 기록과 연결된 직원의 실제 이메일로
+                 * 자동 건강검진 안내 메일을 발송한다.
+                 */
+                emailService.sendCheckupReminder(
+                        checkup.getEmployee().getEmail(),
+                        checkup.getEmployee().getName(),
+                        setting.getCheckupReminderSettingMessageTemplate()
+                );
+
+                status = "SUCCESS";
+
+                log.info(
+                        "건강검진 자동 이메일 발송 성공: "
+                        + "checkupId={}, employeeNumber={}, email={}",
+                        checkup.getCheckupId(),
+                        checkup.getEmployee().getEmployeeNumber(),
+                        checkup.getEmployee().getEmail()
+                );
+
+            } catch (RuntimeException exception) {
+
+                status = "FAILED";
+
+                log.error(
+                        "건강검진 자동 이메일 발송 실패: "
+                        + "checkupId={}, employeeNumber={}, email={}",
+                        checkup.getCheckupId(),
+                        checkup.getEmployee().getEmployeeNumber(),
+                        checkup.getEmployee().getEmail(),
+                        exception
+                );
+            }
+
+            /*
+             * 실제 이메일 발송 결과를 알림 이력에 저장한다.
+             */
             CheckupReminder reminder =
                     new CheckupReminder();
 
             reminder.setCheckupReminderChannel(
-                    NotificationChannel.SMS
+                    NotificationChannel.EMAIL
             );
 
             reminder.setCheckupReminderContent(
@@ -165,12 +212,11 @@ public class CheckupReminderScheduler {
             );
 
             reminder.setCheckupReminderSentAt(sentAt);
-            reminder.setCheckupReminderStatus("SUCCESS");
+            reminder.setCheckupReminderStatus(status);
             reminder.setCheckupReminderIsManual(false);
             reminder.setCheckup(checkup);
 
             checkupReminderDao.save(reminder);
         }
-            
     }
 }
