@@ -12,4 +12,6 @@ public interface AttendanceDao extends JpaRepository<Timecards, Long>{
     Optional<Timecards> findByEmployeeIdAndClockInAtBetween(Long employeeId, LocalDateTime startOfDay,
             LocalDateTime endOfDay);
 
+    long countByStatusAndClockInAtBetween(String string, LocalDateTime start, LocalDateTime end);
+
 }
