@@ -60,12 +60,12 @@ class SafetyDocumentControllerTest {
 
         // when, then
         mockMvc.perform(multipart("/safety-documents")
-                        .file(file)
-                        .param("title", "안전수칙")
-                        .param("description", "설명")
-                        .requestAttr("empId", 1L)
-                        .requestAttr("employeeNumber", "admin01")
-                        .requestAttr("empRole", "HEALTH_ADMIN"))
+                .file(file)
+                .param("title", "안전수칙")
+                .param("description", "설명")
+                .requestAttr("empId", 1L)
+                .requestAttr("employeeNumber", "admin01")
+                .requestAttr("empRole", "HEALTH_ADMIN"))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/safety-documents/10"))
                 .andExpect(jsonPath("$.id").value(10))
@@ -82,11 +82,11 @@ class SafetyDocumentControllerTest {
 
         // when, then
         mockMvc.perform(multipart("/safety-documents")
-                        .file(file)
-                        .param("title", " ")
-                        .requestAttr("empId", 1L)
-                        .requestAttr("employeeNumber", "admin01")
-                        .requestAttr("empRole", "HEALTH_ADMIN"))
+                .file(file)
+                .param("title", " ")
+                .requestAttr("empId", 1L)
+                .requestAttr("employeeNumber", "admin01")
+                .requestAttr("empRole", "HEALTH_ADMIN"))
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(safetyDocumentService);
@@ -119,8 +119,8 @@ class SafetyDocumentControllerTest {
     }
 
     private SafetyDocumentResponse response() {
-        SafetyDocumentResponse.EmployeeResponse employee =
-                new SafetyDocumentResponse.EmployeeResponse(1L, "admin01", "관리자");
+        SafetyDocumentResponse.EmployeeResponse employee = new SafetyDocumentResponse.EmployeeResponse(1L, "admin01",
+                "관리자");
         return new SafetyDocumentResponse(
                 10L,
                 "안전수칙",
