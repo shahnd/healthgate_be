@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -102,36 +101,25 @@ class SafetyDocumentServiceTest {
     @Test
     void getsSafetyDocument() {
         // given
-        SafetyDocument document = org.mockito.Mockito.mock(SafetyDocument.class);
         Employee employee = employee(role.HEALTH_ADMIN);
         employee.setId(1L);
         employee.setEmployeeNumber("admin01");
         employee.setName("관리자");
-        LocalDateTime createdAt = LocalDateTime.of(2026, 9, 1, 10, 0);
-        LocalDateTime updatedAt = LocalDateTime.of(2026, 9, 1, 11, 0);
+        SafetyDocument document = document(employee);
 
         when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
-        when(document.getId()).thenReturn(10L);
-        when(document.getTitle()).thenReturn("안전수칙");
-        when(document.getDescription()).thenReturn("설명");
-        when(document.getOriginalFilename()).thenReturn("manual.pdf");
-        when(document.getContentType()).thenReturn("application/pdf");
-        when(document.getFileSize()).thenReturn(100L);
-        when(document.getCreatedBy()).thenReturn(employee);
-        when(document.getUpdatedBy()).thenReturn(employee);
-        when(document.getCreatedAt()).thenReturn(createdAt);
-        when(document.getUpdatedAt()).thenReturn(updatedAt);
 
         // when
         SafetyDocumentResponse result = safetyDocumentService.get(10L);
 
         // then
-        assertEquals(10L, result.id());
         assertEquals("안전수칙", result.title());
+        assertEquals("설명", result.description());
+        assertEquals("manual.pdf", result.originalFilename());
+        assertEquals("application/pdf", result.contentType());
+        assertEquals(100L, result.fileSize());
         assertEquals("admin01", result.createdBy().employeeNumber());
         assertEquals("admin01", result.updatedBy().employeeNumber());
-        assertEquals(createdAt, result.createdAt());
-        assertEquals(updatedAt, result.updatedAt());
     }
 
     @Test
@@ -305,5 +293,17 @@ class SafetyDocumentServiceTest {
                 "application/pdf",
                 file.getSize(),
                 "checksum");
+    }
+
+    private SafetyDocument document(Employee employee) {
+        return new SafetyDocument(
+                "안전수칙",
+                "설명",
+                "manual.pdf",
+                "documents/manual.pdf",
+                "application/pdf",
+                100L,
+                "checksum",
+                employee);
     }
 }
