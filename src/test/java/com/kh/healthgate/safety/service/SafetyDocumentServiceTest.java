@@ -12,6 +12,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,6 +97,55 @@ class SafetyDocumentServiceTest {
         assertEquals("checksum", savedDocument.getContentChecksum());
         assertSame(employee, savedDocument.getCreatedBy());
         assertSame(employee, savedDocument.getUpdatedBy());
+    }
+
+    @Test
+    void getsSafetyDocument() {
+        // given
+        SafetyDocument document = org.mockito.Mockito.mock(SafetyDocument.class);
+        Employee employee = employee(role.HEALTH_ADMIN);
+        employee.setId(1L);
+        employee.setEmployeeNumber("admin01");
+        employee.setName("관리자");
+        LocalDateTime createdAt = LocalDateTime.of(2026, 9, 1, 10, 0);
+        LocalDateTime updatedAt = LocalDateTime.of(2026, 9, 1, 11, 0);
+
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(document.getId()).thenReturn(10L);
+        when(document.getTitle()).thenReturn("안전수칙");
+        when(document.getDescription()).thenReturn("설명");
+        when(document.getOriginalFilename()).thenReturn("manual.pdf");
+        when(document.getContentType()).thenReturn("application/pdf");
+        when(document.getFileSize()).thenReturn(100L);
+        when(document.getCreatedBy()).thenReturn(employee);
+        when(document.getUpdatedBy()).thenReturn(employee);
+        when(document.getCreatedAt()).thenReturn(createdAt);
+        when(document.getUpdatedAt()).thenReturn(updatedAt);
+
+        // when
+        SafetyDocumentResponse result = safetyDocumentService.get(10L);
+
+        // then
+        assertEquals(10L, result.id());
+        assertEquals("안전수칙", result.title());
+        assertEquals("admin01", result.createdBy().employeeNumber());
+        assertEquals("admin01", result.updatedBy().employeeNumber());
+        assertEquals(createdAt, result.createdAt());
+        assertEquals(updatedAt, result.updatedAt());
+    }
+
+    @Test
+    void throwsNotFoundWhenSafetyDocumentDoesNotExist() {
+        // given
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.empty());
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.get(10L));
+
+        // then
+        assertSame(SafetyDocumentProblem.NOT_FOUND, exception.problemType());
     }
 
     @Test

@@ -7,6 +7,12 @@ import org.springframework.http.HttpStatus;
 import com.kh.healthgate.common.exception.ProblemDefinition;
 
 public enum SafetyDocumentProblem implements ProblemDefinition {
+    NOT_FOUND(
+            "/problems/safety-document-not-found",
+            "안전문서 없음",
+            HttpStatus.NOT_FOUND,
+            "SAFETY_DOCUMENT_NOT_FOUND",
+            "요청한 안전문서를 찾을 수 없습니다."),
     INVALID_FILE(
             "/problems/safety-document-invalid-file",
             "잘못된 안전문서 파일",

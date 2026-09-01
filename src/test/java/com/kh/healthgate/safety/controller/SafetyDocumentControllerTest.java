@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,7 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.auth.web.AuthenticatedEmployeeArgumentResolver;
+import com.kh.healthgate.common.exception.ApiExceptionHandler;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
+import com.kh.healthgate.safety.exception.SafetyDocumentException;
+import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.service.SafetyDocumentService;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +43,7 @@ class SafetyDocumentControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new SafetyDocumentController(safetyDocumentService))
                 .setCustomArgumentResolvers(new AuthenticatedEmployeeArgumentResolver())
+                .setControllerAdvice(new ApiExceptionHandler())
                 .build();
     }
 
@@ -84,6 +90,32 @@ class SafetyDocumentControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(safetyDocumentService);
+    }
+
+    @Test
+    void getsSafetyDocument() throws Exception {
+        // given
+        when(safetyDocumentService.get(10L)).thenReturn(response());
+
+        // when, then
+        mockMvc.perform(get("/safety-documents/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.title").value("안전수칙"))
+                .andExpect(jsonPath("$.createdBy.employeeNumber").value("admin01"));
+    }
+
+    @Test
+    void returnsNotFoundWhenSafetyDocumentDoesNotExist() throws Exception {
+        // given
+        when(safetyDocumentService.get(10L))
+                .thenThrow(new SafetyDocumentException(SafetyDocumentProblem.NOT_FOUND));
+
+        // when, then
+        mockMvc.perform(get("/safety-documents/10"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.code").value("SAFETY_DOCUMENT_NOT_FOUND"));
     }
 
     private SafetyDocumentResponse response() {

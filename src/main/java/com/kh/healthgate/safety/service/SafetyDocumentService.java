@@ -73,6 +73,14 @@ public class SafetyDocumentService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public SafetyDocumentResponse get(Long id) {
+        SafetyDocument document = safetyDocumentRepository.findById(id)
+                .orElseThrow(() -> new SafetyDocumentException(SafetyDocumentProblem.NOT_FOUND));
+
+        return SafetyDocumentResponse.from(document);
+    }
+
     private void validateFile(MultipartFile file) {
         if (file == null
                 || file.isEmpty()
