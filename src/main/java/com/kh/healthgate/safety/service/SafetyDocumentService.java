@@ -16,6 +16,7 @@ import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.domain.SafetyDocument;
+import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
@@ -34,7 +35,7 @@ public class SafetyDocumentService {
     private final AuthenticatedEmployeeService authenticatedEmployeeService;
 
     @Transactional
-    public SafetyDocument create(
+    public SafetyDocumentResponse create(
             String title,
             String description,
             MultipartFile file,
@@ -64,7 +65,8 @@ public class SafetyDocumentService {
                     storedFile.checksum(),
                     employee);
 
-            return safetyDocumentRepository.saveAndFlush(document);
+            SafetyDocument savedDocument = safetyDocumentRepository.saveAndFlush(document);
+            return SafetyDocumentResponse.from(savedDocument);
         } catch (RuntimeException exception) {
             deleteStoredFile(storedFile.storageKey(), exception);
             throw exception;

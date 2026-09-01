@@ -29,6 +29,7 @@ import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.domain.SafetyDocument;
+import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
@@ -74,7 +75,7 @@ class SafetyDocumentServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        SafetyDocument result = safetyDocumentService.create(
+        SafetyDocumentResponse result = safetyDocumentService.create(
                 "  안전수칙  ",
                 "   ",
                 file,
@@ -85,7 +86,8 @@ class SafetyDocumentServiceTest {
         verify(safetyDocumentRepository).saveAndFlush(documentCaptor.capture());
         SafetyDocument savedDocument = documentCaptor.getValue();
 
-        assertSame(savedDocument, result);
+        assertEquals("안전수칙", result.title());
+        assertNull(result.description());
         assertEquals("안전수칙", savedDocument.getTitle());
         assertNull(savedDocument.getDescription());
         assertEquals("manual.pdf", savedDocument.getOriginalFilename());
