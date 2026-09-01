@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
 import java.text.SimpleDateFormat;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -48,11 +50,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 
+
 @CrossOrigin
 @RestController
 public class NoticeController {
     
 	public static final String SECRET_KEY = "Hello123ThisisHellPangWeWantToBreakTime";
+	
+	@Value("${file.upload-dir}")
+    private String uploadDir;
 	
 	@Autowired
 	public NoticeService noticeService;
@@ -122,7 +128,6 @@ public class NoticeController {
 	@PostMapping("/notices/new")
 	public ResponseEntity<String> insertNotice(Notice n,NoticeFile nf, 
 			                                   MultipartFile upfile, 
-											   HttpSession session,
 											   HttpServletRequest request) {
 		// 작성자 (로그인한 회원) 정보 뽑기
 		String authHeader = request.getHeader("Authorization");
@@ -174,17 +179,14 @@ public class NoticeController {
 		    if (originName != null && originName.contains(".")) {
 		        extension = originName.substring(originName.lastIndexOf(".") + 1);
 			}
-			   
+		    
+		    String rootPath = System.getProperty("user.dir");
+		    String savedPath = rootPath + File.separator + "uploads" + File.separator + "notice_upfiles";
+		  
 			String savedName 
-						= new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + "." + extension;
-			
-			String savedPath = "C:/notice_upfiles/";
-			
-			File dir = new File(savedPath);
-			if (!dir.exists()) {
-				dir.mkdirs();
+						= FileRenamePolicy.saveFile(upfile, savedPath);
 	
-			}
+			
 			
 			// 지정된 실제 경로에 파일 저장
 			try {
@@ -324,18 +326,20 @@ public class NoticeController {
 			if (nf == null) {
 				nf = new NoticeFile();
 			}
-			// 넘어온 첨부파일이 있을 경우
+			// 넘어온 첨부파일이 있을 경우  
 			
-			String originName = reupfile.getOriginalFilename();
-			
-			String savedPath = "C:/notice_upfiles/";
+            String originName = reupfile.getOriginalFilename();
 			
 			String extension = "";
-			   if (originName != null && originName.contains(".")) {
-			       extension = originName.substring(originName.lastIndexOf(".") + 1);
+		    if (originName != null && originName.contains(".")) {
+		        extension = originName.substring(originName.lastIndexOf(".") + 1);
 			}
-			   
-			String savedName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + "."+ extension;   
+		    
+		    String rootPath = System.getProperty("user.dir");
+		    String savedPath = rootPath + File.separator + "uploads" + File.separator + "notice_upfiles";
+		  
+			String savedName 
+						= FileRenamePolicy.saveFile(reupfile, savedPath);
 					
 			nf.setOriginName(originName);
 			nf.setSavedName(savedName);
@@ -376,10 +380,13 @@ public class NoticeController {
 	    String originName = (noticeFile != null) ? noticeFile.getOriginName() : savedName;
 	    
 		// 다운로드할 파일의 물리적인 경로
-		String savedPath = "C:/notice_upfiles/";
-		
+	    String rootPath = System.getProperty("user.dir");
+
+		// 2. OS 구분자를 적용한 경로 조합 (윈도우/리눅스 자동 지원)
+		Path filePath = Paths.get(rootPath, "uploads", "notice_upfiles", savedName);
+	 
 		// 파일을 그냥 응답데이터로는 못보내고, 응답데이터로 내보낼 수 있게끔 포장
-		Resource resource = new FileSystemResource(savedPath + savedName);
+		Resource resource = new FileSystemResource(filePath.toFile());
 		
 		// 파일이 제대로 존재하는지를 검사 후 응답데이터로 보내기
 		if(!resource.exists()) {
@@ -399,7 +406,7 @@ public class NoticeController {
 			return ResponseEntity.status(HttpStatus.OK)
 								 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedName + "\"")
 								
-								 .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(Paths.get(savedPath + savedName)))
+								 .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(filePath))
 								
 								 .body(resource);
 		}		
