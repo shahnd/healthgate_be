@@ -21,6 +21,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.auth.service.AuthenticatedEmployeeService;
@@ -31,6 +33,7 @@ import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
+import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
@@ -134,6 +137,44 @@ class SafetyDocumentServiceTest {
 
         // then
         assertSame(SafetyDocumentProblem.NOT_FOUND, exception.problemType());
+    }
+
+    @Test
+    void getsSafetyDocumentFile() {
+        // given
+        SafetyDocument document = document(employee(role.HEALTH_ADMIN));
+        Resource resource = new ByteArrayResource("file-content".getBytes());
+
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
+
+        // when
+        SafetyDocumentFile result = safetyDocumentService.getFile(10L);
+
+        // then
+        assertSame(resource, result.resource());
+        assertEquals("manual.pdf", result.filename());
+        assertEquals("application/pdf", result.contentType());
+        assertEquals(100L, result.size());
+    }
+
+    @Test
+    void convertsFileLoadFailureToDomainException() {
+        // given
+        SafetyDocument document = document(employee(role.HEALTH_ADMIN));
+        FileStorageException cause = new FileStorageException("파일 없음");
+
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(fileStorage.load("documents/manual.pdf")).thenThrow(cause);
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.getFile(10L));
+
+        // then
+        assertSame(SafetyDocumentProblem.FILE_LOAD_FAILED, exception.problemType());
+        assertSame(cause, exception.getCause());
     }
 
     @Test

@@ -16,6 +16,7 @@ import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.domain.SafetyDocument;
+import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
@@ -75,10 +76,27 @@ public class SafetyDocumentService {
 
     @Transactional(readOnly = true)
     public SafetyDocumentResponse get(Long id) {
-        SafetyDocument document = safetyDocumentRepository.findById(id)
-                .orElseThrow(() -> new SafetyDocumentException(SafetyDocumentProblem.NOT_FOUND));
-
+        SafetyDocument document = getDocument(id);
         return SafetyDocumentResponse.from(document);
+    }
+
+    @Transactional(readOnly = true)
+    public SafetyDocumentFile getFile(Long id) {
+        SafetyDocument document = getDocument(id);
+        try {
+            return new SafetyDocumentFile(
+                    fileStorage.load(document.getStorageKey()),
+                    document.getOriginalFilename(),
+                    document.getContentType(),
+                    document.getFileSize());
+        } catch (FileStorageException exception) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.FILE_LOAD_FAILED, exception);
+        }
+    }
+
+    private SafetyDocument getDocument(Long id) {
+        return safetyDocumentRepository.findById(id)
+                .orElseThrow(() -> new SafetyDocumentException(SafetyDocumentProblem.NOT_FOUND));
     }
 
     private void validateFile(MultipartFile file) {

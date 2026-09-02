@@ -1,5 +1,8 @@
 package com.kh.healthgate.safety.controller;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,6 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +32,7 @@ import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.auth.web.AuthenticatedEmployeeArgumentResolver;
 import com.kh.healthgate.common.exception.ApiExceptionHandler;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
+import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.service.SafetyDocumentService;
@@ -118,6 +124,38 @@ class SafetyDocumentControllerTest {
                 .andExpect(jsonPath("$.code").value("SAFETY_DOCUMENT_NOT_FOUND"));
     }
 
+    @Test
+    void showsSafetyDocumentFileInlineByDefault() throws Exception {
+        // given
+        when(safetyDocumentService.getFile(10L)).thenReturn(fileResponse());
+
+        // when, then
+        mockMvc.perform(get("/safety-documents/10/file"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andExpect(content().bytes("file-content".getBytes()))
+                .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "12"))
+                .andExpect(header().string(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        allOf(startsWith("inline;"), containsString("filename*=UTF-8''manual.pdf"))));
+    }
+
+    @Test
+    void downloadsSafetyDocumentFileWhenRequested() throws Exception {
+        // given
+        when(safetyDocumentService.getFile(10L)).thenReturn(fileResponse());
+
+        // when, then
+        mockMvc.perform(get("/safety-documents/10/file").param("download", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andExpect(content().bytes("file-content".getBytes()))
+                .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "12"))
+                .andExpect(header().string(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        allOf(startsWith("attachment;"), containsString("filename*=UTF-8''manual.pdf"))));
+    }
+
     private SafetyDocumentResponse response() {
         SafetyDocumentResponse.EmployeeResponse employee = new SafetyDocumentResponse.EmployeeResponse(1L, "admin01",
                 "관리자");
@@ -132,5 +170,13 @@ class SafetyDocumentControllerTest {
                 employee,
                 LocalDateTime.of(2026, 9, 1, 10, 0),
                 LocalDateTime.of(2026, 9, 1, 10, 0));
+    }
+
+    private SafetyDocumentFile fileResponse() {
+        return new SafetyDocumentFile(
+                new ByteArrayResource("file-content".getBytes()),
+                "manual.pdf",
+                "application/pdf",
+                12L);
     }
 }

@@ -36,7 +36,13 @@ public enum SafetyDocumentProblem implements ProblemDefinition {
             "안전문서 파일 저장 실패",
             HttpStatus.INTERNAL_SERVER_ERROR,
             "SAFETY_DOCUMENT_STORAGE_FAILED",
-            "안전문서 파일을 저장하지 못했습니다.");
+            "안전문서 파일을 저장하지 못했습니다."),
+    FILE_LOAD_FAILED(
+            "/problems/safety-document-file-load-failed",
+            "안전문서 파일 조회 실패",
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "SAFETY_DOCUMENT_FILE_LOAD_FAILED",
+            "안전문서 파일을 불러오지 못했습니다.");
 
     private final URI type;
     private final String title;

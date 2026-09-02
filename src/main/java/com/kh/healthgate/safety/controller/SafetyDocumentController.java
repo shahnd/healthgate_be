@@ -1,7 +1,11 @@
 package com.kh.healthgate.safety.controller;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,11 +13,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.safety.dto.SafetyDocumentCreateRequest;
+import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.service.SafetyDocumentService;
 
@@ -47,5 +53,25 @@ public class SafetyDocumentController {
     @GetMapping("/{id}")
     public SafetyDocumentResponse get(@PathVariable Long id) {
         return safetyDocumentService.get(id);
+    }
+
+    @GetMapping("/{id}/file")
+    public ResponseEntity<Resource> getFile(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean download) {
+        SafetyDocumentFile file = safetyDocumentService.getFile(id);
+        ContentDisposition disposition = download
+                ? ContentDisposition.attachment()
+                        .filename(file.filename(), StandardCharsets.UTF_8)
+                        .build()
+                : ContentDisposition.inline()
+                        .filename(file.filename(), StandardCharsets.UTF_8)
+                        .build();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(file.size())
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(file.resource());
     }
 }
