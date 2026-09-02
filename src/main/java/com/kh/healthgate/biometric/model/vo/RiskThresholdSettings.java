@@ -35,6 +35,6 @@ public class RiskThresholdSettings {
     @Column(name = "risk_level", length = 20, nullable = false)
     private String riskLevel;
 
-    @Column(name = "value", nullable = false)
+    @Column(name = "threshold_value", nullable = false)
     private Float value;
 }

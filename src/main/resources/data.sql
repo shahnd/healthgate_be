@@ -12,7 +12,7 @@
 -- 0. risk threshold settings
 -- ------------------------------
 
-INSERT INTO risk_threshold_settings (metric_name, risk_level, value) VALUES
+INSERT INTO risk_threshold_settings (metric_name, risk_level, threshold_value) VALUES
 ('SYSTOLIC_BP', 'HIGH', 140),
 ('SYSTOLIC_BP', 'WARN', 130),
 ('DIASTOLIC_BP', 'HIGH', 90),
