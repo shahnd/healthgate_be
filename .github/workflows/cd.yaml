@@ -21,6 +21,8 @@ jobs:
           cache: maven
 
       - name: Test
+        env:
+          SPRING_PROFILES_ACTIVE: test
         run: mvn clean test
 
       - name: Build
