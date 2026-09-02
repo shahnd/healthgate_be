@@ -164,6 +164,15 @@ public class ConsultationController {
 								 .body("invalidReason");
 		}
 		
+		// 중복 검증
+		List<Consultation> existsList = consultationService.reservationSelectByDate(c.getScheduledDate());
+		boolean isDupl = existsList.stream().anyMatch(item -> item.getScheduledTurn().equals(c.getScheduledTurn()));
+		
+		if(isDupl) {
+			return ResponseEntity.status(HttpStatus.CONFLICT) // CONFLICT : 데이터 중복
+								 .body("duplicated");
+		}
+		
 		// insert
 		Consultation result = consultationService.saveConsultation(c); 
 		
@@ -226,6 +235,16 @@ public class ConsultationController {
 		}
 		
 		c.setId(id);
+		
+		// 중복 검증 / 자기 자신(예약) 제외
+		List<Consultation> existsList = consultationService.reservationSelectByDate(c.getScheduledDate());
+		boolean isDupl = existsList.stream().anyMatch(item -> item.getScheduledTurn().equals(c.getScheduledTurn())
+														&& !item.getId().equals(id));
+		
+		if(isDupl) {
+			return ResponseEntity.status(HttpStatus.CONFLICT) // CONFLICT : 데이터 중복
+								 .body("duplicated");
+		}
 		
 		// update
 		Consultation result = consultationService.saveConsultation(c); 
