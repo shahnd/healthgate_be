@@ -65,6 +65,7 @@
             1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
             2. Spring Boot Configuration Processor: 어노테이션으로 정의된 커스텀 properties가 IDE에 인식되도록 함
                lombok과 함께 annotationProcessorPaths에 추가해야 함.
+            3. H2 Database: 테스트 실행용 Embedded DB
 		-->
 
 		<dependency>
@@ -187,6 +188,12 @@
       <dependency>
           <groupId>org.springframework.ai</groupId>
           <artifactId>spring-ai-pdf-document-reader</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <scope>test</scope>
       </dependency>
 	</dependencies>
 
