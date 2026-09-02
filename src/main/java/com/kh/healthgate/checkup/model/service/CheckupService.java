@@ -294,11 +294,10 @@ public class CheckupService {
         }
 
         Optional<Checkup> existingCheckup =
-                checkupDao
-                    .findFirstByEmployeeAndCheckupYearOrderByCheckupIdDesc(
-                            employee,
-                            checkupYear
-                    );
+                checkupDao.findByEmployee_IdAndCheckupYear(
+                        employee.getId(),
+                        checkupYear
+                );
 
         Checkup checkup;
 
@@ -586,35 +585,6 @@ public class CheckupService {
                 savedReminder.getCheckupReminderStatus(),
                 savedReminder.isCheckupReminderIsManual()
         );
-    }
-
-    /**
-     * 자동 알림 설정을 등록한다.
-     */
-    @Transactional
-    public ReminderSettingResponse createReminderSetting(
-            ReminderSettingRequest request) {
-
-        CheckupReminderSetting setting =
-                new CheckupReminderSetting();
-
-        setting.setCheckupReminderSettingType(
-                request.getSettingType()
-        );
-        setting.setCheckupReminderSettingMessageTemplate(
-                request.getMessageTemplate()
-        );
-        setting.setCheckupReminderSettingCronSchedule(
-                request.getCronSchedule()
-        );
-        setting.setCheckupReminderSettingIsActive(
-                request.isActive()
-        );
-
-        CheckupReminderSetting savedSetting =
-                checkupReminderSettingDao.save(setting);
-
-        return convertReminderSettingResponse(savedSetting);
     }
 
     /**
