@@ -39,6 +39,9 @@
 			5. Spring Data JPA
 			6. Spring Security
 
+            Spring Boot 모듈
+            1. spring-boot-starter-actuator: 운영 환경에 필요한 기능 추가
+
 			JWT 관련 라이브러리(JDK21 호환 고려 0.11.5 버전으로 연동)
 
 			1. jjwt-api
@@ -76,6 +79,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+	    <dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -104,7 +111,7 @@
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.5.1</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
