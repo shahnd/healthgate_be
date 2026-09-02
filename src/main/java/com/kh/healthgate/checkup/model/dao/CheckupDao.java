@@ -58,4 +58,9 @@ public interface CheckupDao extends JpaRepository<Checkup, Long> {
     List<Checkup> findByCheckupYearAndCheckupDateIsNull(
             Short checkupYear
     );
+    
+    Optional<Checkup> findByEmployee_IdAndCheckupYear(
+            Long employeeId,
+            Short checkupYear
+    );
 }
