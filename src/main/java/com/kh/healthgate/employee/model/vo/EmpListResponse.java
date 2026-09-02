@@ -1,6 +1,9 @@
 package com.kh.healthgate.employee.model.vo;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+
+import com.kh.healthgate.attendance.model.vo.Timecards;
 
 public record EmpListResponse(
     Long id,
@@ -20,8 +23,22 @@ public record EmpListResponse(
             employee.getDepartments() != null ? employee.getDepartments().getName() : "부서 미지정",
             employee.getPositions() != null ? employee.getPositions().getName() : "직급 미지정",
             employee.getEmail(),
-            !employee.getTimecards().isEmpty() ? employee.getTimecards().get(0).getClockInAt() : null,
-            !employee.getTimecards().isEmpty() ? employee.getTimecards().get(0).getStatus() : "미출근"
+            getLatestClockIn(employee),
+            getLatestStatus(employee)
         );
+    }
+
+    private static LocalDateTime getLatestClockIn(Employee employee) {
+        return employee.getTimecards().stream()
+            .max(Comparator.comparing(Timecards::getClockInAt))
+            .map(Timecards::getClockInAt)
+            .orElse(null);
+    }
+
+    private static String getLatestStatus(Employee employee) {
+        return employee.getTimecards().stream()
+            .max(Comparator.comparing(Timecards::getClockInAt))
+            .map(Timecards::getStatus)
+            .orElse(null);
     }
 }

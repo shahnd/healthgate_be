@@ -63,7 +63,7 @@ public class AttendanceService {
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.plusDays(1).atStartOfDay();
         long attendanceCount = attendanceDao.countByStatusAndClockInAtBetween("ATTENDANCE", start, end);
-        long warnCount = attendanceDao.countByStatusAndClockInAtBetween("WARN", start, end);
+        long warnCount = attendanceDao.countByStatusAndClockInAtBetween("WARNING", start, end);
         long denyCount = attendanceDao.countByStatusAndClockInAtBetween("DENY", start, end);
         return new AttendanceDto(attendanceCount, warnCount, denyCount);
     }
