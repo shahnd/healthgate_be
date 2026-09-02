@@ -85,7 +85,7 @@ jobs:
             count=0
 
             while [ "$count" -lt 60 ]; do
-              if curl -fs http://localhost:8006/actuator/health > /dev/null; then
+              if curl -fs http://localhost:8006/healthgate/actuator/health > /dev/null; then
                 echo "Application is healthy"
                 exit 0
               fi
