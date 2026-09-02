@@ -47,6 +47,10 @@ jobs:
 
             mv ~/uploads/*.jar app.jar
 
+            set -a
+            source .env
+            set +a
+
             if [ -f app.pid ]; then
               PID="$(cat app.pid)"
               kill $PID 2>/dev/null || true
