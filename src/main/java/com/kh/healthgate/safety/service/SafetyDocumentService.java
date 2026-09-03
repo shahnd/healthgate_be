@@ -109,6 +109,26 @@ public class SafetyDocumentService {
     }
 
     @Transactional
+    public SafetyDocumentResponse updateActivation(
+            Long id,
+            boolean active,
+            AuthenticatedEmployee loggedInEmployee) {
+        Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
+
+        if (employee.getRole() != role.HEALTH_ADMIN) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
+        }
+
+        SafetyDocument document = getDocument(id);
+        if (active) {
+            document.activate(employee);
+        } else {
+            document.deactivate(employee);
+        }
+        return SafetyDocumentResponse.from(document);
+    }
+
+    @Transactional
     public void delete(Long id, AuthenticatedEmployee loggedInEmployee) {
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 

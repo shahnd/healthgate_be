@@ -6,6 +6,8 @@ import com.kh.healthgate.employee.model.vo.Employee;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -49,6 +51,10 @@ public class SafetyDocument {
     @Column(name = "content_checksum", nullable = false, unique = true, length = 128)
     private String contentChecksum;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SafetyDocumentStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by_employee_id", nullable = false)
     private Employee createdBy;
@@ -79,6 +85,7 @@ public class SafetyDocument {
         this.contentType = contentType;
         this.fileSize = fileSize;
         this.contentChecksum = contentChecksum;
+        this.status = SafetyDocumentStatus.ACTIVE;
         this.createdBy = employee;
         this.updatedBy = employee;
     }
@@ -86,6 +93,16 @@ public class SafetyDocument {
     public void updateMetadata(String title, String description, Employee employee) {
         this.title = title;
         this.description = description;
+        this.updatedBy = employee;
+    }
+
+    public void activate(Employee employee) {
+        this.status = SafetyDocumentStatus.ACTIVE;
+        this.updatedBy = employee;
+    }
+
+    public void deactivate(Employee employee) {
+        this.status = SafetyDocumentStatus.INACTIVE;
         this.updatedBy = employee;
     }
 

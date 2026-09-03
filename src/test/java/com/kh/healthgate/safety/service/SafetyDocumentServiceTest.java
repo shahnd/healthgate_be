@@ -39,6 +39,7 @@ import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.domain.SafetyDocument;
+import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
@@ -109,6 +110,7 @@ class SafetyDocumentServiceTest {
         assertEquals("manual.pdf", savedDocument.getOriginalFilename());
         assertEquals("documents/manual.pdf", savedDocument.getStorageKey());
         assertEquals("checksum", savedDocument.getContentChecksum());
+        assertSame(SafetyDocumentStatus.ACTIVE, savedDocument.getStatus());
         assertSame(employee, savedDocument.getCreatedBy());
         assertSame(employee, savedDocument.getUpdatedBy());
     }
@@ -196,6 +198,69 @@ class SafetyDocumentServiceTest {
         SafetyDocumentException exception = assertThrows(
                 SafetyDocumentException.class,
                 () -> safetyDocumentService.update(10L, "안전수칙", null, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.FORBIDDEN, exception.problemType());
+        verifyNoInteractions(safetyDocumentRepository);
+    }
+
+    @Test
+    void deactivatesSafetyDocument() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        employee.setId(1L);
+        SafetyDocument document = document(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+
+        // when
+        SafetyDocumentResponse result = safetyDocumentService.updateActivation(
+                10L,
+                false,
+                loggedInEmployee);
+
+        // then
+        assertSame(SafetyDocumentStatus.INACTIVE, document.getStatus());
+        assertSame(SafetyDocumentStatus.INACTIVE, result.status());
+        assertSame(employee, document.getUpdatedBy());
+    }
+
+    @Test
+    void activatesSafetyDocument() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        employee.setId(1L);
+        SafetyDocument document = document(employee);
+        document.deactivate(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+
+        // when
+        SafetyDocumentResponse result = safetyDocumentService.updateActivation(
+                10L,
+                true,
+                loggedInEmployee);
+
+        // then
+        assertSame(SafetyDocumentStatus.ACTIVE, document.getStatus());
+        assertSame(SafetyDocumentStatus.ACTIVE, result.status());
+    }
+
+    @Test
+    void rejectsActivationUpdateWithoutHealthAdminRole() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
+                .thenReturn(employee(role.EMPLOYEE));
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.updateActivation(10L, false, loggedInEmployee));
 
         // then
         assertSame(SafetyDocumentProblem.FORBIDDEN, exception.problemType());

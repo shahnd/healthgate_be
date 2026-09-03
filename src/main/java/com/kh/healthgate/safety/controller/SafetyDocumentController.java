@@ -26,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.safety.dto.SafetyDocumentCreateRequest;
+import com.kh.healthgate.safety.dto.SafetyDocumentActivationRequest;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.dto.SafetyDocumentUpdateRequest;
@@ -78,6 +79,17 @@ public class SafetyDocumentController {
                 id,
                 request.title(),
                 request.description(),
+                loggedInEmployee);
+    }
+
+    @PatchMapping("/{id}/activation")
+    public SafetyDocumentResponse updateActivation(
+            @PathVariable Long id,
+            @Valid @RequestBody SafetyDocumentActivationRequest request,
+            AuthenticatedEmployee loggedInEmployee) {
+        return safetyDocumentService.updateActivation(
+                id,
+                request.active(),
                 loggedInEmployee);
     }
 

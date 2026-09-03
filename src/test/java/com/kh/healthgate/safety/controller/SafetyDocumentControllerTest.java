@@ -42,6 +42,7 @@ import com.kh.healthgate.auth.web.AuthenticatedEmployeeArgumentResolver;
 import com.kh.healthgate.common.exception.ApiExceptionHandler;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
+import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.service.SafetyDocumentService;
@@ -189,6 +190,47 @@ class SafetyDocumentControllerTest {
     }
 
     @Test
+    void updatesSafetyDocumentActivation() throws Exception {
+        // given
+        when(safetyDocumentService.updateActivation(
+                eq(10L),
+                eq(false),
+                any(AuthenticatedEmployee.class)))
+                .thenReturn(response(SafetyDocumentStatus.INACTIVE));
+
+        // when, then
+        mockMvc.perform(patch("/safety-documents/10/activation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "active": false
+                        }
+                        """)
+                .requestAttr("empId", 1L)
+                .requestAttr("employeeNumber", "admin01")
+                .requestAttr("empRole", "HEALTH_ADMIN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("INACTIVE"));
+    }
+
+    @Test
+    void rejectsMissingActivationValue() throws Exception {
+        // given
+        String request = "{}";
+
+        // when, then
+        mockMvc.perform(patch("/safety-documents/10/activation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+                .requestAttr("empId", 1L)
+                .requestAttr("employeeNumber", "admin01")
+                .requestAttr("empRole", "HEALTH_ADMIN"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(safetyDocumentService);
+    }
+
+    @Test
     void deletesSafetyDocument() throws Exception {
         // given
         AuthenticatedEmployee loggedInEmployee = new AuthenticatedEmployee(
@@ -253,6 +295,10 @@ class SafetyDocumentControllerTest {
     }
 
     private SafetyDocumentResponse response() {
+        return response(SafetyDocumentStatus.ACTIVE);
+    }
+
+    private SafetyDocumentResponse response(SafetyDocumentStatus status) {
         return new SafetyDocumentResponse(
                 10L,
                 "안전수칙",
@@ -260,6 +306,7 @@ class SafetyDocumentControllerTest {
                 "manual.pdf",
                 "application/pdf",
                 12L,
+                status,
                 1L,
                 1L,
                 LocalDateTime.of(2026, 9, 1, 10, 0),

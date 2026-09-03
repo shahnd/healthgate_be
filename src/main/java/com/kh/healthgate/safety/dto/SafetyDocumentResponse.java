@@ -3,6 +3,7 @@ package com.kh.healthgate.safety.dto;
 import java.time.LocalDateTime;
 
 import com.kh.healthgate.safety.domain.SafetyDocument;
+import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 
 public record SafetyDocumentResponse(
         Long id,
@@ -11,6 +12,7 @@ public record SafetyDocumentResponse(
         String originalFilename,
         String contentType,
         long fileSize,
+        SafetyDocumentStatus status,
         Long createdById,
         Long updatedById,
         LocalDateTime createdAt,
@@ -24,6 +26,7 @@ public record SafetyDocumentResponse(
                 document.getOriginalFilename(),
                 document.getContentType(),
                 document.getFileSize(),
+                document.getStatus(),
                 document.getCreatedBy().getId(),
                 document.getUpdatedBy().getId(),
                 document.getCreatedAt(),
