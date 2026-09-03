@@ -89,7 +89,7 @@ public class LocalFileStorage implements FileStorage {
 
         String extension = StringUtils.getFilenameExtension(filename);
         if (extension == null) {
-            return "documents/" + UUID.randomUUID();
+            return UUID.randomUUID().toString();
         }
 
         // sanitize
@@ -98,10 +98,10 @@ public class LocalFileStorage implements FileStorage {
                 .toLowerCase(Locale.ROOT);
 
         if (extension.isBlank()) {
-            return "documents/" + UUID.randomUUID();
+            return UUID.randomUUID().toString();
         }
 
-        return "documents/" + UUID.randomUUID() + "." + extension;
+        return UUID.randomUUID() + "." + extension;
     }
 
     private Path resolve(String storageKey) {
