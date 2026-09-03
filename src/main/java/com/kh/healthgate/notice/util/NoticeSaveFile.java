@@ -13,19 +13,15 @@ import com.kh.healthgate.notice.model.vo.NoticeFile;
 public class NoticeSaveFile {
 		
 		// 1. 외부 설정값(application.properties)을 읽어옴
-		private static String uploadDir;
-		
-		@Value("${file.upload-dir}")
-	    public void setUploadDir(String value) {
-	        NoticeSaveFile.uploadDir = value;
-	    }
+	    @Value("${file.upload-dir}")
+		private String uploadDir;
 		
 		// OS에 따라 기본 보관 경로를 자동으로 지정하는 메서드
-	    public static String getSavedPath() {
+	    public String getSavedPath() {
 	    	return uploadDir;
 	    }
 	    
-	    public static NoticeFile saveFile(MultipartFile file) {
+	    public NoticeFile saveFile(MultipartFile file) {
 	        if (file == null || file.isEmpty()) {
 	            return null;
 	        }

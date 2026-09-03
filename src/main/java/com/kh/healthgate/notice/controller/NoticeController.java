@@ -57,6 +57,9 @@ public class NoticeController {
 	
 	@Autowired
 	private EmployeeService employeeService;
+	
+	@Autowired
+	private NoticeSaveFile noticeSaveFile;
 	 
 	// 공지사항 목록 조회용 컨트롤러
 	@GetMapping("/notices")
@@ -166,7 +169,7 @@ public class NoticeController {
 		if(upfile != null && !upfile.isEmpty()) {
 		    
 			
-			NoticeFile nf = NoticeSaveFile.saveFile(upfile);
+			NoticeFile nf = noticeSaveFile.saveFile(upfile);
 			
 			if (nf != null) {
 		        nf.setNotices(insertNo); // 게시글 번호 매핑
@@ -330,7 +333,7 @@ public class NoticeController {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 	    }
 	    
-	    String savedPath = NoticeSaveFile.getSavedPath(); 
+	    String savedPath = noticeSaveFile.getSavedPath(); 
 	    Path filePath = Paths.get(savedPath, noticeFile.getSavedName());
 	    
 		// 파일을 그냥 응답데이터로는 못보내고, 응답데이터로 내보낼 수 있게끔 포장
