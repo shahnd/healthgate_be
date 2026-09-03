@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -42,6 +43,7 @@ import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
+import com.kh.healthgate.safety.event.SafetyDocumentDeletedEvent;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +57,9 @@ class SafetyDocumentServiceTest {
     @Mock
     private AuthenticatedEmployeeService authenticatedEmployeeService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private SafetyDocumentService safetyDocumentService;
 
     @BeforeEach
@@ -62,7 +67,8 @@ class SafetyDocumentServiceTest {
         safetyDocumentService = new SafetyDocumentService(
                 safetyDocumentRepository,
                 fileStorage,
-                authenticatedEmployeeService);
+                authenticatedEmployeeService,
+                eventPublisher);
     }
 
     @Test
@@ -194,6 +200,43 @@ class SafetyDocumentServiceTest {
         // then
         assertSame(SafetyDocumentProblem.FORBIDDEN, exception.problemType());
         verifyNoInteractions(safetyDocumentRepository);
+    }
+
+    @Test
+    void deletesSafetyDocumentAndPublishesFileCleanupEvent() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        SafetyDocument document = document(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+
+        // when
+        safetyDocumentService.delete(10L, loggedInEmployee);
+
+        // then
+        verify(safetyDocumentRepository).delete(document);
+        verify(eventPublisher).publishEvent(
+                new SafetyDocumentDeletedEvent("documents/manual.pdf"));
+        verifyNoInteractions(fileStorage);
+    }
+
+    @Test
+    void rejectsDeleteWithoutHealthAdminRole() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
+                .thenReturn(employee(role.EMPLOYEE));
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.delete(10L, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.FORBIDDEN, exception.problemType());
+        verifyNoInteractions(safetyDocumentRepository, eventPublisher, fileStorage);
     }
 
     @Test

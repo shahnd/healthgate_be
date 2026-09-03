@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
+import com.kh.healthgate.safety.event.SafetyDocumentDeletedEvent;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class SafetyDocumentService {
     private final SafetyDocumentRepository safetyDocumentRepository;
     private final FileStorage fileStorage;
     private final AuthenticatedEmployeeService authenticatedEmployeeService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public SafetyDocumentResponse create(
@@ -103,6 +106,19 @@ public class SafetyDocumentService {
         SafetyDocument document = getDocument(id);
         document.updateMetadata(title.strip(), normalizeDescription(description), employee);
         return SafetyDocumentResponse.from(document);
+    }
+
+    @Transactional
+    public void delete(Long id, AuthenticatedEmployee loggedInEmployee) {
+        Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
+
+        if (employee.getRole() != role.HEALTH_ADMIN) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
+        }
+
+        SafetyDocument document = getDocument(id);
+        safetyDocumentRepository.delete(document);
+        eventPublisher.publishEvent(new SafetyDocumentDeletedEvent(document.getStorageKey()));
     }
 
     @Transactional(readOnly = true)

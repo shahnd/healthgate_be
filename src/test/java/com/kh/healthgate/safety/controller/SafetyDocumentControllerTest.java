@@ -5,10 +5,12 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -184,6 +186,25 @@ class SafetyDocumentControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(safetyDocumentService);
+    }
+
+    @Test
+    void deletesSafetyDocument() throws Exception {
+        // given
+        AuthenticatedEmployee loggedInEmployee = new AuthenticatedEmployee(
+                1L,
+                "admin01",
+                "HEALTH_ADMIN");
+
+        // when, then
+        mockMvc.perform(delete("/safety-documents/10")
+                .requestAttr("empId", loggedInEmployee.id())
+                .requestAttr("employeeNumber", loggedInEmployee.employeeNumber())
+                .requestAttr("empRole", loggedInEmployee.role()))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        verify(safetyDocumentService).delete(10L, loggedInEmployee);
     }
 
     @Test

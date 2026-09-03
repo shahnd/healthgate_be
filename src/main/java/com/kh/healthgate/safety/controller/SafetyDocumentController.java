@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,6 +79,14 @@ public class SafetyDocumentController {
                 request.title(),
                 request.description(),
                 loggedInEmployee);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            AuthenticatedEmployee loggedInEmployee) {
+        safetyDocumentService.delete(id, loggedInEmployee);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/file")
