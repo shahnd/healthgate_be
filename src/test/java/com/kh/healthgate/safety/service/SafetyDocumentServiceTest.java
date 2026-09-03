@@ -38,6 +38,9 @@ import com.kh.healthgate.employee.model.vo.role;
 import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
+import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
+import com.kh.healthgate.safety.ai.index.VectorIndexRequestedEvent;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
@@ -61,6 +64,12 @@ class SafetyDocumentServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private VectorIndexFingerprintFactory fingerprintFactory;
+
+    @Mock
+    private VectorIndexManifestService manifestService;
+
     private SafetyDocumentService safetyDocumentService;
 
     @BeforeEach
@@ -69,7 +78,9 @@ class SafetyDocumentServiceTest {
                 safetyDocumentRepository,
                 fileStorage,
                 authenticatedEmployeeService,
-                eventPublisher);
+                eventPublisher,
+                fingerprintFactory,
+                manifestService);
     }
 
     @Test
@@ -90,6 +101,7 @@ class SafetyDocumentServiceTest {
                 .thenReturn(storedFile);
         when(safetyDocumentRepository.saveAndFlush(any(SafetyDocument.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
 
         // when
         SafetyDocumentResponse result = safetyDocumentService.create(
@@ -113,6 +125,9 @@ class SafetyDocumentServiceTest {
         assertSame(SafetyDocumentStatus.ACTIVE, savedDocument.getStatus());
         assertSame(employee, savedDocument.getCreatedBy());
         assertSame(employee, savedDocument.getUpdatedBy());
+        verify(manifestService).prepare("fingerprint", "checksum");
+        verify(eventPublisher).publishEvent(
+                new VectorIndexRequestedEvent("documents/manual.pdf", "checksum"));
     }
 
     @Test

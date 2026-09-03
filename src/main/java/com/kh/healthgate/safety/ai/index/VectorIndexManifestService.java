@@ -11,6 +11,13 @@ import lombok.RequiredArgsConstructor;
 public class VectorIndexManifestService {
     private final VectorIndexManifestRepository repository;
 
+    @Transactional
+    public void prepare(String fingerprint, String contentChecksum) {
+        if (!repository.existsById(fingerprint)) {
+            repository.save(new VectorIndexManifest(fingerprint, contentChecksum));
+        }
+    }
+
     @Transactional(readOnly = true)
     public boolean isCompleted(String fingerprint) {
         return repository.findById(fingerprint)

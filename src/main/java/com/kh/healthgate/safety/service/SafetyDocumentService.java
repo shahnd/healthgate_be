@@ -18,6 +18,9 @@ import com.kh.healthgate.employee.model.vo.role;
 import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
+import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
+import com.kh.healthgate.safety.ai.index.VectorIndexRequestedEvent;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
@@ -39,6 +42,8 @@ public class SafetyDocumentService {
     private final FileStorage fileStorage;
     private final AuthenticatedEmployeeService authenticatedEmployeeService;
     private final ApplicationEventPublisher eventPublisher;
+    private final VectorIndexFingerprintFactory fingerprintFactory;
+    private final VectorIndexManifestService manifestService;
 
     @Transactional
     public SafetyDocumentResponse create(
@@ -72,6 +77,11 @@ public class SafetyDocumentService {
                     employee);
 
             SafetyDocument savedDocument = safetyDocumentRepository.saveAndFlush(document);
+            String fingerprint = fingerprintFactory.create(storedFile.checksum());
+            manifestService.prepare(fingerprint, storedFile.checksum());
+            eventPublisher.publishEvent(new VectorIndexRequestedEvent(
+                    storedFile.storageKey(),
+                    storedFile.checksum()));
             return SafetyDocumentResponse.from(savedDocument);
         } catch (RuntimeException exception) {
             deleteStoredFile(storedFile.storageKey(), exception);
