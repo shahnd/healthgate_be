@@ -88,6 +88,23 @@ public class SafetyDocumentService {
                 .map(SafetyDocumentResponse::from);
     }
 
+    @Transactional
+    public SafetyDocumentResponse update(
+            Long id,
+            String title,
+            String description,
+            AuthenticatedEmployee loggedInEmployee) {
+        Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
+
+        if (employee.getRole() != role.HEALTH_ADMIN) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
+        }
+
+        SafetyDocument document = getDocument(id);
+        document.updateMetadata(title.strip(), normalizeDescription(description), employee);
+        return SafetyDocumentResponse.from(document);
+    }
+
     @Transactional(readOnly = true)
     public SafetyDocumentFile getFile(Long id) {
         SafetyDocument document = getDocument(id);

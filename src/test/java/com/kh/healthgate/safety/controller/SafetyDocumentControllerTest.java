@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -134,6 +136,54 @@ class SafetyDocumentControllerTest {
                 .andExpect(jsonPath("$.page.number").value(0))
                 .andExpect(jsonPath("$.page.totalElements").value(1))
                 .andExpect(jsonPath("$.page.totalPages").value(1));
+    }
+
+    @Test
+    void updatesSafetyDocumentMetadata() throws Exception {
+        // given
+        when(safetyDocumentService.update(
+                eq(10L),
+                eq("변경된 안전수칙"),
+                eq("변경된 설명"),
+                any(AuthenticatedEmployee.class)))
+                .thenReturn(response());
+
+        // when, then
+        mockMvc.perform(patch("/safety-documents/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "title": "변경된 안전수칙",
+                          "description": "변경된 설명"
+                        }
+                        """)
+                .requestAttr("empId", 1L)
+                .requestAttr("employeeNumber", "admin01")
+                .requestAttr("empRole", "HEALTH_ADMIN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10));
+    }
+
+    @Test
+    void rejectsBlankTitleWhenUpdatingSafetyDocument() throws Exception {
+        // given
+        String request = """
+                {
+                  "title": " ",
+                  "description": "변경된 설명"
+                }
+                """;
+
+        // when, then
+        mockMvc.perform(patch("/safety-documents/10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+                .requestAttr("empId", 1L)
+                .requestAttr("employeeNumber", "admin01")
+                .requestAttr("empRole", "HEALTH_ADMIN"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(safetyDocumentService);
     }
 
     @Test

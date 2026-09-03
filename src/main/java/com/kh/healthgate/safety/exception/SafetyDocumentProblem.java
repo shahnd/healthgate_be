@@ -27,10 +27,10 @@ public enum SafetyDocumentProblem implements ProblemDefinition {
             "동일한 내용의 안전문서가 이미 등록되어 있습니다."),
     FORBIDDEN(
             "/problems/safety-document-forbidden",
-            "안전문서 등록 권한 없음",
+            "안전문서 관리 권한 없음",
             HttpStatus.FORBIDDEN,
             "SAFETY_DOCUMENT_FORBIDDEN",
-            "안전문서를 등록할 권한이 없습니다."),
+            "안전문서를 관리할 권한이 없습니다."),
     STORAGE_FAILED(
             "/problems/safety-document-storage-failed",
             "안전문서 파일 저장 실패",

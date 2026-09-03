@@ -152,6 +152,51 @@ class SafetyDocumentServiceTest {
     }
 
     @Test
+    void updatesSafetyDocumentMetadata() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee creator = employee(role.HEALTH_ADMIN);
+        creator.setId(1L);
+        Employee updater = employee(role.HEALTH_ADMIN);
+        updater.setId(2L);
+        SafetyDocument document = document(creator);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(updater);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+
+        // when
+        SafetyDocumentResponse result = safetyDocumentService.update(
+                10L,
+                "  변경된 안전수칙  ",
+                "   ",
+                loggedInEmployee);
+
+        // then
+        assertEquals("변경된 안전수칙", document.getTitle());
+        assertNull(document.getDescription());
+        assertSame(updater, document.getUpdatedBy());
+        assertEquals("변경된 안전수칙", result.title());
+        assertEquals(2L, result.updatedById());
+    }
+
+    @Test
+    void rejectsMetadataUpdateWithoutHealthAdminRole() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
+                .thenReturn(employee(role.EMPLOYEE));
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.update(10L, "안전수칙", null, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.FORBIDDEN, exception.problemType());
+        verifyNoInteractions(safetyDocumentRepository);
+    }
+
+    @Test
     void throwsNotFoundWhenSafetyDocumentDoesNotExist() {
         // given
         when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.empty());

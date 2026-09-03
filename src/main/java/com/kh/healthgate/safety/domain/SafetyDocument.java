@@ -89,21 +89,6 @@ public class SafetyDocument {
         this.updatedBy = employee;
     }
 
-    public void replaceFile(
-            String originalFilename,
-            String storageKey,
-            String contentType,
-            long fileSize,
-            String contentChecksum,
-            Employee employee) {
-        this.originalFilename = originalFilename;
-        this.storageKey = storageKey;
-        this.contentType = contentType;
-        this.fileSize = fileSize;
-        this.contentChecksum = contentChecksum;
-        this.updatedBy = employee;
-    }
-
     @PrePersist
     void created() {
         LocalDateTime now = LocalDateTime.now();

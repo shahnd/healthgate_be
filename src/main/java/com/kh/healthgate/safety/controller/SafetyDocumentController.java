@@ -14,8 +14,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +27,7 @@ import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.safety.dto.SafetyDocumentCreateRequest;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
+import com.kh.healthgate.safety.dto.SafetyDocumentUpdateRequest;
 import com.kh.healthgate.safety.service.SafetyDocumentService;
 
 import jakarta.validation.Valid;
@@ -63,6 +66,18 @@ public class SafetyDocumentController {
     public PagedModel<SafetyDocumentResponse> getList(
             @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC) Pageable pageable) {
         return new PagedModel<>(safetyDocumentService.getList(pageable));
+    }
+
+    @PatchMapping("/{id}")
+    public SafetyDocumentResponse update(
+            @PathVariable Long id,
+            @Valid @RequestBody SafetyDocumentUpdateRequest request,
+            AuthenticatedEmployee loggedInEmployee) {
+        return safetyDocumentService.update(
+                id,
+                request.title(),
+                request.description(),
+                loggedInEmployee);
     }
 
     @GetMapping("/{id}/file")
