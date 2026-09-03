@@ -1,8 +1,6 @@
 package com.kh.healthgate.notice.controller;
 
 
-
-import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -10,13 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -35,13 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.healthgate.common.model.vo.PageInfo;
-import com.kh.healthgate.common.template.FileRenamePolicy;
 import com.kh.healthgate.common.template.Pagination;
 import com.kh.healthgate.employee.model.service.EmployeeService;
 import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.notice.model.service.NoticeService;
 import com.kh.healthgate.notice.model.vo.Notice;
 import com.kh.healthgate.notice.model.vo.NoticeFile;
+import com.kh.healthgate.notice.util.NoticeSaveFile.FileUtil;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -56,9 +51,6 @@ import jakarta.servlet.http.HttpSession;
 public class NoticeController {
     
 	public static final String SECRET_KEY = "Hello123ThisisHellPangWeWantToBreakTime";
-	
-	@Value("${file.upload-dir}")
-    private String uploadDir;
 	
 	@Autowired
 	public NoticeService noticeService;
@@ -126,7 +118,7 @@ public class NoticeController {
 	
 	// 공지사항 작성용 컨트롤러
 	@PostMapping("/notices/new")
-	public ResponseEntity<String> insertNotice(Notice n,NoticeFile nf, 
+	public ResponseEntity<String> insertNotice(Notice n, 
 			                                   MultipartFile upfile, 
 											   HttpServletRequest request) {
 		// 작성자 (로그인한 회원) 정보 뽑기
@@ -172,38 +164,14 @@ public class NoticeController {
 		// 넘어온 첨부파일이 있을 경우
 		// > 파일명 수정작업 후 서버로 업로드 (공통코드), originName, savedName, extension, savedPath 필드값을 셋팅
 		if(upfile != null && !upfile.isEmpty()) {
-			
-			String originName = upfile.getOriginalFilename();
-			
-			String extension = "";
-		    if (originName != null && originName.contains(".")) {
-		        extension = originName.substring(originName.lastIndexOf(".") + 1);
-			}
 		    
-		    String rootPath = System.getProperty("user.dir");
-		    String savedPath = rootPath + File.separator + "uploads" + File.separator + "notice_upfiles";
-		  
-			String savedName 
-						= FileRenamePolicy.saveFile(upfile, savedPath);
-	
 			
+			NoticeFile nf = FileUtil.saveFile(upfile);
 			
-			// 지정된 실제 경로에 파일 저장
-			try {
-		        upfile.transferTo(new File(savedPath + savedName));
-		        
-		    } catch (IOException e) {
-		    	
-		        e.printStackTrace();
+			if (nf != null) {
+		        nf.setNotices(insertNo); // 게시글 번호 매핑
+		        noticeService.insertNoticeFile(nf);
 		    }
-			
-			nf.setOriginName(originName);
-			nf.setSavedName(savedName);
-			nf.setSavedPath(savedPath);
-			nf.setExtension(extension);
-			nf.setNotices(insertNo);
-			
-			noticeService.insertNoticeFile(nf);
 		}
 		
 		String message = (insertNo != null) ? "success" : "fail";
@@ -323,31 +291,11 @@ public class NoticeController {
 		if(reupfile != null && !reupfile.isEmpty()) {
 			
 			NoticeFile nf = noticeService.selectNoticeFile(noticeId);
-			if (nf == null) {
-				nf = new NoticeFile();
-			}
-			// 넘어온 첨부파일이 있을 경우  
 			
-            String originName = reupfile.getOriginalFilename();
-			
-			String extension = "";
-		    if (originName != null && originName.contains(".")) {
-		        extension = originName.substring(originName.lastIndexOf(".") + 1);
-			}
-		    
-		    String rootPath = System.getProperty("user.dir");
-		    String savedPath = rootPath + File.separator + "uploads" + File.separator + "notice_upfiles";
-		  
-			String savedName 
-						= FileRenamePolicy.saveFile(reupfile, savedPath);
-					
-			nf.setOriginName(originName);
-			nf.setSavedName(savedName);
-			nf.setSavedPath(savedPath);
-			nf.setExtension(extension);
-			nf.setNotices(updateNo);
-			
-			noticeService.updateNoticeFile(nf);
+			if (nf != null) {
+		        nf.setNotices(updateNo); // 게시글 번호 매핑
+		        noticeService.insertNoticeFile(nf);
+		    }
 		}
 		
 		String message = (updateNo != null) ? "success" : "fail";
@@ -371,20 +319,20 @@ public class NoticeController {
 	}
 	
 	// 첨부파일 다운로드용 컨트롤러
-	@GetMapping("/notices/download/{savedName}/{noticeFileId}")
-	public ResponseEntity<Resource> upfileDownload(@PathVariable String savedName, 
-			                                       @PathVariable Long noticeFileId,
+	@GetMapping("/notices/download/{noticeFileId}")
+	public ResponseEntity<Resource> upfileDownload(@PathVariable Long noticeFileId,
 												   HttpSession session) throws IOException {
 		
 		NoticeFile noticeFile = noticeService.selectNoticeFileId(noticeFileId); 
-	    String originName = (noticeFile != null) ? noticeFile.getOriginName() : savedName;
 	    
-		// 다운로드할 파일의 물리적인 경로
-	    String rootPath = System.getProperty("user.dir");
-
-		// 2. OS 구분자를 적용한 경로 조합 (윈도우/리눅스 자동 지원)
-		Path filePath = Paths.get(rootPath, "uploads", "notice_upfiles", savedName);
-	 
+		// 2. 파일 정보가 DB에 없거나 실제 저장명이 없으면 404 리턴
+	    if (noticeFile == null || noticeFile.getSavedName() == null) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    }
+	    
+	    String savedPath = FileUtil.getSavedPath(); 
+	    Path filePath = Paths.get(savedPath, noticeFile.getSavedName());
+	    
 		// 파일을 그냥 응답데이터로는 못보내고, 응답데이터로 내보낼 수 있게끔 포장
 		Resource resource = new FileSystemResource(filePath.toFile());
 		
@@ -397,9 +345,9 @@ public class NoticeController {
 			
 		} else {
 			// > 해당 파일이 존재할 경우
-			
-			// 이번에는 응답데이터가 파일로 넘어가야하는 특이케이스이기 때문에 설정이 이것저것 붙는다!!
+
 			// 우선 한글 파일명 깨짐을 방지
+			String originName = noticeFile.getOriginName();
 			String encodedName = URLEncoder.encode(originName, "UTF-8").replaceAll("\\+", "%20");
 			// > 사용자가 보기 좋게 원본파일명으로 다운로드를 하기 위함
 			
@@ -411,5 +359,6 @@ public class NoticeController {
 								 .body(resource);
 		}		
 	}
+
 		
 }
