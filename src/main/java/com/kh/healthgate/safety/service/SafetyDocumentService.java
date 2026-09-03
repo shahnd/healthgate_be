@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,12 +59,36 @@ public class SafetyDocumentService {
 
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 
+        if (file == null) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.INVALID_FILE);
+        }
+
+        return create(
+                title,
+                description,
+                file.getResource(),
+                file.getOriginalFilename(),
+                file.getContentType(),
+                file.getSize(),
+                employee);
+    }
+
+    @Transactional
+    public SafetyDocumentResponse create(
+            String title,
+            String description,
+            Resource resource,
+            String filename,
+            String contentType,
+            long fileSize,
+            Employee employee) {
+
         if (employee.getRole() != role.HEALTH_ADMIN) {
             throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
         }
 
-        validateFile(file);
-        StoredFile storedFile = storeFile(file);
+        validateFile(resource, filename, fileSize);
+        StoredFile storedFile = storeFile(resource, filename, contentType);
 
         try {
             if (safetyDocumentRepository.existsByContentChecksum(storedFile.checksum())) {
@@ -194,24 +219,24 @@ public class SafetyDocumentService {
         return SafetyDocumentResponse.from(document, indexStatus);
     }
 
-    private void validateFile(MultipartFile file) {
-        if (file == null
-                || file.isEmpty()
-                || file.getSize() > MAX_FILE_SIZE
-                || !StringUtils.hasText(file.getOriginalFilename())) {
+    private void validateFile(Resource resource, String filename, long fileSize) {
+        if (resource == null
+                || fileSize <= 0
+                || fileSize > MAX_FILE_SIZE
+                || !StringUtils.hasText(filename)) {
             throw new SafetyDocumentException(SafetyDocumentProblem.INVALID_FILE);
         }
     }
 
-    private StoredFile storeFile(MultipartFile file) {
-        String contentType = StringUtils.hasText(file.getContentType())
-                ? file.getContentType()
+    private StoredFile storeFile(Resource resource, String filename, String contentType) {
+        String resolvedContentType = StringUtils.hasText(contentType)
+                ? contentType
                 : MediaType.APPLICATION_OCTET_STREAM_VALUE;
         try {
             return fileStorage.store(
-                    file.getOriginalFilename(),
-                    contentType,
-                    file.getInputStream());
+                    filename,
+                    resolvedContentType,
+                    resource.getInputStream());
         } catch (IOException | FileStorageException exception) {
             throw new SafetyDocumentException(SafetyDocumentProblem.STORAGE_FAILED, exception);
         }
