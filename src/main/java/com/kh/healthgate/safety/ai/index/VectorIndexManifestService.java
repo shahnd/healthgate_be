@@ -1,5 +1,10 @@
 package com.kh.healthgate.safety.ai.index;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,10 +17,25 @@ public class VectorIndexManifestService {
     private final VectorIndexManifestRepository repository;
 
     @Transactional
-    public void prepare(String fingerprint, String contentChecksum) {
-        if (!repository.existsById(fingerprint)) {
-            repository.save(new VectorIndexManifest(fingerprint, contentChecksum));
-        }
+    public VectorIndexStatus prepare(String fingerprint, String contentChecksum) {
+        VectorIndexManifest manifest = repository.findById(fingerprint)
+                .orElseGet(() -> repository.save(
+                        new VectorIndexManifest(fingerprint, contentChecksum)));
+        return manifest.getStatus();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<VectorIndexStatus> getStatus(String fingerprint) {
+        return repository.findById(fingerprint)
+                .map(manifest -> manifest.getStatus());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, VectorIndexStatus> getStatuses(Collection<String> fingerprints) {
+        return repository.findAllById(fingerprints).stream()
+                .collect(Collectors.toMap(
+                        manifest -> manifest.getFingerprint(),
+                        manifest -> manifest.getStatus()));
     }
 
     @Transactional(readOnly = true)

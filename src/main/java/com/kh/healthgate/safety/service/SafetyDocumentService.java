@@ -1,6 +1,9 @@
 package com.kh.healthgate.safety.service;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +24,7 @@ import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
 import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
 import com.kh.healthgate.safety.ai.index.VectorIndexRequestedEvent;
+import com.kh.healthgate.safety.ai.index.VectorIndexStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
@@ -78,11 +82,13 @@ public class SafetyDocumentService {
 
             SafetyDocument savedDocument = safetyDocumentRepository.saveAndFlush(document);
             String fingerprint = fingerprintFactory.create(storedFile.checksum());
-            manifestService.prepare(fingerprint, storedFile.checksum());
+            VectorIndexStatus indexStatus = manifestService.prepare(
+                    fingerprint,
+                    storedFile.checksum());
             eventPublisher.publishEvent(new VectorIndexRequestedEvent(
                     storedFile.storageKey(),
                     storedFile.checksum()));
-            return SafetyDocumentResponse.from(savedDocument);
+            return SafetyDocumentResponse.from(savedDocument, indexStatus);
         } catch (RuntimeException exception) {
             deleteStoredFile(storedFile.storageKey(), exception);
             throw exception;
@@ -92,13 +98,25 @@ public class SafetyDocumentService {
     @Transactional(readOnly = true)
     public SafetyDocumentResponse get(Long id) {
         SafetyDocument document = getDocument(id);
-        return SafetyDocumentResponse.from(document);
+        return toResponse(document);
     }
 
     @Transactional(readOnly = true)
     public Page<SafetyDocumentResponse> getList(Pageable pageable) {
-        return safetyDocumentRepository.findAll(pageable)
-                .map(SafetyDocumentResponse::from);
+        Page<SafetyDocument> documents = safetyDocumentRepository.findAll(pageable);
+        Map<String, String> fingerprintByChecksum = documents.stream()
+                .map(document -> document.getContentChecksum())
+                .distinct()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        fingerprintFactory::create));
+        Map<String, VectorIndexStatus> statusByFingerprint = manifestService.getStatuses(
+                fingerprintByChecksum.values());
+
+        return documents.map(document -> SafetyDocumentResponse.from(
+                document,
+                statusByFingerprint.get(
+                        fingerprintByChecksum.get(document.getContentChecksum()))));
     }
 
     @Transactional
@@ -115,7 +133,7 @@ public class SafetyDocumentService {
 
         SafetyDocument document = getDocument(id);
         document.updateMetadata(title.strip(), normalizeDescription(description), employee);
-        return SafetyDocumentResponse.from(document);
+        return toResponse(document);
     }
 
     @Transactional
@@ -135,7 +153,7 @@ public class SafetyDocumentService {
         } else {
             document.deactivate(employee);
         }
-        return SafetyDocumentResponse.from(document);
+        return toResponse(document);
     }
 
     @Transactional
@@ -168,6 +186,12 @@ public class SafetyDocumentService {
     private SafetyDocument getDocument(Long id) {
         return safetyDocumentRepository.findById(id)
                 .orElseThrow(() -> new SafetyDocumentException(SafetyDocumentProblem.NOT_FOUND));
+    }
+
+    private SafetyDocumentResponse toResponse(SafetyDocument document) {
+        String fingerprint = fingerprintFactory.create(document.getContentChecksum());
+        VectorIndexStatus indexStatus = manifestService.getStatus(fingerprint).orElse(null);
+        return SafetyDocumentResponse.from(document, indexStatus);
     }
 
     private void validateFile(MultipartFile file) {

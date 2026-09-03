@@ -89,6 +89,7 @@ class SafetyDocumentControllerTest {
                 .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.title").value("안전수칙"))
                 .andExpect(jsonPath("$.originalFilename").value("manual.pdf"))
+                .andExpect(jsonPath("$.indexStatus").hasJsonPath())
                 .andExpect(jsonPath("$.createdById").value(1));
     }
 
@@ -307,6 +308,7 @@ class SafetyDocumentControllerTest {
                 "application/pdf",
                 12L,
                 status,
+                null,
                 1L,
                 1L,
                 LocalDateTime.of(2026, 9, 1, 10, 0),

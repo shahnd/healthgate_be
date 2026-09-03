@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -13,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +44,7 @@ import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
 import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
 import com.kh.healthgate.safety.ai.index.VectorIndexRequestedEvent;
+import com.kh.healthgate.safety.ai.index.VectorIndexStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
@@ -102,6 +106,8 @@ class SafetyDocumentServiceTest {
         when(safetyDocumentRepository.saveAndFlush(any(SafetyDocument.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.prepare("fingerprint", "checksum"))
+                .thenReturn(VectorIndexStatus.PENDING);
 
         // when
         SafetyDocumentResponse result = safetyDocumentService.create(
@@ -123,6 +129,7 @@ class SafetyDocumentServiceTest {
         assertEquals("documents/manual.pdf", savedDocument.getStorageKey());
         assertEquals("checksum", savedDocument.getContentChecksum());
         assertSame(SafetyDocumentStatus.ACTIVE, savedDocument.getStatus());
+        assertSame(VectorIndexStatus.PENDING, result.indexStatus());
         assertSame(employee, savedDocument.getCreatedBy());
         assertSame(employee, savedDocument.getUpdatedBy());
         verify(manifestService).prepare("fingerprint", "checksum");
@@ -140,6 +147,9 @@ class SafetyDocumentServiceTest {
         SafetyDocument document = document(employee);
 
         when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.getStatus("fingerprint"))
+                .thenReturn(Optional.of(VectorIndexStatus.COMPLETED));
 
         // when
         SafetyDocumentResponse result = safetyDocumentService.get(10L);
@@ -152,6 +162,7 @@ class SafetyDocumentServiceTest {
         assertEquals(100L, result.fileSize());
         assertEquals(1L, result.createdById());
         assertEquals(1L, result.updatedById());
+        assertSame(VectorIndexStatus.COMPLETED, result.indexStatus());
     }
 
     @Test
@@ -164,6 +175,9 @@ class SafetyDocumentServiceTest {
         Page<SafetyDocument> documents = new PageImpl<>(List.of(document), pageable, 1);
 
         when(safetyDocumentRepository.findAll(pageable)).thenReturn(documents);
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.getStatuses(anyCollection()))
+                .thenReturn(Map.of("fingerprint", VectorIndexStatus.INDEXING));
 
         // when
         Page<SafetyDocumentResponse> result = safetyDocumentService.getList(pageable);
@@ -172,6 +186,9 @@ class SafetyDocumentServiceTest {
         assertEquals(1, result.getTotalElements());
         assertEquals("안전수칙", result.getContent().getFirst().title());
         assertEquals(1L, result.getContent().getFirst().createdById());
+        assertSame(VectorIndexStatus.INDEXING, result.getContent().getFirst().indexStatus());
+        verify(manifestService).getStatuses(argThat(fingerprints ->
+                fingerprints.size() == 1 && fingerprints.contains("fingerprint")));
     }
 
     @Test
