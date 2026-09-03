@@ -121,8 +121,8 @@ class SafetyDocumentServiceTest {
         assertEquals("manual.pdf", result.originalFilename());
         assertEquals("application/pdf", result.contentType());
         assertEquals(100L, result.fileSize());
-        assertEquals("admin01", result.createdBy().employeeNumber());
-        assertEquals("admin01", result.updatedBy().employeeNumber());
+        assertEquals(1L, result.createdById());
+        assertEquals(1L, result.updatedById());
     }
 
     @Test

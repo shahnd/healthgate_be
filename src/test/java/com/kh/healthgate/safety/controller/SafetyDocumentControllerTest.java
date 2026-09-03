@@ -77,7 +77,7 @@ class SafetyDocumentControllerTest {
                 .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.title").value("안전수칙"))
                 .andExpect(jsonPath("$.originalFilename").value("manual.pdf"))
-                .andExpect(jsonPath("$.createdBy.employeeNumber").value("admin01"));
+                .andExpect(jsonPath("$.createdById").value(1));
     }
 
     @Test
@@ -108,7 +108,7 @@ class SafetyDocumentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.title").value("안전수칙"))
-                .andExpect(jsonPath("$.createdBy.employeeNumber").value("admin01"));
+                .andExpect(jsonPath("$.createdById").value(1));
     }
 
     @Test
@@ -157,8 +157,6 @@ class SafetyDocumentControllerTest {
     }
 
     private SafetyDocumentResponse response() {
-        SafetyDocumentResponse.EmployeeResponse employee = new SafetyDocumentResponse.EmployeeResponse(1L, "admin01",
-                "관리자");
         return new SafetyDocumentResponse(
                 10L,
                 "안전수칙",
@@ -166,8 +164,8 @@ class SafetyDocumentControllerTest {
                 "manual.pdf",
                 "application/pdf",
                 12L,
-                employee,
-                employee,
+                1L,
+                1L,
                 LocalDateTime.of(2026, 9, 1, 10, 0),
                 LocalDateTime.of(2026, 9, 1, 10, 0));
     }

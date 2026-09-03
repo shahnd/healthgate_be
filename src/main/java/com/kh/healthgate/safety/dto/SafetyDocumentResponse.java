@@ -2,7 +2,6 @@ package com.kh.healthgate.safety.dto;
 
 import java.time.LocalDateTime;
 
-import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 
 public record SafetyDocumentResponse(
@@ -12,8 +11,8 @@ public record SafetyDocumentResponse(
         String originalFilename,
         String contentType,
         long fileSize,
-        EmployeeResponse createdBy,
-        EmployeeResponse updatedBy,
+        Long createdById,
+        Long updatedById,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {
 
@@ -25,18 +24,9 @@ public record SafetyDocumentResponse(
                 document.getOriginalFilename(),
                 document.getContentType(),
                 document.getFileSize(),
-                EmployeeResponse.from(document.getCreatedBy()),
-                EmployeeResponse.from(document.getUpdatedBy()),
+                document.getCreatedBy().getId(),
+                document.getUpdatedBy().getId(),
                 document.getCreatedAt(),
                 document.getUpdatedAt());
-    }
-
-    public record EmployeeResponse(Long id, String employeeNumber, String name) {
-        private static EmployeeResponse from(Employee employee) {
-            return new EmployeeResponse(
-                    employee.getId(),
-                    employee.getEmployeeNumber(),
-                    employee.getName());
-        }
     }
 }
