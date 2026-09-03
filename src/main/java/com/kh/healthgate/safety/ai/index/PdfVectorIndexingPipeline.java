@@ -34,18 +34,22 @@ public class PdfVectorIndexingPipeline {
             return;
         }
 
-        List<Document> documents = extract(resource).stream()
-                .map(document -> transform(document, fingerprint))
-                .toList();
+        manifestService.startIndexing(fingerprint, contentChecksum);
+        try {
+            vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
+            List<Document> documents = extract(resource).stream()
+                    .map(document -> transform(document, fingerprint))
+                    .toList();
 
-        vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
-        manifestService.startIndexing(fingerprint, sourceName);
+            for (Document document : documents) {
+                load(document);
+            }
 
-        for (Document document : documents) {
-            load(document);
+            manifestService.completeIndexing(fingerprint, documents.size());
+        } catch (RuntimeException exception) {
+            manifestService.failIndexing(fingerprint, exception.getMessage());
+            throw exception;
         }
-
-        manifestService.completeIndexing(fingerprint);
     }
 
     private List<Document> extract(Resource resource) {

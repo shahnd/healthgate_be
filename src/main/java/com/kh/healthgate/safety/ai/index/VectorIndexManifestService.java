@@ -19,17 +19,21 @@ public class VectorIndexManifestService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startIndexing(String fingerprint, String sourceName) {
+    public void startIndexing(String fingerprint, String contentChecksum) {
         VectorIndexManifest manifest = repository.findById(fingerprint).orElse(null);
         if (manifest == null) {
-            repository.save(new VectorIndexManifest(fingerprint, sourceName));
-            return;
+            manifest = repository.save(new VectorIndexManifest(fingerprint, contentChecksum));
         }
-        manifest.restart(sourceName);
+        manifest.start();
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void completeIndexing(String fingerprint) {
-        repository.findById(fingerprint).orElseThrow().complete();
+    public void completeIndexing(String fingerprint, int chunkCount) {
+        repository.findById(fingerprint).orElseThrow().complete(chunkCount);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void failIndexing(String fingerprint, String failureMessage) {
+        repository.findById(fingerprint).orElseThrow().fail(failureMessage);
     }
 }
