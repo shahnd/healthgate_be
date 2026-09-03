@@ -1,14 +1,10 @@
 package com.kh.healthgate.safety.ai.index;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
@@ -18,8 +14,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.google.genai.errors.ClientException;
-import com.kh.healthgate.safety.ai.config.AiProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,12 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 public class PdfVectorIndexingPipeline {
     private final VectorStore vectorStore;
     private final VectorIndexManifestService manifestService;
-    private final AiProperties properties;
-    private final EmbeddingModel embeddingModel;
+    private final VectorIndexFingerprintFactory fingerprintFactory;
 
-    public void index(Resource resource) {
+    public void index(Resource resource, String contentChecksum) {
         String sourceName = resource.getFilename();
-        String fingerprint = fingerprint(resource);
+        String fingerprint = fingerprintFactory.create(contentChecksum);
 
         if (manifestService.isCompleted(fingerprint)) {
             log.info("skip completed index: {}", sourceName);
@@ -99,19 +92,4 @@ public class PdfVectorIndexingPipeline {
         }
     }
 
-    private String fingerprint(Resource resource) {
-        String contentHash;
-        try (InputStream inputStream = resource.getInputStream()) {
-            contentHash = DigestUtils.sha512Hex(inputStream);
-        } catch (IOException e) {
-            throw new IllegalStateException("fingerprint 생성에 실패했습니다: " + resource.getFilename(), e);
-        }
-
-        String input = String.join("\n",
-                "content-sha512=" + contentHash,
-                "pipeline-version=" + properties.getPipelineVersion(),
-                "embedding-model=" + properties.getEmbeddingModel(),
-                "embedding-dimensions=" + embeddingModel.dimensions());
-        return DigestUtils.sha512Hex(input);
-    }
 }
