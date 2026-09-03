@@ -36,7 +36,7 @@ import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.notice.model.service.NoticeService;
 import com.kh.healthgate.notice.model.vo.Notice;
 import com.kh.healthgate.notice.model.vo.NoticeFile;
-import com.kh.healthgate.notice.util.NoticeSaveFile.FileUtil;
+import com.kh.healthgate.notice.util.NoticeSaveFile;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -166,7 +166,7 @@ public class NoticeController {
 		if(upfile != null && !upfile.isEmpty()) {
 		    
 			
-			NoticeFile nf = FileUtil.saveFile(upfile);
+			NoticeFile nf = NoticeSaveFile.saveFile(upfile);
 			
 			if (nf != null) {
 		        nf.setNotices(insertNo); // 게시글 번호 매핑
@@ -330,7 +330,7 @@ public class NoticeController {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 	    }
 	    
-	    String savedPath = FileUtil.getSavedPath(); 
+	    String savedPath = NoticeSaveFile.getSavedPath(); 
 	    Path filePath = Paths.get(savedPath, noticeFile.getSavedName());
 	    
 		// 파일을 그냥 응답데이터로는 못보내고, 응답데이터로 내보낼 수 있게끔 포장
