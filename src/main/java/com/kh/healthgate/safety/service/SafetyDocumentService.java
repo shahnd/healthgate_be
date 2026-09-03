@@ -2,6 +2,8 @@ package com.kh.healthgate.safety.service;
 
 import java.io.IOException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,6 +80,12 @@ public class SafetyDocumentService {
     public SafetyDocumentResponse get(Long id) {
         SafetyDocument document = getDocument(id);
         return SafetyDocumentResponse.from(document);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SafetyDocumentResponse> getList(Pageable pageable) {
+        return safetyDocumentRepository.findAll(pageable)
+                .map(SafetyDocumentResponse::from);
     }
 
     @Transactional(readOnly = true)

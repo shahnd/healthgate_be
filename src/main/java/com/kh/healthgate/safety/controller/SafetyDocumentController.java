@@ -4,6 +4,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -53,6 +57,12 @@ public class SafetyDocumentController {
     @GetMapping("/{id}")
     public SafetyDocumentResponse get(@PathVariable Long id) {
         return safetyDocumentService.get(id);
+    }
+
+    @GetMapping
+    public PagedModel<SafetyDocumentResponse> getList(
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC) Pageable pageable) {
+        return new PagedModel<>(safetyDocumentService.getList(pageable));
     }
 
     @GetMapping("/{id}/file")

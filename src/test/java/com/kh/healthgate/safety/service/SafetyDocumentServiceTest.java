@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.auth.service.AuthenticatedEmployeeService;
@@ -123,6 +129,26 @@ class SafetyDocumentServiceTest {
         assertEquals(100L, result.fileSize());
         assertEquals(1L, result.createdById());
         assertEquals(1L, result.updatedById());
+    }
+
+    @Test
+    void getsSafetyDocumentList() {
+        // given
+        Employee employee = employee(role.HEALTH_ADMIN);
+        employee.setId(1L);
+        SafetyDocument document = document(employee);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        Page<SafetyDocument> documents = new PageImpl<>(List.of(document), pageable, 1);
+
+        when(safetyDocumentRepository.findAll(pageable)).thenReturn(documents);
+
+        // when
+        Page<SafetyDocumentResponse> result = safetyDocumentService.getList(pageable);
+
+        // then
+        assertEquals(1, result.getTotalElements());
+        assertEquals("안전수칙", result.getContent().getFirst().title());
+        assertEquals(1L, result.getContent().getFirst().createdById());
     }
 
     @Test

@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,7 +53,9 @@ class SafetyDocumentControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new SafetyDocumentController(safetyDocumentService))
-                .setCustomArgumentResolvers(new AuthenticatedEmployeeArgumentResolver())
+                .setCustomArgumentResolvers(
+                        new AuthenticatedEmployeeArgumentResolver(),
+                        new PageableHandlerMethodArgumentResolver())
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
     }
@@ -109,6 +116,24 @@ class SafetyDocumentControllerTest {
                 .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.title").value("안전수칙"))
                 .andExpect(jsonPath("$.createdById").value(1));
+    }
+
+    @Test
+    void getsSafetyDocumentList() throws Exception {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        when(safetyDocumentService.getList(pageable))
+                .thenReturn(new PageImpl<>(List.of(response()), pageable, 1));
+
+        // when, then
+        mockMvc.perform(get("/safety-documents"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(10))
+                .andExpect(jsonPath("$.content[0].createdById").value(1))
+                .andExpect(jsonPath("$.page.size").value(10))
+                .andExpect(jsonPath("$.page.number").value(0))
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.page.totalPages").value(1));
     }
 
     @Test
