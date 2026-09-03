@@ -114,7 +114,7 @@ public class HospitalController {
 	}
 	
 	// 검진가능 병원 삭제용 컨트롤러
-	@DeleteMapping("/hospitals/{hospitalid}")
+	@DeleteMapping("/hospitals/{hospitalId}")
 	public ResponseEntity<String> deleteHospital(@PathVariable Long hospitalId) {
 		
 		// 서비스 호출

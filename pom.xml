@@ -39,14 +39,15 @@
 			5. Spring Data JPA
 			6. Spring Security
 
+            Spring Boot 모듈
+            1. spring-boot-starter-actuator: 운영 환경에 필요한 기능 추가
+            2. spring-boot-starter-validation: DTO validation 어노테이션
+
 			JWT 관련 라이브러리(JDK21 호환 고려 0.11.5 버전으로 연동)
 
 			1. jjwt-api
 			2. jjwt-impl
 			3. jjwt-jackson
-
-            Spring Boot 모듈
-            1. spring-boot-starter-validation: DTO validation 어노테이션
 
             AI 관련 라이브러리
 
@@ -65,6 +66,7 @@
             1. WireMock Spring Boot Integration: 외부 API 테스트용 모의 서버
             2. Spring Boot Configuration Processor: 어노테이션으로 정의된 커스텀 properties가 IDE에 인식되도록 함
                lombok과 함께 annotationProcessorPaths에 추가해야 함.
+            3. H2 Database: 테스트 실행용 Embedded DB
 		-->
 
 		<dependency>
@@ -79,6 +81,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+	    <dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
@@ -100,12 +106,18 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!-- 건강검진 실제 이메일 알림 발송 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		<!-- 건강검진 Excel 파일 처리 -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.5.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
@@ -181,6 +193,12 @@
       <dependency>
           <groupId>org.springframework.ai</groupId>
           <artifactId>spring-ai-pdf-document-reader</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <scope>test</scope>
       </dependency>
 	</dependencies>
 

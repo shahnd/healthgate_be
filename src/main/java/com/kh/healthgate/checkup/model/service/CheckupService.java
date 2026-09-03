@@ -42,10 +42,13 @@ import com.kh.healthgate.checkup.model.vo.CheckupReminderSetting;
 
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
 import com.kh.healthgate.employee.model.vo.Employee;
+import com.kh.healthgate.checkup.model.vo.NotificationChannel;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 건강검진 관련 비즈니스 로직을 담당하는 Service
  */
+@Slf4j
 @Service
 public class CheckupService {
 
@@ -60,6 +63,9 @@ public class CheckupService {
 
     @Autowired
     private EmployeeDao employeeDao;
+    
+    @Autowired
+    private EmailService emailService;
 
     /**
      * 지정한 연도의 건강검진 완료율 통계를 조회한다.
@@ -288,11 +294,10 @@ public class CheckupService {
         }
 
         Optional<Checkup> existingCheckup =
-                checkupDao
-                    .findFirstByEmployeeAndCheckupYearOrderByCheckupIdDesc(
-                            employee,
-                            checkupYear
-                    );
+                checkupDao.findByEmployee_IdAndCheckupYear(
+                        employee.getId(),
+                        checkupYear
+                );
 
         Checkup checkup;
 
@@ -479,11 +484,29 @@ public class CheckupService {
     }
 
     /**
-     * 건강검진 수동 알림 발송 이력을 저장한다.
+     * 건강검진 수동 이메일 알림을 실제로 발송하고
+     * 발송 결과를 알림 이력에 저장한다.
      */
     @Transactional
     public ReminderResponse sendManualReminder(
             ManualReminderRequest request) {
+
+        if (request == null || request.getCheckupId() == null) {
+            throw new IllegalArgumentException(
+                    "알림을 발송할 건강검진 기록을 선택해 주세요."
+            );
+        }
+
+        /*
+         * 현재 무료 구현 범위는 이메일 발송만 지원한다.
+         */
+        if (request.getChannel()
+                != NotificationChannel.EMAIL) {
+
+            throw new IllegalArgumentException(
+                    "현재 실제 알림 발송은 이메일만 지원합니다."
+            );
+        }
 
         Checkup checkup =
                 checkupDao.findById(request.getCheckupId())
@@ -493,18 +516,60 @@ public class CheckupService {
                                 )
                         );
 
+        Employee employee = checkup.getEmployee();
+
+        LocalDateTime sentAt = LocalDateTime.now();
+
+        String status;
+
+        try {
+            /*
+             * 직원 테이블에 저장된 이메일 주소로
+             * 실제 건강검진 안내 메일을 발송한다.
+             */
+            emailService.sendCheckupReminder(
+                    employee.getEmail(),
+                    employee.getName(),
+                    request.getContent()
+            );
+
+            status = "SUCCESS";
+
+            log.info(
+                    "건강검진 수동 이메일 발송 성공: "
+                    + "checkupId={}, employeeNumber={}, email={}",
+                    checkup.getCheckupId(),
+                    employee.getEmployeeNumber(),
+                    employee.getEmail()
+            );
+
+        } catch (RuntimeException exception) {
+
+            status = "FAILED";
+
+            log.error(
+                    "건강검진 수동 이메일 발송 실패: "
+                    + "checkupId={}, employeeNumber={}, email={}",
+                    checkup.getCheckupId(),
+                    employee.getEmployeeNumber(),
+                    employee.getEmail(),
+                    exception
+            );
+        }
+
+        /*
+         * 실제 발송 성공·실패 결과를 이력에 저장한다.
+         */
         CheckupReminder reminder = new CheckupReminder();
 
         reminder.setCheckupReminderChannel(
-                request.getChannel()
+                NotificationChannel.EMAIL
         );
         reminder.setCheckupReminderContent(
                 request.getContent()
         );
-        reminder.setCheckupReminderSentAt(
-                LocalDateTime.now()
-        );
-        reminder.setCheckupReminderStatus("SUCCESS");
+        reminder.setCheckupReminderSentAt(sentAt);
+        reminder.setCheckupReminderStatus(status);
         reminder.setCheckupReminderIsManual(true);
         reminder.setCheckup(checkup);
 
@@ -520,35 +585,6 @@ public class CheckupService {
                 savedReminder.getCheckupReminderStatus(),
                 savedReminder.isCheckupReminderIsManual()
         );
-    }
-
-    /**
-     * 자동 알림 설정을 등록한다.
-     */
-    @Transactional
-    public ReminderSettingResponse createReminderSetting(
-            ReminderSettingRequest request) {
-
-        CheckupReminderSetting setting =
-                new CheckupReminderSetting();
-
-        setting.setCheckupReminderSettingType(
-                request.getSettingType()
-        );
-        setting.setCheckupReminderSettingMessageTemplate(
-                request.getMessageTemplate()
-        );
-        setting.setCheckupReminderSettingCronSchedule(
-                request.getCronSchedule()
-        );
-        setting.setCheckupReminderSettingIsActive(
-                request.isActive()
-        );
-
-        CheckupReminderSetting savedSetting =
-                checkupReminderSettingDao.save(setting);
-
-        return convertReminderSettingResponse(savedSetting);
     }
 
     /**

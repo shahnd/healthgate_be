@@ -1,0 +1,98 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup JDK
+        uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: mvn clean test
+
+      - name: Build
+        run: mvn package -DskipTests
+
+      - name: Transfer
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "target/*.jar"
+          target: "~/uploads"
+          strip_components: 1
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /opt/healthgate
+
+            mv ~/uploads/*.jar app.jar
+
+            set -a
+            source .env
+            set +a
+
+            if [ -f app.pid ]; then
+              PID="$(cat app.pid)"
+              kill $PID 2>/dev/null || true
+              count=0
+
+              while kill -0 $PID 2>/dev/null && [ "$count" -lt 60 ]; do
+                count=$((count + 1))
+                sleep 1
+              done
+
+              if kill -0 $PID 2>/dev/null; then
+                echo "Failed to stop process $PID"
+                exit 1
+              fi
+
+              rm app.pid
+            fi
+
+            nohup java -jar app.jar > app.log 2>&1 < /dev/null &
+
+            echo $! > app.pid
+
+      - name: Health Check
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            count=0
+
+            while [ "$count" -lt 60 ]; do
+              if curl -fs http://localhost:8006/healthgate/actuator/health > /dev/null; then
+                echo "Application is healthy"
+                exit 0
+              fi
+
+              count=$((count + 1))
+              sleep 3
+            done
+
+            echo "Application health check failed"
+            exit 1

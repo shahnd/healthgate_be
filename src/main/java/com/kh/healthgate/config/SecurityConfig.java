@@ -9,8 +9,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final CorsProperties corsProperties;
 	// BCryptPasswordEncoder 를 빈으로 등록해주는 메소드
 	@Bean
 	public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -31,7 +35,7 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 
-		configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
 
 		configuration.setAllowCredentials(true);
 		configuration.addAllowedMethod("*");

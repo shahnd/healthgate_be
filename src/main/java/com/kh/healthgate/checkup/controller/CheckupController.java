@@ -122,22 +122,6 @@ public class CheckupController {
     }
 
     /**
-     * 자동 알림 설정 등록
-     *
-     * POST /healthgate/checkups/reminder-settings
-     */
-    @PostMapping("/reminder-settings")
-    public ResponseEntity<ReminderSettingResponse>
-            createReminderSetting(
-                    @RequestBody ReminderSettingRequest request) {
-
-        ReminderSettingResponse response =
-                checkupService.createReminderSetting(request);
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
      * 자동 알림 설정 전체 목록 조회
      *
      * GET /healthgate/checkups/reminder-settings

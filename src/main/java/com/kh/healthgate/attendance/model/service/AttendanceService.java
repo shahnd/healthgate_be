@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.kh.healthgate.attendance.controller.AttendanceController.AttendanceDto;
 import com.kh.healthgate.attendance.model.dao.AttendanceDao;
 import com.kh.healthgate.attendance.model.vo.Timecards;
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
@@ -56,5 +57,16 @@ public class AttendanceService {
 
         return;
     }
+
+    public AttendanceDto getAttendanceCount() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = today.plusDays(1).atStartOfDay();
+        long attendanceCount = attendanceDao.countByStatusAndClockInAtBetween("ATTENDANCE", start, end);
+        long warnCount = attendanceDao.countByStatusAndClockInAtBetween("WARNING", start, end);
+        long denyCount = attendanceDao.countByStatusAndClockInAtBetween("DENY", start, end);
+        return new AttendanceDto(attendanceCount, warnCount, denyCount);
+    }
+
 
 }
