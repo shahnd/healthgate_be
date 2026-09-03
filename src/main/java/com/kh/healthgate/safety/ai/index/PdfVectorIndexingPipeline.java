@@ -22,34 +22,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PdfVectorIndexingPipeline {
     private final VectorStore vectorStore;
-    private final VectorIndexManifestService manifestService;
-    private final VectorIndexFingerprintFactory fingerprintFactory;
 
-    public void index(Resource resource, String contentChecksum) {
-        String sourceName = resource.getFilename();
-        String fingerprint = fingerprintFactory.create(contentChecksum);
+    public int index(Resource resource, String fingerprint) {
+        vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
+        List<Document> documents = extract(resource).stream()
+                .map(document -> transform(document, fingerprint))
+                .toList();
 
-        if (manifestService.isCompleted(fingerprint)) {
-            log.info("skip completed index: {}", sourceName);
-            return;
+        for (Document document : documents) {
+            load(document);
         }
 
-        manifestService.startIndexing(fingerprint, contentChecksum);
-        try {
-            vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
-            List<Document> documents = extract(resource).stream()
-                    .map(document -> transform(document, fingerprint))
-                    .toList();
-
-            for (Document document : documents) {
-                load(document);
-            }
-
-            manifestService.completeIndexing(fingerprint, documents.size());
-        } catch (RuntimeException exception) {
-            manifestService.failIndexing(fingerprint, exception.getMessage());
-            throw exception;
-        }
+        return documents.size();
     }
 
     private List<Document> extract(Resource resource) {
