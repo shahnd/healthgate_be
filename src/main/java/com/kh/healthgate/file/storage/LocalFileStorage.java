@@ -54,8 +54,6 @@ public class LocalFileStorage implements FileStorage {
 
             return new StoredFile(
                     storageKey,
-                    filename,
-                    contentType,
                     size,
                     checksum);
         } catch (IOException exception) {

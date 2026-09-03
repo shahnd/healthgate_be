@@ -88,7 +88,10 @@ public class SafetyDocumentService {
         }
 
         validateFile(resource, filename, fileSize);
-        StoredFile storedFile = storeFile(resource, filename, contentType);
+        String resolvedContentType = StringUtils.hasText(contentType)
+                ? contentType
+                : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        StoredFile storedFile = storeFile(resource, filename, resolvedContentType);
 
         try {
             if (safetyDocumentRepository.existsByContentChecksum(storedFile.checksum())) {
@@ -98,9 +101,9 @@ public class SafetyDocumentService {
             SafetyDocument document = new SafetyDocument(
                     title.strip(),
                     normalizeDescription(description),
-                    storedFile.originalFilename(),
+                    filename,
                     storedFile.storageKey(),
-                    storedFile.contentType(),
+                    resolvedContentType,
                     storedFile.size(),
                     storedFile.checksum(),
                     employee);
@@ -229,13 +232,10 @@ public class SafetyDocumentService {
     }
 
     private StoredFile storeFile(Resource resource, String filename, String contentType) {
-        String resolvedContentType = StringUtils.hasText(contentType)
-                ? contentType
-                : MediaType.APPLICATION_OCTET_STREAM_VALUE;
         try {
             return fileStorage.store(
                     filename,
-                    resolvedContentType,
+                    contentType,
                     resource.getInputStream());
         } catch (IOException | FileStorageException exception) {
             throw new SafetyDocumentException(SafetyDocumentProblem.STORAGE_FAILED, exception);

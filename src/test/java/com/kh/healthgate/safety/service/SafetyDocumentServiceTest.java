@@ -95,8 +95,6 @@ class SafetyDocumentServiceTest {
         MockMultipartFile file = file();
         StoredFile storedFile = new StoredFile(
                 "documents/manual.pdf",
-                "manual.pdf",
-                "application/pdf",
                 file.getSize(),
                 "checksum");
 
@@ -541,8 +539,6 @@ class SafetyDocumentServiceTest {
     private StoredFile storedFile(MockMultipartFile file) {
         return new StoredFile(
                 "documents/manual.pdf",
-                "manual.pdf",
-                "application/pdf",
                 file.getSize(),
                 "checksum");
     }
