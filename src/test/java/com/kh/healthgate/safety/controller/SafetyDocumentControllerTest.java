@@ -235,6 +235,27 @@ class SafetyDocumentControllerTest {
     }
 
     @Test
+    void returnsConflictWhenIndexingRequestIsDuplicated() throws Exception {
+        // given
+        AuthenticatedEmployee loggedInEmployee = new AuthenticatedEmployee(
+                1L,
+                "admin01",
+                "HEALTH_ADMIN");
+        when(safetyDocumentService.requestIndexing(10L, loggedInEmployee))
+                .thenThrow(new SafetyDocumentException(
+                        SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT));
+
+        // when, then
+        mockMvc.perform(post("/safety-documents/10/index")
+                .requestAttr("empId", loggedInEmployee.id())
+                .requestAttr("employeeNumber", loggedInEmployee.employeeNumber())
+                .requestAttr("empRole", loggedInEmployee.role()))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.code").value("VECTOR_INDEX_REQUEST_CONFLICT"));
+    }
+
+    @Test
     void rejectsMissingActivationValue() throws Exception {
         // given
         String request = "{}";

@@ -194,7 +194,7 @@ public class SafetyDocumentService {
         }
 
         String fingerprint = fingerprintFactory.create(document.getContentChecksum());
-        VectorIndexStatus indexStatus = manifestService.prepare(
+        VectorIndexStatus indexStatus = manifestService.acceptIndexingRequest(
                 fingerprint,
                 document.getContentChecksum());
         eventPublisher.publishEvent(new VectorIndexRequestedEvent(

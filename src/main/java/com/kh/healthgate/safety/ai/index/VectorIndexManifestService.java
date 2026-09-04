@@ -9,6 +9,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import com.kh.healthgate.safety.exception.SafetyDocumentException;
+import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,11 +22,28 @@ public class VectorIndexManifestService {
     private final VectorIndexManifestRepository repository;
 
     @Transactional
-    public VectorIndexStatus prepare(String fingerprint, String contentChecksum) {
-        VectorIndexManifest manifest = repository.findById(fingerprint)
-                .orElseGet(() -> repository.save(
-                        new VectorIndexManifest(fingerprint, contentChecksum)));
-        return manifest.getStatus();
+    public VectorIndexStatus acceptIndexingRequest(String fingerprint, String contentChecksum) {
+        int retried = repository.retryFailed(
+                fingerprint,
+                VectorIndexStatus.FAILED,
+                VectorIndexStatus.PENDING);
+        if (retried == 1) {
+            return VectorIndexStatus.PENDING;
+        }
+
+        if (repository.existsById(fingerprint)) {
+            throw indexingRequestConflict();
+        }
+
+        try {
+            repository.saveAndFlush(new VectorIndexManifest(fingerprint, contentChecksum));
+            return VectorIndexStatus.PENDING;
+        } catch (DataIntegrityViolationException exception) {
+            // 동일 fingerprint가 동시에 생성되면 기본키 충돌을 도메인 충돌로 변환합니다.
+            throw new SafetyDocumentException(
+                    SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT,
+                    exception);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -71,5 +92,9 @@ public class VectorIndexManifestService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void failIndexing(String fingerprint, String failureMessage) {
         repository.findById(fingerprint).orElseThrow().fail(failureMessage);
+    }
+
+    private SafetyDocumentException indexingRequestConflict() {
+        return new SafetyDocumentException(SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT);
     }
 }

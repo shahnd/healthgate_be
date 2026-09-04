@@ -139,7 +139,7 @@ class SafetyDocumentServiceTest {
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
         when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
         when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
-        when(manifestService.prepare("fingerprint", "checksum"))
+        when(manifestService.acceptIndexingRequest("fingerprint", "checksum"))
                 .thenReturn(VectorIndexStatus.PENDING);
 
         // when
@@ -151,6 +151,30 @@ class SafetyDocumentServiceTest {
         assertSame(VectorIndexStatus.PENDING, result.indexStatus());
         verify(eventPublisher).publishEvent(
                 new VectorIndexRequestedEvent("documents/manual.pdf", "checksum"));
+    }
+
+    @Test
+    void doesNotPublishEventWhenIndexingRequestConflicts() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        SafetyDocument document = document(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.acceptIndexingRequest("fingerprint", "checksum"))
+                .thenThrow(new SafetyDocumentException(
+                        SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT));
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.requestIndexing(10L, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT, exception.problemType());
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test

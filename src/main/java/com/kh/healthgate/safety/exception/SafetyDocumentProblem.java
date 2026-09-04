@@ -37,6 +37,12 @@ public enum SafetyDocumentProblem implements ProblemDefinition {
             HttpStatus.CONFLICT,
             "SAFETY_DOCUMENT_INACTIVE",
             "비활성 상태의 안전문서는 인덱싱할 수 없습니다."),
+    INDEXING_REQUEST_CONFLICT(
+            "/problems/vector-index-request-conflict",
+            "인덱싱 요청 충돌",
+            HttpStatus.CONFLICT,
+            "VECTOR_INDEX_REQUEST_CONFLICT",
+            "이미 인덱싱이 요청되었거나 완료된 안전문서입니다."),
     STORAGE_FAILED(
             "/problems/safety-document-storage-failed",
             "안전문서 파일 저장 실패",
