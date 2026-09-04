@@ -1,11 +1,11 @@
 package com.kh.healthgate.notice.controller;
 
 
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
 import java.util.HashMap;
@@ -30,19 +30,20 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.healthgate.common.model.vo.PageInfo;
-import com.kh.healthgate.common.template.FileRenamePolicy;
 import com.kh.healthgate.common.template.Pagination;
 import com.kh.healthgate.employee.model.service.EmployeeService;
 import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.notice.model.service.NoticeService;
 import com.kh.healthgate.notice.model.vo.Notice;
 import com.kh.healthgate.notice.model.vo.NoticeFile;
+import com.kh.healthgate.notice.util.NoticeSaveFile;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
 
 
 @CrossOrigin
@@ -56,6 +57,9 @@ public class NoticeController {
 	
 	@Autowired
 	private EmployeeService employeeService;
+	
+	@Autowired
+	private NoticeSaveFile noticeSaveFile;
 	 
 	// 공지사항 목록 조회용 컨트롤러
 	@GetMapping("/notices")
@@ -117,9 +121,8 @@ public class NoticeController {
 	
 	// 공지사항 작성용 컨트롤러
 	@PostMapping("/notices/new")
-	public ResponseEntity<String> insertNotice(Notice n,NoticeFile nf, 
+	public ResponseEntity<String> insertNotice(Notice n, 
 			                                   MultipartFile upfile, 
-											   HttpSession session,
 											   HttpServletRequest request) {
 		// 작성자 (로그인한 회원) 정보 뽑기
 		String authHeader = request.getHeader("Authorization");
@@ -156,29 +159,29 @@ public class NoticeController {
 		
 		n.setEmployee(emp);
 		
-		// 넘어온 첨부파일이 있을 경우
-		// > 파일명 수정작업 후 서버로 업로드 (공통코드), originName, savedName 필드값을 셋팅
-		if(upfile != null) {
-			
-			String originName = upfile.getOriginalFilename();
-			
-			String savedName 
-						= FileRenamePolicy.saveFile(upfile, session, 
-													"/resources/notice_upfiles/");
-			
-			nf.setOriginName(originName);
-			nf.setSavedName(savedName);
-		}
-		
-		n.setStatus("Y");
+        n.setStatus("Y");
 		
 		// 서비스 호출
 		Notice insertNo = noticeService.insertNotice(n);
+		
+		// 넘어온 첨부파일이 있을 경우
+		// > 파일명 수정작업 후 서버로 업로드 (공통코드), originName, savedName, extension, savedPath 필드값을 셋팅
+		if(upfile != null && !upfile.isEmpty()) {
+		    
+			
+			NoticeFile nf = noticeSaveFile.saveFile(upfile);
+			
+			if (nf != null) {
+		        nf.setNotices(insertNo); // 게시글 번호 매핑
+		        noticeService.insertNoticeFile(nf);
+		    }
+		}
 		
 		String message = (insertNo != null) ? "success" : "fail";
 		
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(message);
+		
 	}
 	
 	// 공지사항 상세조회용 컨트롤러
@@ -291,29 +294,11 @@ public class NoticeController {
 		if(reupfile != null && !reupfile.isEmpty()) {
 			
 			NoticeFile nf = noticeService.selectNoticeFile(noticeId);
-			if (nf == null) {
-				nf = new NoticeFile();
-			}
-			// 넘어온 첨부파일이 있을 경우
 			
-			String originName = reupfile.getOriginalFilename();
-			
-			String savedName = FileRenamePolicy.saveFile(reupfile, session, 
-															"/resources/notice_upfiles/");
-			String savedPath = "/resources/notice_upfiles/";
-			
-			String extension = "";
-			   if (originName != null && originName.contains(".")) {
-			       extension = originName.substring(originName.lastIndexOf(".") + 1);
-			}
-					
-			nf.setOriginName(originName);
-			nf.setSavedName(savedName);
-			nf.setSavedPath(savedPath);
-			nf.setExtension(extension);
-			nf.setNotices(updateNo);
-			
-			noticeService.updateNoticeFile(nf);
+			if (nf != null) {
+		        nf.setNotices(updateNo); // 게시글 번호 매핑
+		        noticeService.insertNoticeFile(nf);
+		    }
 		}
 		
 		String message = (updateNo != null) ? "success" : "fail";
@@ -337,17 +322,22 @@ public class NoticeController {
 	}
 	
 	// 첨부파일 다운로드용 컨트롤러
-	@GetMapping("/notices/download/{savedName}/{originName}")
-	public ResponseEntity<Resource> upfileDownload(@PathVariable String savedName, 
-												   @PathVariable String originName,
-												   @PathVariable String savedPath,
+	@GetMapping("/notices/download/{noticeFileId}")
+	public ResponseEntity<Resource> upfileDownload(@PathVariable Long noticeFileId,
 												   HttpSession session) throws IOException {
 		
-		// 다운로드할 파일의 물리적인 경로
-		savedPath = session.getServletContext().getRealPath("/resources/notice_upfiles/");
-		
+		NoticeFile noticeFile = noticeService.selectNoticeFileId(noticeFileId); 
+	    
+		// 2. 파일 정보가 DB에 없거나 실제 저장명이 없으면 404 리턴
+	    if (noticeFile == null || noticeFile.getSavedName() == null) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    }
+	    
+	    String savedPath = noticeSaveFile.getSavedPath(); 
+	    Path filePath = Paths.get(savedPath, noticeFile.getSavedName());
+	    
 		// 파일을 그냥 응답데이터로는 못보내고, 응답데이터로 내보낼 수 있게끔 포장
-		Resource resource = new FileSystemResource(savedPath + savedName);
+		Resource resource = new FileSystemResource(filePath.toFile());
 		
 		// 파일이 제대로 존재하는지를 검사 후 응답데이터로 보내기
 		if(!resource.exists()) {
@@ -358,19 +348,20 @@ public class NoticeController {
 			
 		} else {
 			// > 해당 파일이 존재할 경우
-			
-			// 이번에는 응답데이터가 파일로 넘어가야하는 특이케이스이기 때문에 설정이 이것저것 붙는다!!
+
 			// 우선 한글 파일명 깨짐을 방지
-			String encodedName = URLEncoder.encode(originName, "UTF-8");
+			String originName = noticeFile.getOriginName();
+			String encodedName = URLEncoder.encode(originName, "UTF-8").replaceAll("\\+", "%20");
 			// > 사용자가 보기 좋게 원본파일명으로 다운로드를 하기 위함
 			
 			return ResponseEntity.status(HttpStatus.OK)
 								 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedName + "\"")
 								
-								 .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(Paths.get(savedPath + savedName)))
+								 .header(HttpHeaders.CONTENT_TYPE, Files.probeContentType(filePath))
 								
 								 .body(resource);
 		}		
 	}
+
 		
 }
