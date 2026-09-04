@@ -43,8 +43,6 @@ public class AuthController {
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인합니다.")
     public ResponseEntity<LoginResponse> loginEmployee(@RequestBody Employee employee) {
 
-        log.debug("로그인 정보: {}", employee);
-
         Employee loginEmp = authService.loginEmployee(employee.getEmployeeNumber());
 
         if (loginEmp != null && bCryptPasswordEncoder.matches(employee.getPassword(), loginEmp.getPassword())) {
