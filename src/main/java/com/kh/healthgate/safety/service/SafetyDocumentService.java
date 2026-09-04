@@ -27,6 +27,7 @@ import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
 import com.kh.healthgate.safety.ai.index.VectorIndexRequestedEvent;
 import com.kh.healthgate.safety.ai.index.VectorIndexStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
+import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
@@ -109,14 +110,7 @@ public class SafetyDocumentService {
                     employee);
 
             SafetyDocument savedDocument = safetyDocumentRepository.saveAndFlush(document);
-            String fingerprint = fingerprintFactory.create(storedFile.checksum());
-            VectorIndexStatus indexStatus = manifestService.prepare(
-                    fingerprint,
-                    storedFile.checksum());
-            eventPublisher.publishEvent(new VectorIndexRequestedEvent(
-                    storedFile.storageKey(),
-                    storedFile.checksum()));
-            return SafetyDocumentResponse.from(savedDocument, indexStatus);
+            return SafetyDocumentResponse.from(savedDocument, null);
         } catch (RuntimeException exception) {
             deleteStoredFile(storedFile.storageKey(), exception);
             throw exception;
@@ -182,6 +176,31 @@ public class SafetyDocumentService {
             document.deactivate(employee);
         }
         return toResponse(document);
+    }
+
+    @Transactional
+    public SafetyDocumentResponse requestIndexing(
+            Long id,
+            AuthenticatedEmployee loggedInEmployee) {
+        Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
+
+        if (employee.getRole() != role.HEALTH_ADMIN) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
+        }
+
+        SafetyDocument document = getDocument(id);
+        if (document.getStatus() != SafetyDocumentStatus.ACTIVE) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.INACTIVE_DOCUMENT);
+        }
+
+        String fingerprint = fingerprintFactory.create(document.getContentChecksum());
+        VectorIndexStatus indexStatus = manifestService.prepare(
+                fingerprint,
+                document.getContentChecksum());
+        eventPublisher.publishEvent(new VectorIndexRequestedEvent(
+                document.getStorageKey(),
+                document.getContentChecksum()));
+        return SafetyDocumentResponse.from(document, indexStatus);
     }
 
     @Transactional

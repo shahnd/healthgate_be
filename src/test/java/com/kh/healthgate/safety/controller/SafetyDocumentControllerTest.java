@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -212,6 +213,25 @@ class SafetyDocumentControllerTest {
                 .requestAttr("empRole", "HEALTH_ADMIN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("INACTIVE"));
+    }
+
+    @Test
+    void requestsSafetyDocumentIndexing() throws Exception {
+        // given
+        AuthenticatedEmployee loggedInEmployee = new AuthenticatedEmployee(
+                1L,
+                "admin01",
+                "HEALTH_ADMIN");
+        when(safetyDocumentService.requestIndexing(10L, loggedInEmployee))
+                .thenReturn(response());
+
+        // when, then
+        mockMvc.perform(post("/safety-documents/10/index")
+                .requestAttr("empId", loggedInEmployee.id())
+                .requestAttr("employeeNumber", loggedInEmployee.employeeNumber())
+                .requestAttr("empRole", loggedInEmployee.role()))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.id").value(10));
     }
 
     @Test

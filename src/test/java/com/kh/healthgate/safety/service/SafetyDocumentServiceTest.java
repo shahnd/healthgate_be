@@ -103,10 +103,6 @@ class SafetyDocumentServiceTest {
                 .thenReturn(storedFile);
         when(safetyDocumentRepository.saveAndFlush(any(SafetyDocument.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
-        when(manifestService.prepare("fingerprint", "checksum"))
-                .thenReturn(VectorIndexStatus.PENDING);
-
         // when
         SafetyDocumentResponse result = safetyDocumentService.create(
                 "  안전수칙  ",
@@ -127,12 +123,55 @@ class SafetyDocumentServiceTest {
         assertEquals("documents/manual.pdf", savedDocument.getStorageKey());
         assertEquals("checksum", savedDocument.getContentChecksum());
         assertSame(SafetyDocumentStatus.ACTIVE, savedDocument.getStatus());
-        assertSame(VectorIndexStatus.PENDING, result.indexStatus());
+        assertNull(result.indexStatus());
         assertSame(employee, savedDocument.getCreatedBy());
         assertSame(employee, savedDocument.getUpdatedBy());
-        verify(manifestService).prepare("fingerprint", "checksum");
+        verifyNoInteractions(fingerprintFactory, manifestService, eventPublisher);
+    }
+
+    @Test
+    void requestsSafetyDocumentIndexing() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        SafetyDocument document = document(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.prepare("fingerprint", "checksum"))
+                .thenReturn(VectorIndexStatus.PENDING);
+
+        // when
+        SafetyDocumentResponse result = safetyDocumentService.requestIndexing(
+                10L,
+                loggedInEmployee);
+
+        // then
+        assertSame(VectorIndexStatus.PENDING, result.indexStatus());
         verify(eventPublisher).publishEvent(
                 new VectorIndexRequestedEvent("documents/manual.pdf", "checksum"));
+    }
+
+    @Test
+    void rejectsIndexingInactiveSafetyDocument() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(role.HEALTH_ADMIN);
+        SafetyDocument document = document(employee);
+        document.deactivate(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+
+        // when
+        SafetyDocumentException exception = assertThrows(
+                SafetyDocumentException.class,
+                () -> safetyDocumentService.requestIndexing(10L, loggedInEmployee));
+
+        // then
+        assertSame(SafetyDocumentProblem.INACTIVE_DOCUMENT, exception.problemType());
+        verifyNoInteractions(fingerprintFactory, manifestService, eventPublisher);
     }
 
     @Test

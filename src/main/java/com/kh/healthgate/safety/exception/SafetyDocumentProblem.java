@@ -31,6 +31,12 @@ public enum SafetyDocumentProblem implements ProblemDefinition {
             HttpStatus.FORBIDDEN,
             "SAFETY_DOCUMENT_FORBIDDEN",
             "안전문서를 관리할 권한이 없습니다."),
+    INACTIVE_DOCUMENT(
+            "/problems/safety-document-inactive",
+            "비활성 안전문서",
+            HttpStatus.CONFLICT,
+            "SAFETY_DOCUMENT_INACTIVE",
+            "비활성 상태의 안전문서는 인덱싱할 수 없습니다."),
     STORAGE_FAILED(
             "/problems/safety-document-storage-failed",
             "안전문서 파일 저장 실패",

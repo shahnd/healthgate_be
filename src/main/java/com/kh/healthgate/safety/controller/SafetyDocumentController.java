@@ -93,6 +93,16 @@ public class SafetyDocumentController {
                 loggedInEmployee);
     }
 
+    @PostMapping("/{id}/index")
+    public ResponseEntity<SafetyDocumentResponse> requestIndexing(
+            @PathVariable Long id,
+            AuthenticatedEmployee loggedInEmployee) {
+        SafetyDocumentResponse response = safetyDocumentService.requestIndexing(
+                id,
+                loggedInEmployee);
+        return ResponseEntity.accepted().body(response);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
