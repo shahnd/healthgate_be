@@ -11,18 +11,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    private static final String JWT_SCHEME_NAME = "JWT";
+    private static final String JWT_COOKIE_SCHEME_NAME = "JWT_COOKIE";
 
     @Bean
     public OpenAPI openAPI() {
         SecurityRequirement securityRequirement =
-                new SecurityRequirement().addList(JWT_SCHEME_NAME);
+                new SecurityRequirement().addList(JWT_COOKIE_SCHEME_NAME);
 
         SecurityScheme securityScheme = new SecurityScheme()
-                .name(JWT_SCHEME_NAME)
-                .type(SecurityScheme.Type.HTTP)
-                .scheme("bearer")
-                .bearerFormat("JWT");
+                .name("accessToken")
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.COOKIE)
+                .description("로그인 시 발급되는 HttpOnly JWT 쿠키");
 
         return new OpenAPI()
                 .info(new Info()
@@ -30,6 +30,6 @@ public class SwaggerConfig {
                         .description("직원 건강관리 시스템 API 문서")
                         .version("v1.0.0"))
                 .addSecurityItem(securityRequirement)
-                .components(new Components().addSecuritySchemes(JWT_SCHEME_NAME, securityScheme));
+                .components(new Components().addSecuritySchemes(JWT_COOKIE_SCHEME_NAME, securityScheme));
     }
 }
