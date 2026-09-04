@@ -19,13 +19,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,6 +44,8 @@ import com.kh.healthgate.notice.util.NoticeSaveFile;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -48,6 +53,7 @@ import jakarta.servlet.http.HttpSession;
 
 @CrossOrigin
 @RestController
+@Tag(name="공지사항 API", description = "공지사항 조회, 등록, 수정, 삭제, 첨부파일 다운로드")
 public class NoticeController {
     
 	public static final String SECRET_KEY = "Hello123ThisisHellPangWeWantToBreakTime";
@@ -62,6 +68,8 @@ public class NoticeController {
 	private NoticeSaveFile noticeSaveFile;
 	 
 	// 공지사항 목록 조회용 컨트롤러
+	@Operation(summary="공지사항 목록 조회 (페이징)", description="페이지 번호 (cpage) 에 해당하는 게시글 목록을 조회합니다. "
+                                                          +" 응답 : {list : 게시글 목록, pi : 페이지정보}")
 	@GetMapping("/notices")
 	public ResponseEntity<HashMap<String, Object>> selectNoticeList(
 				@RequestParam(value="cpage", defaultValue="1") int currentPage) {
@@ -91,6 +99,7 @@ public class NoticeController {
 	}
 		
 	// 공지사항 검색용 컨트롤러
+	@Operation(summary="공지사항 검색", description="공지사항 제목을 검색합니다.")
 	@GetMapping("/notices/search")
 	public ResponseEntity<HashMap<String, Object>> searchNoticeList(
 					@RequestParam(value="cpage", defaultValue="1") int currentPage,
@@ -120,10 +129,11 @@ public class NoticeController {
 	}
 	
 	// 공지사항 작성용 컨트롤러
-	@PostMapping("/notices/new")
-	public ResponseEntity<String> insertNotice(Notice n, 
-			                                   MultipartFile upfile, 
-											   HttpServletRequest request) {
+	@Operation(summary="공지사항 등록(첨부파일도 등록)", description="공지사항 정보를 등록합니다.(첨부파일도 등록)")
+	@PostMapping(value="/notices/new", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<String> insertNotice(@ModelAttribute Notice n, 
+			                                   @RequestPart(value = "upfile", required = false)MultipartFile upfile, 
+			                                   HttpServletRequest request) {
 		// 작성자 (로그인한 회원) 정보 뽑기
 		String authHeader = request.getHeader("Authorization");
 		
@@ -185,6 +195,7 @@ public class NoticeController {
 	}
 	
 	// 공지사항 상세조회용 컨트롤러
+	@Operation(summary="공지사항 상세조회(상세조회시 조회수 증가)", description="공지사항 정보를 상세조회합니다.(상세조회시 조회수 증가)")
 	@GetMapping("/notices/{noticeId}")
 	public ResponseEntity<HashMap<String, Object>> selectNotice(@PathVariable Long noticeId) {
 		
@@ -221,6 +232,7 @@ public class NoticeController {
 	
 
 	// 수정용 공지사항 상세 조회용 컨트롤러 - (다시 상세조회하면 조회수 증가될수있으므로)
+	@Operation(summary="공지사항 상세조회(새로고침,수정후 조회)", description="공지사항 정보를 상세조회합니다.(새로고침,수정후 조회)")
 	@GetMapping("/notices/{noticeId}/form")
 	public ResponseEntity<HashMap<String, Object>> selectNoticeForm(@PathVariable Long noticeId) {
 		
@@ -238,12 +250,12 @@ public class NoticeController {
 	}
 	
 	// 공지사항 수정용 컨트롤러
-	@PostMapping("/notices/{noticeId}/edit")
-	public ResponseEntity<String> updateNotice(@PathVariable Long noticeId,
-											   Notice n, 
+	@Operation(summary="공지사항 수정", description="공지사항 정보를 수정 검색합니다.")
+	@PostMapping(value="/notices/{noticeId}/edit", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<String> updateNotice(@PathVariable("noticeId") Long noticeId,
+			                                   @ModelAttribute Notice n, 
 											   @RequestParam(value = "noticeFileId", required = false) Long noticeFileId,
-                                               @RequestParam(value = "reupfile", required = false) MultipartFile reupfile,
-										       HttpSession session,
+                                               @RequestPart(value = "reupfile", required = false) MultipartFile reupfile,
 										       HttpServletRequest request) {
 		
 		// 작성자 (로그인한 회원) 정보 뽑기
@@ -290,15 +302,32 @@ public class NoticeController {
 	
 		Notice updateNo = noticeService.updateNotice(n);
 		
+		 
 		// 새로 넘어온 첨부파일이 있는지 먼저 검사
 		if(reupfile != null && !reupfile.isEmpty()) {
 			
-			NoticeFile nf = noticeService.selectNoticeFile(noticeId);
+			// 1. NoticeSaveFile을 통해 물리 파일 저장 및 NoticeFile 객체 생성
+			NoticeFile nf = noticeSaveFile.saveFile(reupfile);
 			
 			if (nf != null) {
-		        nf.setNotices(updateNo); // 게시글 번호 매핑
-		        noticeService.insertNoticeFile(nf);
+		        // 2. 기존 DB에 저장되어 있던 첨부파일 정보가 있는지 확인
+		        NoticeFile existingFile = noticeService.selectNoticeFile(noticeId);
+
+		        if (existingFile != null) {
+		            // 기존 파일이 있던 경우 -> 기존 DB 레코드(PK)의 파일 정보만 덮어쓰기 (UPDATE)
+		            existingFile.setOriginName(nf.getOriginName());
+		            existingFile.setSavedName(nf.getSavedName());
+		            existingFile.setSavedPath(nf.getSavedPath());
+		            existingFile.setExtension(nf.getExtension());
+		            
+		            noticeService.insertNoticeFile(existingFile); // JPA save()로 기존 엔티티 update
+		        } else {
+		            // 기존 파일이 없던 경우 -> 새 NoticeFile 객체에 게시글 연관관계 매핑 후 등록 (INSERT)
+		            nf.setNotices(updateNo); // updateNo 또는 existingNotice 세팅
+		            noticeService.insertNoticeFile(nf);
+		        }
 		    }
+			
 		}
 		
 		String message = (updateNo != null) ? "success" : "fail";
@@ -309,6 +338,7 @@ public class NoticeController {
 	
 	
 	// 공지사항 삭제용 컨트롤러
+	@Operation(summary="공지사항 삭제", description="공지사항 정보를 삭제합니다.")
 	@DeleteMapping("/notices/{noticeId}")
 	public ResponseEntity<String> deleteNotice(@PathVariable Long noticeId) {
 		
@@ -322,6 +352,7 @@ public class NoticeController {
 	}
 	
 	// 첨부파일 다운로드용 컨트롤러
+	@Operation(summary="공지사항첨부파일 다운로드", description="업로드된 공지사항첨부파일을 다운로드합니다.")
 	@GetMapping("/notices/download/{noticeFileId}")
 	public ResponseEntity<Resource> upfileDownload(@PathVariable Long noticeFileId,
 												   HttpSession session) throws IOException {
