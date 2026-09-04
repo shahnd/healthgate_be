@@ -21,11 +21,13 @@ public class SafetyBriefingGenerator {
 
     public SafetyBriefingGenerator(
             VectorStore vectorStore,
+            ActiveSafetyDocumentFilterFactory filterFactory,
             Builder chatClientBuilder) {
         this.retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .similarityThreshold(0.50)
                         .vectorStore(vectorStore)
+                        .filterExpression(filterFactory::create)
                         .build())
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)

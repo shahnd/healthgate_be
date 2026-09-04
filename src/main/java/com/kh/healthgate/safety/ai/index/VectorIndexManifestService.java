@@ -3,6 +3,7 @@ package com.kh.healthgate.safety.ai.index;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -43,6 +44,14 @@ public class VectorIndexManifestService {
         return repository.findById(fingerprint)
                 .filter(manifest -> manifest.isCompleted())
                 .isPresent();
+    }
+
+    @Transactional(readOnly = true)
+    public Set<String> getCompletedFingerprints(Collection<String> fingerprints) {
+        return repository.findAllById(fingerprints).stream()
+                .filter(manifest -> manifest.isCompleted())
+                .map(manifest -> manifest.getFingerprint())
+                .collect(Collectors.toSet());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
