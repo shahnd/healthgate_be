@@ -41,6 +41,7 @@
 
             Spring Boot 모듈
             1. spring-boot-starter-actuator: 운영 환경에 필요한 기능 추가
+            2. spring-boot-starter-validation: DTO validation 어노테이션
 
 			JWT 관련 라이브러리(JDK21 호환 고려 0.11.5 버전으로 연동)
 
@@ -84,6 +85,10 @@
         	<groupId>org.springframework.boot</groupId>
         	<artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

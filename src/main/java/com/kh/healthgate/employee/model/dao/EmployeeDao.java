@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.kh.healthgate.employee.model.vo.Employee;
+import com.kh.healthgate.employee.model.vo.role;
 
 /**
  * 직원 정보의 DB 접근을 담당하는 Repository
@@ -32,6 +33,11 @@ public interface EmployeeDao
      */
     Optional<Employee> findByEmployeeNumberAndStatus(
             String employeeNumber,
+            String status
+    );
+
+    Optional<Employee> findFirstByRoleAndStatusOrderByIdAsc(
+            role role,
             String status
     );
 }
