@@ -23,14 +23,40 @@ import com.kh.healthgate.common.template.Pagination;
 import com.kh.healthgate.hospital.model.service.HospitalService;
 import com.kh.healthgate.hospital.model.vo.Hospital;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @CrossOrigin
 @RestController
+@Tag(name="병원 관리 API", description ="병원 정보 검색+조회, 등록, 수정, 삭제")
 public class HospitalController {
    
 	@Autowired
 	private HospitalService hospitalService;
 	
 	// 검진가능 병원 검색용 + 목록 조회 컨트롤러
+	@Operation(summary="병원 검색 + 조회", description="검색 결과 와 페이지 번호 (cpage) 에 해당하는 목록을 조회합니다. "
+			                                        + "응답 : {list : 게시글 목록, pi : 페이지정보}")
+	@ApiResponse(responseCode="200", description="조회 성공",
+	            content=@Content(mediaType="application/json",
+					             examples=@ExampleObject(value="""
+					            		         {
+					            		            "list" : [{}, {}, {}],
+					            		            "pi" : {
+					            		                "listCount" : 1,
+					            		                "currentpage" : 1,
+					            		                "pageLimit"  : 5,
+					            		                "boardLimit"  : 5,
+					            		                "maxPage"  : 5,
+					            		                "startPage"  : 1,
+					            		                "endPage"  : 5
+					            		            }
+					            		         }
+					            		""")))
 	@GetMapping("/hospitals")
 	public ResponseEntity<HashMap<String,Object>> searchHospitalList(
 			           @RequestParam(value="cpage", defaultValue="1") int currentPage,
@@ -74,10 +100,11 @@ public class HospitalController {
 							 .body(hm);
 	}
 	
-	// 공지사항 수정용 컨트롤러
+	// 검진가능 병원 수정용 컨트롤러
+	@Operation(summary="병원 수정", description="병원 정보를 수정합니다.")
 	@PutMapping("/hospitals/{hospitalId}")
 	public ResponseEntity<String> updateBoard(@PathVariable Long hospitalId,
-											  Hospital h) {
+			@RequestBody Hospital h) {
 		
 		// 서비스 호출
 		Hospital updateHo = hospitalService.updateHospital(h);
@@ -90,6 +117,7 @@ public class HospitalController {
 
 	
 	// 검진가능 병원 상세조회용 컨트롤러
+	@Operation(summary="병원 상세조회", description="병원 정보를 상세조회합니다.")
 	@GetMapping("/hospitals/{hospitalId}")
 	public ResponseEntity<Hospital> selectHospital(@PathVariable Long hospitalId) {
 		
@@ -100,8 +128,9 @@ public class HospitalController {
 	}
 	
 	// 검진가능 병원 등록(생성)용 컨트롤러
+	@Operation(summary="병원 등록", description="병원을 등록합니다.")
 	@PostMapping("/hospitals/new")
-	public ResponseEntity<String> insertHospital(Hospital h) {
+	public ResponseEntity<String> insertHospital(@RequestBody Hospital h) {
 		
 		h.setStatus("Y");
 		// 서비스 호출 
@@ -114,6 +143,7 @@ public class HospitalController {
 	}
 	
 	// 검진가능 병원 삭제용 컨트롤러
+	@Operation(summary="병원 삭제", description="병원 정보를 삭제합니다. status를 'Y' 에서 'N' 변경해서 조회되지 않게 삭제처리")
 	@DeleteMapping("/hospitals/{hospitalId}")
 	public ResponseEntity<String> deleteHospital(@PathVariable Long hospitalId) {
 		
