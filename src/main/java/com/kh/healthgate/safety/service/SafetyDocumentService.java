@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.auth.service.AuthenticatedEmployeeService;
 import com.kh.healthgate.employee.model.vo.Employee;
-import com.kh.healthgate.employee.model.vo.role;
+import com.kh.healthgate.employee.model.vo.EmployeeRole;
 import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
@@ -84,7 +84,7 @@ public class SafetyDocumentService {
             long fileSize,
             Employee employee) {
 
-        if (employee.getRole() != role.HEALTH_ADMIN) {
+        if (employee.getRole() != EmployeeRole.HEALTH_ADMIN) {
             throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
         }
 
@@ -149,7 +149,7 @@ public class SafetyDocumentService {
             AuthenticatedEmployee loggedInEmployee) {
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 
-        if (employee.getRole() != role.HEALTH_ADMIN) {
+        if (employee.getRole() != EmployeeRole.HEALTH_ADMIN) {
             throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
         }
 
@@ -165,7 +165,7 @@ public class SafetyDocumentService {
             AuthenticatedEmployee loggedInEmployee) {
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 
-        if (employee.getRole() != role.HEALTH_ADMIN) {
+        if (employee.getRole() != EmployeeRole.HEALTH_ADMIN) {
             throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
         }
 
@@ -184,7 +184,7 @@ public class SafetyDocumentService {
             AuthenticatedEmployee loggedInEmployee) {
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 
-        if (employee.getRole() != role.HEALTH_ADMIN) {
+        if (employee.getRole() != EmployeeRole.HEALTH_ADMIN) {
             throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
         }
 
@@ -207,7 +207,7 @@ public class SafetyDocumentService {
     public void delete(Long id, AuthenticatedEmployee loggedInEmployee) {
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 
-        if (employee.getRole() != role.HEALTH_ADMIN) {
+        if (employee.getRole() != EmployeeRole.HEALTH_ADMIN) {
             throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
         }
 

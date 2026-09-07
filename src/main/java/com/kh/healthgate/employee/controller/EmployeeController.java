@@ -28,7 +28,7 @@ import com.kh.healthgate.employee.model.vo.Departments;
 import com.kh.healthgate.employee.model.vo.EmpListResponse;
 import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.employee.model.vo.Positions;
-import com.kh.healthgate.employee.model.vo.role;
+import com.kh.healthgate.employee.model.vo.EmployeeRole;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;

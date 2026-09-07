@@ -26,7 +26,7 @@ import com.kh.healthgate.consultation.model.service.ConsultationService;
 import com.kh.healthgate.consultation.model.vo.Consultation;
 import com.kh.healthgate.employee.model.service.EmployeeService;
 import com.kh.healthgate.employee.model.vo.Employee;
-import com.kh.healthgate.employee.model.vo.role;
+import com.kh.healthgate.employee.model.vo.EmployeeRole;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -337,7 +337,7 @@ public class ConsultationController {
 		List<Consultation> list;
 		
 		// 권한 검증
-		if (role.HEALTH_ADMIN.equals(e.getRole())) {
+		if (EmployeeRole.HEALTH_ADMIN.equals(e.getRole())) {
 			// 상담사
 			list = consultationService.selectAllConsultation(startDate, endDate);
 		} else {
@@ -375,7 +375,7 @@ public class ConsultationController {
 		Consultation c = consultationService.selectReservation(id);
 		
 		// 권한 검증
-		if (!role.HEALTH_ADMIN.equals(e.getRole())) {
+		if (!EmployeeRole.HEALTH_ADMIN.equals(e.getRole())) {
 			if(c == null || c.getEmployee() == null || !c.getEmployee().getId().equals(userId))
 				return ResponseEntity.status(HttpStatus.FORBIDDEN) // FORBIDDEN : 권한 없음
 									 .build();
@@ -411,7 +411,7 @@ public class ConsultationController {
 		c.setId(id);
 		
 		// 권한 검증
-		if (!role.HEALTH_ADMIN.equals(e.getRole())) {
+		if (!EmployeeRole.HEALTH_ADMIN.equals(e.getRole())) {
 			if(c == null || c.getEmployee() == null || !c.getEmployee().getId().equals(userId))
 				return ResponseEntity.status(HttpStatus.FORBIDDEN) // FORBIDDEN : 권한 없음
 									 .body("forbidden");

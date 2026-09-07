@@ -65,7 +65,7 @@ public class Employee {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private role role;
+    private EmployeeRole role;
 
     @Column(name = "status", length = 1)
     private String status = "Y";
