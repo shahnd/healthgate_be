@@ -49,31 +49,8 @@ jobs:
 
             mv ~/uploads/*.jar app.jar
 
-            set -a
-            source .env
-            set +a
-
-            if [ -f app.pid ]; then
-              PID="$(cat app.pid)"
-              kill $PID 2>/dev/null || true
-              count=0
-
-              while kill -0 $PID 2>/dev/null && [ "$count" -lt 60 ]; do
-                count=$((count + 1))
-                sleep 1
-              done
-
-              if kill -0 $PID 2>/dev/null; then
-                echo "Failed to stop process $PID"
-                exit 1
-              fi
-
-              rm app.pid
-            fi
-
-            nohup java -jar app.jar > app.log 2>&1 < /dev/null &
-
-            echo $! > app.pid
+            sudo systemctl restart healthgate
+            sudo systemctl is-active healthgate
 
       - name: Health Check
         uses: appleboy/ssh-action@v1

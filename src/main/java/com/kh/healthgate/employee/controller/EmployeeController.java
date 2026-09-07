@@ -30,11 +30,15 @@ import com.kh.healthgate.employee.model.vo.Employee;
 import com.kh.healthgate.employee.model.vo.Positions;
 import com.kh.healthgate.employee.model.vo.role;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 
 
 @CrossOrigin
 @RestController
+@Tag(name = "직원 관리 API", description = "직원 정보 조회, 등록, 수정, 삭제")
 public class EmployeeController {
 
     @Autowired
@@ -50,7 +54,7 @@ public class EmployeeController {
 
     public record EmpSearchCondition(
         String employeeNumber,
-        String name,
+        @Schema(name = "이름") String name,
         Long departmentId,
         Long positionId,
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -64,6 +68,7 @@ public class EmployeeController {
     ) {}
 
     @GetMapping("/employees")
+    @Operation(summary = "직원 목록 조회", description = "검색 조건으로 직원 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<Page<EmpListResponse>>> selectEmployeeList(
         @ModelAttribute EmpSearchCondition condition,
         @RequestParam(defaultValue = "1") int page,
@@ -78,6 +83,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/employees/{id}")
+    @Operation(summary = "직원 단건 조회", description = "직원 ID로 직원 단건 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<Employee>> selectEmployee(@PathVariable Long id) {
 
         Employee emp = employeeService.selectEmployee(id);
@@ -86,6 +92,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/employees")
+    @Operation(summary = "직원 정보 등록", description = "직원 정보를 등록합니다.")
     public ResponseEntity<ApiResponse<Void>> insertEmployee(@RequestBody Employee employee) {
 
         employee.setPassword(bCryptPasswordEncoder.encode(employee.getPassword()));;
@@ -98,6 +105,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/employees/{id}")
+    @Operation(summary = "직원 정보 수정", description = "해당 ID의 직원 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
 
         employee.setId(id);
@@ -108,6 +116,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/employees/me/password")
+    @Operation(summary = "비밀번호 수정", description = "접속한 계정의 비밀번호를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updatePassword(HttpServletRequest request, @RequestBody PasswordUpdateRequest passwordReq) {
         
         Long userId = (Long)request.getAttribute("empId");
@@ -117,6 +126,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/employees/{id}")
+    @Operation(summary = "직원 정보 삭제", description = "직원 정보를 삭제합니다.(소프트삭제)")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable Long id) {
 
         employeeService.deleteEmployee(id);
@@ -125,6 +135,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/employees/init")
+    @Operation(summary = "부서, 직급 리스트 조회", description = "직급, 부서 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<EmpInitList>> selectInitList() {
 
         List<Departments> departmentList = employeeService.selectDepartmentsList();

@@ -31,22 +31,9 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     private ProblemDetail createApiProblemDetail(
             Exception exception,
-            ProblemType problemType,
+            ProblemDefinition problemType,
             WebRequest request) {
-        ProblemDetail problemDetail = createProblemDetail(
-                exception,
-                problemType.status(),
-                problemType.detail(),
-                null,
-                null,
-                request);
-
-        problemDetail.setType(problemType.type());
-        problemDetail.setTitle(problemType.title());
-        problemDetail.setInstance(requestUri(request));
-        problemDetail.setProperty("code", problemType.code());
-
-        return problemDetail;
+        return ProblemDetails.create(problemType, requestUri(request));
     }
 
     private URI requestUri(WebRequest request) {

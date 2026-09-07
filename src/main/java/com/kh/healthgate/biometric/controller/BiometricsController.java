@@ -22,8 +22,12 @@ import com.kh.healthgate.biometric.model.vo.Biometrics;
 import com.kh.healthgate.biometric.model.vo.RiskThresholdSettings;
 import com.kh.healthgate.common.model.vo.ApiResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @CrossOrigin
 @RestController
+@Tag(name = "생체 정보 API", description = "생체 정보 등록, 조회")
 public class BiometricsController {
 
     public record RiskDTO(
@@ -50,6 +54,7 @@ public class BiometricsController {
     ) {}
 
     @GetMapping("/biometrics/{employeeId}")
+    @Operation(summary = "직원 생체 정보 조회", description = "직원 ID를 통해 생체 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<List<Biometrics>>> selectBiometricsList(
             @PathVariable Long employeeId,
             @RequestParam(defaultValue = "1") int months) {
@@ -63,6 +68,7 @@ public class BiometricsController {
     }
 
     @PostMapping("/biometrics")
+    @Operation(summary = "생체 정보 등록", description = "생체 정보를 등록합니다.")
     public ResponseEntity<ApiResponse<Void>> insertBiometrics(@RequestBody BiometricsInput b) {
 
         biometricsService.insertBiometrics(b);
@@ -71,6 +77,7 @@ public class BiometricsController {
     }
 
     @PutMapping("/risks")
+    @Operation(summary = "임계점 수정", description = "임계점 설정 수치를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updateRiskThresholds(@RequestBody List<RiskDTO> requests) {
 
         riskThresholdService.updateThreshold(requests);
@@ -79,6 +86,7 @@ public class BiometricsController {
     }
 
     @GetMapping("/risks")
+    @Operation(summary = "임계점 조회", description = "임계점 설정 수치를 조회합니다.")
     public ResponseEntity<ApiResponse<List<RiskThresholdSettings>>> getRiskThresholds() {
         List<RiskThresholdSettings> list = riskThresholdService.getRiskThresholds();
 
