@@ -66,25 +66,25 @@ public class Hospital {
 	private String description; // TEXT
 	
 	@Schema(description="일반검진", example="true")
-	@Column(name="is_general_exam_available", nullable=false )
-	private boolean isGeneralExamAvailable;
+	@Column(name="general_exam_available", nullable=false )
+	private boolean generalExamAvailable;
 	
 	@Schema(description="위암검진", example="true")
-	@Column(name="is_stomach_cancer_exam_available", nullable=false)
-	private boolean isStomachCancerExamAvailable;
+	@Column(name="stomach_cancer_exam_available", nullable=false)
+	private boolean stomachCancerExamAvailable;
 	
 
 	@Schema(description="대장암검진", example="true")
-	@Column(name="is_colon_cancer_exam_available", nullable=false)
-	private boolean isColonCancerExamAvailable;
+	@Column(name="colon_cancer_exam_available", nullable=false)
+	private boolean colonCancerExamAvailable;
 	
 	@Schema(description="간암검진", example="true")
-	@Column(name="is_liver_cancer_exam_available", nullable=false)
-	private boolean isLiverCancerExamAvailable;
+	@Column(name="liver_cancer_exam_available", nullable=false)
+	private boolean liverCancerExamAvailable;
 	
 	@Schema(description="폐암검진", example="true")
-	@Column(name="is_lung_cancer_exam_available", nullable=false)
-	private boolean isLungCancerExamAvailable;
+	@Column(name="lung_cancer_exam_available", nullable=false)
+	private boolean lungCancerExamAvailable;
 	
 	@Schema(description="작성일 (DB 자동 입력)", example="2026-08-04T10:00:00",
 			accessMode=Schema.AccessMode.READ_ONLY)

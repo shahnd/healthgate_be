@@ -18,11 +18,11 @@ public interface HospitalDao extends JpaRepository<Hospital,Long>{
 		    FROM Hospital h
 		    WHERE (:keywordName IS NULL OR :keywordName = '' OR h.name LIKE CONCAT('%', :keywordName, '%'))
 		      AND (:keywordAddress IS NULL OR :keywordAddress = '' OR h.address LIKE CONCAT('%', :keywordAddress, '%'))
-		      AND (:isGeneral IS NULL OR :isGeneral = false OR h.isGeneralExamAvailable = :isGeneral)
-		      AND (:isStomachCancer IS NULL OR :isStomachCancer = false OR h.isStomachCancerExamAvailable = :isStomachCancer)
-		      AND (:isColonCancer IS NULL OR :isColonCancer = false OR h.isColonCancerExamAvailable = :isColonCancer)
-		      AND (:isLiverCancer IS NULL OR :isLiverCancer = false OR h.isLiverCancerExamAvailable =:isLiverCancer)
-		      AND (:isLungCancer IS NULL OR :isLungCancer = false OR h.isLungCancerExamAvailable = :isLungCancer)
+		      AND (:isGeneral IS NULL OR :isGeneral = false OR h.generalExamAvailable = :isGeneral)
+		      AND (:isStomachCancer IS NULL OR :isStomachCancer = false OR h.stomachCancerExamAvailable = :isStomachCancer)
+		      AND (:isColonCancer IS NULL OR :isColonCancer = false OR h.colonCancerExamAvailable = :isColonCancer)
+		      AND (:isLiverCancer IS NULL OR :isLiverCancer = false OR h.liverCancerExamAvailable =:isLiverCancer)
+		      AND (:isLungCancer IS NULL OR :isLungCancer = false OR h.lungCancerExamAvailable = :isLungCancer)
 		      AND h.status = 'Y'
 		    ORDER BY h.hospitalId DESC
 		""")
