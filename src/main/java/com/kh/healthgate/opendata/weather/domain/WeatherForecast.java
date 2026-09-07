@@ -3,6 +3,7 @@ package com.kh.healthgate.opendata.weather.domain;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,7 +20,7 @@ import lombok.ToString;
 @Table(
         name = "weather_forecasts",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_weather_forecast_at_location",
+                name = "uk_weather_forecasts_forecast_location",
                 columnNames = { "forecast_at", "location" }))
 @Getter
 @ToString
@@ -29,24 +30,41 @@ public class WeatherForecast {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private LocalDateTime forecastAt;
 
+    @Column(nullable = false)
     private BigDecimal temperature;
+
+    @Column(nullable = false)
     private BigDecimal humidity;
+
+    @Column(nullable = false)
     private BigDecimal precipitationProbability;
+
+    @Column(nullable = false)
     private String precipitation;
+
+    @Column(nullable = false)
     private String snowfall;
+
+    @Column(nullable = false)
     private BigDecimal windSpeed;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private WeatherForecastPrecipitationType precipitationType;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private WeatherForecastSkyCondition skyCondition;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private WeatherForecastLocation location;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public WeatherForecast(

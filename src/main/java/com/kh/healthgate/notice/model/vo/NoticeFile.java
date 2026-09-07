@@ -35,7 +35,7 @@ public class NoticeFile {
 	@Schema(description="공지사항첨부파일 번호 (자동 생성)", example="1",
 			accessMode=Schema.AccessMode.READ_ONLY)
 	@Id
-	@Column(name="notice_file_id")
+	@Column(name="id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long noticeFileId;
 	

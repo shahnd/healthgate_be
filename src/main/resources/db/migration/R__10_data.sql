@@ -12,7 +12,9 @@
 -- 0. risk threshold settings
 -- ------------------------------
 
-INSERT INTO risk_threshold_settings (metric_name, risk_level, threshold_value) VALUES
+DELETE FROM risk_threshold_settings;
+
+INSERT IGNORE INTO risk_threshold_settings (metric_name, risk_level, threshold_value) VALUES
 ('SYSTOLIC_BP', 'HIGH', 140),
 ('SYSTOLIC_BP', 'WARN', 130),
 ('DIASTOLIC_BP', 'HIGH', 90),
@@ -142,7 +144,7 @@ VALUES
 -- ------------------------------
 -- 7. checkups
 -- ------------------------------
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2026, '2026-06-15', '혈압 정상, 체중 유지, 간 기능 검사 양호', '2026-06-16 09:00:00', 1),
 (2026, '2026-07-02', '혈압 경계, 생활습관 개선 권고', '2026-07-03 10:15:00', 2),
@@ -153,7 +155,7 @@ VALUES
 -- ------------------------------
 -- 8. checkup reminders settings
 -- ------------------------------
-INSERT IGNORE INTO checkup_reminder_settings (checkup_reminder_setting_type, checkup_reminder_setting_message_template, checkup_reminder_setting_cron_schedule, checkup_reminder_setting_is_active)
+INSERT IGNORE INTO checkup_reminder_settings (type, message_template, cron_schedule, is_active)
 VALUES
 ('BEFORE_CHECKUP', '검진 7일 전입니다. 건강검진 일정을 확인해 주세요.', '0 0 9 * * 1', 1),
 ('MISSING_CHECKUP', '미검진 상태입니다. 빠른 시일 내에 검진을 예약해 주세요.', '0 0 9 * * 3', 1),
@@ -162,7 +164,7 @@ VALUES
 -- ------------------------------
 -- 9. checkup reminders
 -- ------------------------------
-INSERT IGNORE INTO checkup_reminders (checkup_reminder_channel, checkup_reminder_content, checkup_reminder_sent_at, checkup_reminder_status, checkup_reminder_is_manual, checkup_id)
+INSERT IGNORE INTO checkup_reminders (channel, content, sent_at, status, is_manual, checkup_id)
 VALUES
 ('SMS', '검진 7일 전 안내 메시지입니다.', '2026-08-20 09:00:00', 'SUCCESS', 0, 1),
 ('EMAIL', '미검진으로 인한 안내 메일입니다.', '2026-08-22 13:30:00', 'SUCCESS', 0, 3),
@@ -171,7 +173,7 @@ VALUES
 -- ------------------------------
 -- 10. consultations
 -- ------------------------------
-INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consultated_at, created_at)
+INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
 VALUES
 (1, 2, '2026-09-10', 'T1', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-09-01 09:30:00'),
 (4, 2, '2026-08-29', 'T2', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'FINISHED', '2026-08-29 15:00:00', '2026-08-20 09:15:00'),
@@ -180,7 +182,7 @@ VALUES
 -- ------------------------------
 -- 11. notices
 -- ------------------------------
-INSERT IGNORE INTO notices (title, content, status, created_at, update_at, author_id, count)
+INSERT IGNORE INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
 VALUES
 ('9월 건강검진 일정 안내', '9월 건강검진 예약 일정과 대상자를 안내드립니다. 관련 공지 확인 후 빠르게 예약해 주세요.', 'Y', '2026-09-01 08:00:00', '2026-09-01 08:00:00', 1, 42),
 ('직장 건강관리 프로그램 운영 안내', '직장 내 건강관리 프로그램을 운영합니다. 참여를 희망하는 직원은 담당 부서로 신청해 주세요.', 'Y', '2026-09-02 09:30:00', '2026-09-02 09:30:00', 2, 18),
@@ -902,7 +904,7 @@ VALUES
 -- ------------------------------
 -- 7-1. checkups 추가 (2024~2026년, 직원 1~35)
 -- ------------------------------
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2024, '2024-11-10', '간 수치 약간 상승, 재검 권고', '2024-11-11 09:00:00', 1),
 (2025, '2025-09-07', '혈당 경계 수치, 추적 관찰 필요', '2025-09-08 09:00:00', 1),
@@ -924,7 +926,7 @@ VALUES
 (2026, NULL, '검진 미실시 상태', '2026-08-10 11:00:00', 6),
 (2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 7),
 (2025, '2025-08-20', '혈압 정상, 특이 소견 없음', '2025-08-21 09:00:00', 7);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2026, '2026-11-24', '체중 증가 추세, 운동 권장', '2026-11-25 09:00:00', 7),
 (2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 8),
@@ -946,7 +948,7 @@ VALUES
 (2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 13),
 (2026, '2026-01-06', '간 수치 약간 상승, 재검 권고', '2026-01-07 09:00:00', 13),
 (2024, '2024-01-13', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-01-14 09:00:00', 14);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2025, '2025-05-25', '시력 저하 소견, 안과 진료 권장', '2025-05-26 09:00:00', 14),
 (2026, '2026-09-15', '혈압 정상, 특이 소견 없음', '2026-09-16 09:00:00', 14),
@@ -968,7 +970,7 @@ VALUES
 (2024, '2024-07-22', '체중 증가 추세, 운동 권장', '2024-07-23 09:00:00', 21),
 (2025, '2025-05-28', '전반적 양호, 다음 검진 시기 안내', '2025-05-28 09:00:00', 21),
 (2026, '2026-07-23', '전반적 양호, 다음 검진 시기 안내', '2026-07-24 09:00:00', 21);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2024, '2024-05-08', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-05-09 09:00:00', 22),
 (2025, '2025-03-25', '콜레스테롤 수치 경계, 식습관 개선 권고', '2025-03-26 09:00:00', 22),
@@ -990,7 +992,7 @@ VALUES
 (2026, '2026-05-27', '콜레스테롤 수치 경계, 식습관 개선 권고', '2026-05-28 09:00:00', 27),
 (2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 28),
 (2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 28);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2026, '2026-08-26', '체중 증가 추세, 운동 권장', '2026-08-27 09:00:00', 28),
 (2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 29),
@@ -1012,7 +1014,7 @@ VALUES
 (2025, '2025-09-12', '간 수치 약간 상승, 재검 권고', '2025-09-13 09:00:00', 34),
 (2026, '2026-02-08', '간 수치 약간 상승, 재검 권고', '2026-02-09 09:00:00', 34),
 (2024, '2024-01-25', '간 수치 약간 상승, 재검 권고', '2024-01-26 09:00:00', 35);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, checkup_summary, checkup_created_at, employee_id)
+INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
 VALUES
 (2025, '2025-07-12', '체중 증가 추세, 운동 권장', '2025-07-13 09:00:00', 35),
 (2026, '2026-10-11', '전반적 양호, 다음 검진 시기 안내', '2026-10-12 09:00:00', 35);
@@ -1020,7 +1022,7 @@ VALUES
 -- ------------------------------
 -- 10-1. consultations 추가
 -- ------------------------------
-INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consultated_at, created_at)
+INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
 VALUES
 (2, 3, '2026-09-17', 'T2', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'RESERVED', NULL, '2026-08-16 00:00:00'),
 (21, 2, '2026-09-12', 'T1', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-24 00:00:00'),
@@ -1046,7 +1048,7 @@ VALUES
 -- ------------------------------
 -- 11-1. notices 추가 (페이지네이션 테스트용)
 -- ------------------------------
-INSERT IGNORE INTO notices (title, content, status, created_at, update_at, author_id, count)
+INSERT IGNORE INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
 VALUES
 ('10월 정기 건강검진 일정 안내', '10월 정기 건강검진 예약 일정과 대상자를 안내드립니다.', 'Y', '2026-09-01 00:00:00', '2026-09-01 00:00:00', 3, 51),
 ('독감 예방접종 신청 안내', '겨울철 독감 예방접종을 희망하는 직원은 신청해 주세요.', 'Y', '2026-08-29 00:00:00', '2026-08-29 00:00:00', 3, 21),

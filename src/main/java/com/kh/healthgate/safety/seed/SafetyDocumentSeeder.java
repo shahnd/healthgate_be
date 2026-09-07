@@ -17,7 +17,7 @@ import org.springframework.util.StringUtils;
 
 import com.kh.healthgate.employee.model.dao.EmployeeDao;
 import com.kh.healthgate.employee.model.vo.Employee;
-import com.kh.healthgate.employee.model.vo.role;
+import com.kh.healthgate.employee.model.vo.EmployeeRole;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.service.SafetyDocumentService;
@@ -44,7 +44,7 @@ public class SafetyDocumentSeeder implements ApplicationRunner {
         }
 
         Optional<Employee> employee = employeeDao.findFirstByRoleAndStatusOrderByIdAsc(
-                role.HEALTH_ADMIN,
+                EmployeeRole.HEALTH_ADMIN,
                 "Y");
         if (employee.isEmpty()) {
             log.warn("안전문서 시딩을 건너뜁니다. 재직 중인 보건 관리자가 없습니다.");

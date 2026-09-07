@@ -46,7 +46,7 @@ public class Biometrics {
     @Column(name = "diastolic_bp", nullable = false)
     private Integer diastolicBp;
 
-    @Column(name = "temperature")
+    @Column(name = "temperature", nullable = false)
     private Float temperature;
 
     @Column(name = "heart_rate", nullable = false)
@@ -55,8 +55,8 @@ public class Biometrics {
     @Column(name = "risk_level", length = 20, nullable = false)
     private String riskLevel;
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)

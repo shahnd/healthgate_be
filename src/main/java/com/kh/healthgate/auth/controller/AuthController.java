@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.healthgate.auth.model.service.AuthService;
 import com.kh.healthgate.employee.model.vo.Employee;
-import com.kh.healthgate.employee.model.vo.role;
+import com.kh.healthgate.employee.model.vo.EmployeeRole;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -39,7 +39,7 @@ public class AuthController {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, role role, Long id) {}
+    public record LoginResponse(String accessToken, String refreshToken, String employeeNumber, String name, EmployeeRole role, Long id) {}
 
     @PostMapping("/auth/login")
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인합니다.")

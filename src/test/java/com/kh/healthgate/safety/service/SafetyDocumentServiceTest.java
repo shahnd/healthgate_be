@@ -37,7 +37,7 @@ import org.springframework.data.domain.Sort;
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.auth.service.AuthenticatedEmployeeService;
 import com.kh.healthgate.employee.model.vo.Employee;
-import com.kh.healthgate.employee.model.vo.role;
+import com.kh.healthgate.employee.model.vo.EmployeeRole;
 import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
@@ -91,7 +91,7 @@ class SafetyDocumentServiceTest {
     void createsSafetyDocument() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         MockMultipartFile file = file();
         StoredFile storedFile = new StoredFile(
                 "documents/manual.pdf",
@@ -133,7 +133,7 @@ class SafetyDocumentServiceTest {
     void requestsSafetyDocumentIndexing() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         SafetyDocument document = document(employee);
 
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
@@ -157,7 +157,7 @@ class SafetyDocumentServiceTest {
     void doesNotPublishEventWhenIndexingRequestConflicts() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         SafetyDocument document = document(employee);
 
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
@@ -181,7 +181,7 @@ class SafetyDocumentServiceTest {
     void rejectsIndexingInactiveSafetyDocument() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         SafetyDocument document = document(employee);
         document.deactivate(employee);
 
@@ -201,7 +201,7 @@ class SafetyDocumentServiceTest {
     @Test
     void getsSafetyDocument() {
         // given
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         employee.setId(1L);
         employee.setEmployeeNumber("admin01");
         employee.setName("관리자");
@@ -229,7 +229,7 @@ class SafetyDocumentServiceTest {
     @Test
     void getsSafetyDocumentList() {
         // given
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         employee.setId(1L);
         SafetyDocument document = document(employee);
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updatedAt"));
@@ -256,9 +256,9 @@ class SafetyDocumentServiceTest {
     void updatesSafetyDocumentMetadata() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee creator = employee(role.HEALTH_ADMIN);
+        Employee creator = employee(EmployeeRole.HEALTH_ADMIN);
         creator.setId(1L);
-        Employee updater = employee(role.HEALTH_ADMIN);
+        Employee updater = employee(EmployeeRole.HEALTH_ADMIN);
         updater.setId(2L);
         SafetyDocument document = document(creator);
 
@@ -285,7 +285,7 @@ class SafetyDocumentServiceTest {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
-                .thenReturn(employee(role.EMPLOYEE));
+                .thenReturn(employee(EmployeeRole.EMPLOYEE));
 
         // when
         SafetyDocumentException exception = assertThrows(
@@ -301,7 +301,7 @@ class SafetyDocumentServiceTest {
     void deactivatesSafetyDocument() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         employee.setId(1L);
         SafetyDocument document = document(employee);
 
@@ -324,7 +324,7 @@ class SafetyDocumentServiceTest {
     void activatesSafetyDocument() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         employee.setId(1L);
         SafetyDocument document = document(employee);
         document.deactivate(employee);
@@ -348,7 +348,7 @@ class SafetyDocumentServiceTest {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
-                .thenReturn(employee(role.EMPLOYEE));
+                .thenReturn(employee(EmployeeRole.EMPLOYEE));
 
         // when
         SafetyDocumentException exception = assertThrows(
@@ -364,7 +364,7 @@ class SafetyDocumentServiceTest {
     void deletesSafetyDocumentAndPublishesFileCleanupEvent() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         SafetyDocument document = document(employee);
 
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
@@ -385,7 +385,7 @@ class SafetyDocumentServiceTest {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
-                .thenReturn(employee(role.EMPLOYEE));
+                .thenReturn(employee(EmployeeRole.EMPLOYEE));
 
         // when
         SafetyDocumentException exception = assertThrows(
@@ -414,7 +414,7 @@ class SafetyDocumentServiceTest {
     @Test
     void getsSafetyDocumentFile() {
         // given
-        SafetyDocument document = document(employee(role.HEALTH_ADMIN));
+        SafetyDocument document = document(employee(EmployeeRole.HEALTH_ADMIN));
         Resource resource = new ByteArrayResource("file-content".getBytes());
 
         when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
@@ -433,7 +433,7 @@ class SafetyDocumentServiceTest {
     @Test
     void convertsFileLoadFailureToDomainException() {
         // given
-        SafetyDocument document = document(employee(role.HEALTH_ADMIN));
+        SafetyDocument document = document(employee(EmployeeRole.HEALTH_ADMIN));
         FileStorageException cause = new FileStorageException("파일 없음");
 
         when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
@@ -454,7 +454,7 @@ class SafetyDocumentServiceTest {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
-                .thenReturn(employee(role.EMPLOYEE));
+                .thenReturn(employee(EmployeeRole.EMPLOYEE));
 
         // when
         SafetyDocumentException exception = assertThrows(
@@ -471,7 +471,7 @@ class SafetyDocumentServiceTest {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
         when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee))
-                .thenReturn(employee(role.HEALTH_ADMIN));
+                .thenReturn(employee(EmployeeRole.HEALTH_ADMIN));
         MockMultipartFile emptyFile = new MockMultipartFile(
                 "file", "manual.pdf", "application/pdf", new byte[0]);
 
@@ -489,7 +489,7 @@ class SafetyDocumentServiceTest {
     void convertsFileStorageFailureToDomainException() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         MockMultipartFile file = file();
         FileStorageException cause = new FileStorageException("저장 실패");
 
@@ -512,7 +512,7 @@ class SafetyDocumentServiceTest {
     void deletesStoredFileWhenContentIsDuplicated() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         MockMultipartFile file = file();
         StoredFile storedFile = storedFile(file);
 
@@ -535,7 +535,7 @@ class SafetyDocumentServiceTest {
     void deletesStoredFileWhenDatabaseSaveFails() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         MockMultipartFile file = file();
         StoredFile storedFile = storedFile(file);
         IllegalStateException databaseException = new IllegalStateException("DB 저장 실패");
@@ -560,7 +560,7 @@ class SafetyDocumentServiceTest {
     void keepsOriginalExceptionWhenCompensationDeleteFails() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
-        Employee employee = employee(role.HEALTH_ADMIN);
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
         MockMultipartFile file = file();
         StoredFile storedFile = storedFile(file);
         FileStorageException deleteException = new FileStorageException("삭제 실패");
@@ -585,7 +585,7 @@ class SafetyDocumentServiceTest {
         return new AuthenticatedEmployee(1L, "admin01", "HEALTH_ADMIN");
     }
 
-    private Employee employee(role employeeRole) {
+    private Employee employee(EmployeeRole employeeRole) {
         Employee employee = new Employee();
         employee.setRole(employeeRole);
         return employee;

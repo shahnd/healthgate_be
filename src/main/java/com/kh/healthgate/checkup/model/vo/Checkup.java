@@ -18,12 +18,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "checkups")
+@Table(
+        name = "checkups",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_checkups_employee_year",
+                columnNames = { "employee_id", "checkup_year" }))
 
 @DynamicInsert
 @DynamicUpdate
@@ -38,7 +43,7 @@ public class Checkup {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "checkup_id", nullable = false)
+    @Column(name = "id", nullable = false)
     private Long checkupId;
 
     /**
@@ -58,7 +63,7 @@ public class Checkup {
     /**
      * 건강검진 내용 또는 결과 요약
      */
-    @Column(name = "checkup_summary", columnDefinition = "TEXT")
+    @Column(name = "summary", columnDefinition = "TEXT")
     private String checkupSummary;
 
     /**
@@ -66,7 +71,7 @@ public class Checkup {
      * DB의 CURRENT_TIMESTAMP 기본값을 사용
      */
     @Column(
-        name = "checkup_created_at",
+        name = "created_at",
         nullable = false,
         columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP"
     )
