@@ -294,8 +294,8 @@ public class CheckupService {
         }
 
         Optional<Checkup> existingCheckup =
-                checkupDao.findByEmployee_IdAndCheckupYear(
-                        employee.getId(),
+                checkupDao.findFirstByEmployeeAndCheckupYearOrderByCheckupIdDesc(
+                        employee,
                         checkupYear
                 );
 
