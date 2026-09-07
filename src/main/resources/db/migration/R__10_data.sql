@@ -12,6 +12,8 @@
 -- 0. risk threshold settings
 -- ------------------------------
 
+DELETE FROM risk_threshold_settings;
+
 INSERT IGNORE INTO risk_threshold_settings (metric_name, risk_level, threshold_value) VALUES
 ('SYSTOLIC_BP', 'HIGH', 140),
 ('SYSTOLIC_BP', 'WARN', 130),
