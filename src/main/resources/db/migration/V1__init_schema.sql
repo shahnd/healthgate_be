@@ -247,18 +247,18 @@ CREATE TABLE vector_index_manifests (
 CREATE TABLE weather_forecasts (
     id BIGINT NOT NULL AUTO_INCREMENT,
 
-    forecast_at DATETIME(6) NULL,
-    location ENUM('APGUJEONG', 'CHEONGDAM', 'DAECHI1', 'DAECHI2', 'DAECHI4', 'DOGOK1', 'DOGOK2', 'GAEPO1', 'GAEPO2', 'GAEPO3', 'GAEPO4', 'ILWON1', 'ILWONBON', 'NONHYEON1', 'NONHYEON2', 'SAMSEONG1', 'SAMSEONG2', 'SEGOK', 'SINSA', 'SUSEO', 'YEOKSAM1', 'YEOKSAM2') NULL,
-    temperature DECIMAL(38, 2) NULL,
-    humidity DECIMAL(38, 2) NULL,
-    precipitation_probability DECIMAL(38, 2) NULL,
-    wind_speed DECIMAL(38, 2) NULL,
-    precipitation VARCHAR(255) NULL,
-    snowfall VARCHAR(255) NULL,
-    precipitation_type ENUM('NONE', 'RAIN', 'RAIN_SNOW', 'SHOWER', 'SNOW') NULL,
-    sky_condition ENUM('CLEAR', 'CLOUDY', 'PARTLY_CLOUDY') NULL,
+    forecast_at DATETIME(6) NOT NULL,
+    location ENUM('APGUJEONG', 'CHEONGDAM', 'DAECHI1', 'DAECHI2', 'DAECHI4', 'DOGOK1', 'DOGOK2', 'GAEPO1', 'GAEPO2', 'GAEPO3', 'GAEPO4', 'ILWON1', 'ILWONBON', 'NONHYEON1', 'NONHYEON2', 'SAMSEONG1', 'SAMSEONG2', 'SEGOK', 'SINSA', 'SUSEO', 'YEOKSAM1', 'YEOKSAM2') NOT NULL,
+    temperature DECIMAL(38, 2) NOT NULL,
+    humidity DECIMAL(38, 2) NOT NULL,
+    precipitation_probability DECIMAL(38, 2) NOT NULL,
+    wind_speed DECIMAL(38, 2) NOT NULL,
+    precipitation VARCHAR(255) NOT NULL,
+    snowfall VARCHAR(255) NOT NULL,
+    precipitation_type ENUM('NONE', 'RAIN', 'RAIN_SNOW', 'SHOWER', 'SNOW') NOT NULL,
+    sky_condition ENUM('CLEAR', 'CLOUDY', 'PARTLY_CLOUDY') NOT NULL,
 
-    created_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL,
 
     PRIMARY KEY (id),
     CONSTRAINT uk_weather_forecasts_forecast_location
