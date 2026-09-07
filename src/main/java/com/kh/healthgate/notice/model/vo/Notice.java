@@ -36,7 +36,7 @@ import lombok.ToString;
 public class Notice {
  
 	@Id
-	@Column(name="notice_id")
+	@Column(name="id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long noticeId;   
 	
@@ -46,14 +46,14 @@ public class Notice {
 	@Column(name="content", nullable=false, columnDefinition="TEXT")
 	private String content;   //TEXT
 	
-	@Column(name="status", columnDefinition="CHAR(1) DEFAULT 'Y'")
-	private String status; // VARCHAR(20)
+	@Column(name="status", nullable = false, columnDefinition="CHAR(1) DEFAULT 'Y'")
+	private String status = "Y"; // VARCHAR(20)
 	
-	@Column(name="created_at", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime createdAt;
+	@Column(name="created_at", nullable = false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private LocalDateTime createdAt = LocalDateTime.now();
 	
-	@Column(name="update_at", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime updatedAt;
+	@Column(name="updated_at", nullable = false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private LocalDateTime updatedAt = LocalDateTime.now();
 	
 	// @Column(name="author_id", nullable=false)
 	// private int authorId; 
@@ -62,6 +62,6 @@ public class Notice {
 	@JoinColumn(name="author_id", nullable=false)
 	private Employee employee;   // 작성자 식별자
 	
-	@Column(name="count", columnDefinition="INT DEFAULT 0")
-	private int count;	         // 공지사항 조회수 
+	@Column(name="view_count", nullable = false, columnDefinition="INT DEFAULT 0")
+	private int count;	         // 공지사항 조회수
 }

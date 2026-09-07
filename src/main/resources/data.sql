@@ -180,7 +180,7 @@ VALUES
 -- ------------------------------
 -- 11. notices
 -- ------------------------------
-INSERT IGNORE INTO notices (title, content, status, created_at, update_at, author_id, count)
+INSERT IGNORE INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
 VALUES
 ('9월 건강검진 일정 안내', '9월 건강검진 예약 일정과 대상자를 안내드립니다. 관련 공지 확인 후 빠르게 예약해 주세요.', 'Y', '2026-09-01 08:00:00', '2026-09-01 08:00:00', 1, 42),
 ('직장 건강관리 프로그램 운영 안내', '직장 내 건강관리 프로그램을 운영합니다. 참여를 희망하는 직원은 담당 부서로 신청해 주세요.', 'Y', '2026-09-02 09:30:00', '2026-09-02 09:30:00', 2, 18),
@@ -1046,7 +1046,7 @@ VALUES
 -- ------------------------------
 -- 11-1. notices 추가 (페이지네이션 테스트용)
 -- ------------------------------
-INSERT IGNORE INTO notices (title, content, status, created_at, update_at, author_id, count)
+INSERT IGNORE INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
 VALUES
 ('10월 정기 건강검진 일정 안내', '10월 정기 건강검진 예약 일정과 대상자를 안내드립니다.', 'Y', '2026-09-01 00:00:00', '2026-09-01 00:00:00', 3, 51),
 ('독감 예방접종 신청 안내', '겨울철 독감 예방접종을 희망하는 직원은 신청해 주세요.', 'Y', '2026-08-29 00:00:00', '2026-08-29 00:00:00', 3, 21),

@@ -171,19 +171,19 @@ CREATE TABLE timecards (
 );
 
 CREATE TABLE notices (
-    notice_id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    count INT NULL DEFAULT 0,
-    status CHAR(1) NULL DEFAULT 'Y',
+    view_count INT NOT NULL DEFAULT 0,
+    status CHAR(1) NOT NULL DEFAULT 'Y',
 
-    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-    update_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     author_id BIGINT NOT NULL,
 
-    PRIMARY KEY (notice_id),
+    PRIMARY KEY (id),
     CONSTRAINT fk_notices_author_id
         FOREIGN KEY (author_id) REFERENCES employees (id)
 );
@@ -200,7 +200,7 @@ CREATE TABLE notice_files (
 
     PRIMARY KEY (notice_file_id),
     CONSTRAINT fk_notice_files_notice_id
-        FOREIGN KEY (notice_id) REFERENCES notices (notice_id)
+        FOREIGN KEY (notice_id) REFERENCES notices (id)
 );
 
 CREATE TABLE safety_documents (
