@@ -138,14 +138,14 @@ CREATE TABLE consultations (
 );
 
 CREATE TABLE hospitals (
-    hospital_id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
     name VARCHAR(255) NOT NULL,
     address VARCHAR(500) NOT NULL,
     phone VARCHAR(20) NULL,
     url VARCHAR(255) NULL,
     description TEXT NULL,
-    status CHAR(1) NULL DEFAULT 'Y',
+    status CHAR(1) NOT NULL DEFAULT 'Y',
     is_general_exam_available BIT(1) NOT NULL,
     is_stomach_cancer_exam_available BIT(1) NOT NULL,
     is_colon_cancer_exam_available BIT(1) NOT NULL,
@@ -154,7 +154,7 @@ CREATE TABLE hospitals (
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (hospital_id)
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE timecards (

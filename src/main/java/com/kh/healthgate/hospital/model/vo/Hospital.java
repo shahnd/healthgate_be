@@ -37,7 +37,7 @@ public class Hospital {
 	@Schema(description="병원 등록시 생성 순서(자동 생성)", example="1",
 			accessMode=Schema.AccessMode.READ_ONLY)
 	@Id
-	@Column(name="hospital_id")
+	@Column(name="id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long hospitalId; 
 	
@@ -93,7 +93,7 @@ public class Hospital {
 	
 	@Schema(description="병원 게시 상태 (Y : 게시 / N : 삭제)", example="Y",
 			allowableValues={"Y","N"}, defaultValue="Y")
-	@Column(name="status", columnDefinition="CHAR(1) DEFAULT 'Y'")
+	@Column(name="status", nullable = false, columnDefinition="CHAR(1) DEFAULT 'Y'")
 	private String status; 
 	
 	@PrePersist
