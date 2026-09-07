@@ -79,7 +79,7 @@ public class NoticeService {
 
 	public NoticeFile selectNoticeFileId(Long noticeFileId) {
 		
-		return noticeFileDao.selectNoticeFile(noticeFileId);
+		return noticeFileDao.selectNoticeFileId(noticeFileId);
 	}
 
 }
