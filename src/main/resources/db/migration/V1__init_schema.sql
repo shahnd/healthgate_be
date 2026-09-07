@@ -125,7 +125,7 @@ CREATE TABLE consultations (
     reason VARCHAR(100) NOT NULL,
     content TEXT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'RESERVED',
-    consultated_at DATETIME NULL,
+    consulted_at DATETIME NULL,
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

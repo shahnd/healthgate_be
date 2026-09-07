@@ -69,7 +69,7 @@ public class Consultation {
 			columnDefinition="VARCHAR(20) DEFAULT 'RESERVED'")
 	private ConsultationStatus status;		// status	상담진행상태(NN), DEFAULT RESERVED
 	
-	@Column(name="CONSULTATED_AT", columnDefinition="DATETIME")
+	@Column(name="CONSULTED_AT", columnDefinition="DATETIME")
 	private LocalDateTime consultatedAt;	// requested_at	일지작성일시(CURRENT_TIMESTAMP)
 	
 	@Column(name="CREATED_AT", nullable=false,

@@ -171,7 +171,7 @@ VALUES
 -- ------------------------------
 -- 10. consultations
 -- ------------------------------
-INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consultated_at, created_at)
+INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
 VALUES
 (1, 2, '2026-09-10', 'T1', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-09-01 09:30:00'),
 (4, 2, '2026-08-29', 'T2', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'FINISHED', '2026-08-29 15:00:00', '2026-08-20 09:15:00'),
@@ -1020,7 +1020,7 @@ VALUES
 -- ------------------------------
 -- 10-1. consultations 추가
 -- ------------------------------
-INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consultated_at, created_at)
+INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
 VALUES
 (2, 3, '2026-09-17', 'T2', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'RESERVED', NULL, '2026-08-16 00:00:00'),
 (21, 2, '2026-09-12', 'T1', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-24 00:00:00'),
