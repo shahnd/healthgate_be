@@ -163,9 +163,9 @@ CREATE TABLE timecards (
     id BIGINT NOT NULL AUTO_INCREMENT,
 
     status VARCHAR(20) NOT NULL,
-    clock_in_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    clock_in_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    employee_id BIGINT NULL,
+    employee_id BIGINT NOT NULL,
 
     PRIMARY KEY (id),
     CONSTRAINT fk_timecards_employee_id
