@@ -33,7 +33,7 @@ public class CheckupReminderSetting {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "checkup_reminder_setting_id", nullable = false)
+    @Column(name = "id", nullable = false)
     private Long checkupReminderSettingId;
 
     /**
@@ -41,7 +41,7 @@ public class CheckupReminderSetting {
      * 예: 검진일 이전 알림, 미검진자 알림
      */
     @Column(
-    	name = "checkup_reminder_setting_type",
+    	name = "type",
         nullable = false,
         length = 30
     )
@@ -51,7 +51,7 @@ public class CheckupReminderSetting {
      * 자동 알림에 사용할 메시지 템플릿
      */
     @Column(
-        name = "checkup_reminder_setting_message_template",
+        name = "message_template",
         nullable = false,
         columnDefinition = "TEXT"
     )
@@ -61,7 +61,7 @@ public class CheckupReminderSetting {
      * 자동 알림 실행 주기를 나타내는 Cron 표현식
      */
     @Column(
-        name = "checkup_reminder_setting_cron_schedule",
+        name = "cron_schedule",
         nullable = false,
         length = 30
     )
@@ -73,7 +73,7 @@ public class CheckupReminderSetting {
      * false: 비활성화
      */
     @Column(
-        name = "checkup_reminder_setting_is_active",
+        name = "is_active",
         nullable = false
     )
     private boolean checkupReminderSettingIsActive;

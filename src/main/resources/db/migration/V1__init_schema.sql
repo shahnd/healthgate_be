@@ -91,14 +91,14 @@ CREATE TABLE checkups (
 );
 
 CREATE TABLE checkup_reminder_settings (
-    checkup_reminder_setting_id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
-    checkup_reminder_setting_type VARCHAR(30) NOT NULL,
-    checkup_reminder_setting_message_template TEXT NOT NULL,
-    checkup_reminder_setting_cron_schedule VARCHAR(30) NOT NULL,
-    checkup_reminder_setting_is_active BIT(1) NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    message_template TEXT NOT NULL,
+    cron_schedule VARCHAR(30) NOT NULL,
+    is_active BIT(1) NOT NULL,
 
-    PRIMARY KEY (checkup_reminder_setting_id)
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE checkup_reminders (
