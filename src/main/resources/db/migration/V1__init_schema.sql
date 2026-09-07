@@ -2,9 +2,9 @@
 -- This migration is the target schema baseline managed by Flyway.
 
 CREATE TABLE departments (
-    id BIGINT NOT NULL,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
-    name VARCHAR(30) NULL,
+    name VARCHAR(30) NOT NULL,
 
     PRIMARY KEY (id)
 );
