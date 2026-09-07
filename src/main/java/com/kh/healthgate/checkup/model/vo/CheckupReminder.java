@@ -40,7 +40,7 @@ public class CheckupReminder {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "checkup_reminder_id", nullable = false)
+    @Column(name = "id", nullable = false)
     private Long checkupReminderId;
 
     /**
@@ -48,14 +48,14 @@ public class CheckupReminder {
      * SMS 또는 EMAIL 값을 문자열로 저장한다.
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "checkup_reminder_channel", nullable = false)
+    @Column(name = "channel", nullable = false)
     private NotificationChannel checkupReminderChannel;
 
     /**
      * 발송한 알림 메시지 내용
      */
     @Column(
-        name = "checkup_reminder_content",
+        name = "content",
         nullable = false,
         columnDefinition = "TEXT"
     )
@@ -66,7 +66,7 @@ public class CheckupReminder {
      * DB의 CURRENT_TIMESTAMP 기본값을 사용한다.
      */
     @Column(
-        name = "checkup_reminder_sent_at",
+        name = "sent_at",
         nullable = false,
         columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP"
     )
@@ -77,7 +77,7 @@ public class CheckupReminder {
      * 예: SUCCESS, FAILED
      */
     @Column(
-        name = "checkup_reminder_status",
+        name = "status",
         nullable = false,
         length = 20
     )
@@ -88,7 +88,7 @@ public class CheckupReminder {
      * true: 관리자가 수동으로 발송
      * false: 시스템에서 자동으로 발송
      */
-    @Column(name = "checkup_reminder_is_manual", nullable = false)
+    @Column(name = "is_manual", nullable = false)
     private boolean checkupReminderIsManual;
 
     /**

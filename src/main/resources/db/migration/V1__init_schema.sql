@@ -102,17 +102,17 @@ CREATE TABLE checkup_reminder_settings (
 );
 
 CREATE TABLE checkup_reminders (
-    checkup_reminder_id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
-    checkup_reminder_channel ENUM('EMAIL', 'SMS') NOT NULL,
-    checkup_reminder_content TEXT NOT NULL,
-    checkup_reminder_status VARCHAR(20) NOT NULL,
-    checkup_reminder_is_manual BIT(1) NOT NULL,
-    checkup_reminder_sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    channel ENUM('EMAIL', 'SMS') NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    is_manual BIT(1) NOT NULL,
+    sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     checkup_id BIGINT NOT NULL,
 
-    PRIMARY KEY (checkup_reminder_id),
+    PRIMARY KEY (id),
     CONSTRAINT fk_checkup_reminders_checkup_id
         FOREIGN KEY (checkup_id) REFERENCES checkups (id)
 );
