@@ -19,10 +19,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,9 +38,6 @@ import com.kh.healthgate.notice.model.vo.NoticeFile;
 import com.kh.healthgate.notice.util.NoticeSaveFile;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -245,7 +240,7 @@ public class NoticeController {
 										       HttpServletRequest request) {
 		
 		// 1. JwtAuthInterceptor에서 넣어둔 로그인 사용자 정보 추출
-	    // Interceptor에서 설정한 이름에 맞춰 꺼냅니다 (empId, employeeNumber 등)
+	    // Interceptor에서 설정한 이름에 맞춰 꺼냄 (empId, employeeNumber 등)
 	    Object empId = request.getAttribute("empId");
 	    String employeeNumber = (String) request.getAttribute("employeeNumber");
 
@@ -254,24 +249,22 @@ public class NoticeController {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
 	    }
 		
-		Long id = ((Number) empId).longValue();
-		
-		Employee emp = employeeService.selectEmployee(id);
-		
-		Notice n = new Notice();
-		n.setEmployee(emp);
-		n.setTitle(title);
-	    n.setContent(content);
+		Long currentEmpId = ((Number) empId).longValue();
 		
 	    Notice existingNotice = noticeService.selectNotice(noticeId);
 	    if (existingNotice == null) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("fail");
 	    }
+	    
+	    // 본인 글이 맞는지 확인 (수정 권한 체크)
+	    if (!existingNotice.getEmployee().getId().equals(currentEmpId)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("수정 권한이 없습니다.");
+	    }
 
-	    existingNotice.setTitle(n.getTitle());
-	    existingNotice.setContent(n.getContent());
+	    existingNotice.setTitle(title);
+	    existingNotice.setContent(content);
 	
-		Notice updateNo = noticeService.updateNotice(n);
+		Notice updateNo = noticeService.updateNotice(existingNotice);
 		
 		 
 		// 새로 넘어온 첨부파일이 있는지 먼저 검사
