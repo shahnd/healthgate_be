@@ -49,11 +49,11 @@ CREATE TABLE biometrics (
     measured_at DATETIME(6) NOT NULL,
     systolic_bp INT NOT NULL,
     diastolic_bp INT NOT NULL,
-    temperature FLOAT NULL,
+    temperature FLOAT NOT NULL,
     heart_rate INT NOT NULL,
     risk_level VARCHAR(20) NOT NULL,
 
-    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     employee_id BIGINT NOT NULL,
 
