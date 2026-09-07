@@ -51,7 +51,7 @@ import jakarta.servlet.http.HttpSession;
 
 
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
 @Tag(name="공지사항 API", description = "공지사항 조회, 등록, 수정, 삭제, 첨부파일 다운로드")
 public class NoticeController {
@@ -134,36 +134,20 @@ public class NoticeController {
 	public ResponseEntity<String> insertNotice(@ModelAttribute Notice n, 
 			                                   @RequestPart(value = "upfile", required = false)MultipartFile upfile, 
 			                                   HttpServletRequest request) {
-		// 작성자 (로그인한 회원) 정보 뽑기
-		String authHeader = request.getHeader("Authorization");
 		
-		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰이 존재하지 않습니다.");
-		}
 		
-		String jwtTokenString = authHeader.substring(7).trim();
+		// 1. JwtAuthInterceptor에서 넣어둔 로그인 사용자 정보 추출
+	    // Interceptor에서 설정한 이름에 맞춰 꺼냅니다 (empId, employeeNumber 등)
+	    Object empId = request.getAttribute("empId");
+	    String employeeNumber = (String) request.getAttribute("employeeNumber");
+
+	    // 2. 비로그인 처리 (인터셉터를 통과했더라도 예외 처리)
+	    if (empId == null && employeeNumber == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+	    }
+	    
 		
-		// 토큰 값이 empty, "null", "undefined"인 경우 예외 발생 전에 사전 차단
-		if (jwtTokenString.isEmpty() || "null".equalsIgnoreCase(jwtTokenString) || "undefined".equalsIgnoreCase(jwtTokenString)) {
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 토큰입니다.");
-		}
-		
-		Claims claims;
-		try {
-		Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
-		
-		claims = Jwts.parserBuilder()
-							.setSigningKey(key)
-							.build()
-							.parseClaimsJws(jwtTokenString)
-							.getBody();
-		} catch (Exception e) {
-			// 잘못된 JWT 형식이 들어와도 500 에러 대신 401 Unauthorized 반환
-			e.printStackTrace();
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰 검증 실패");
-		}
-		
-		Long id = claims.get("id", Long.class);
+		Long id = ((Number) empId).longValue();
 		
 		Employee emp = employeeService.selectEmployee(id);
 		
@@ -258,40 +242,22 @@ public class NoticeController {
                                                @RequestPart(value = "reupfile", required = false) MultipartFile reupfile,
 										       HttpServletRequest request) {
 		
-		// 작성자 (로그인한 회원) 정보 뽑기
-		String authHeader = request.getHeader("Authorization");
+		// 1. JwtAuthInterceptor에서 넣어둔 로그인 사용자 정보 추출
+	    // Interceptor에서 설정한 이름에 맞춰 꺼냅니다 (empId, employeeNumber 등)
+	    Object empId = request.getAttribute("empId");
+	    String employeeNumber = (String) request.getAttribute("employeeNumber");
+
+	    // 2. 비로그인 처리 (인터셉터를 통과했더라도 예외 처리)
+	    if (empId == null && employeeNumber == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+	    }
 		
-		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰이 존재하지 않습니다.");
-		}
-		
-		String jwtTokenString = authHeader.substring(7).trim();
-		
-		// 토큰 값이 empty, "null", "undefined"인 경우 예외 발생 전에 사전 차단
-		if (jwtTokenString.isEmpty() || "null".equalsIgnoreCase(jwtTokenString) || "undefined".equalsIgnoreCase(jwtTokenString)) {
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 토큰입니다.");
-		}
-		
-		Claims claims;
-		try {
-		Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
-		
-		claims = Jwts.parserBuilder()
-							.setSigningKey(key)
-							.build()
-							.parseClaimsJws(jwtTokenString)
-							.getBody();
-		} catch (Exception e) {
-			// 잘못된 JWT 형식이 들어와도 500 에러 대신 401 Unauthorized 반환
-			e.printStackTrace();
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰 검증 실패");
-		}
-		
-		Long id = claims.get("id", Long.class);
+		Long id = ((Number) empId).longValue();
 		
 		Employee emp = employeeService.selectEmployee(id);
 		
 		n.setEmployee(emp);
+		
 	    Notice existingNotice = noticeService.selectNotice(noticeId);
 	    if (existingNotice == null) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("fail");

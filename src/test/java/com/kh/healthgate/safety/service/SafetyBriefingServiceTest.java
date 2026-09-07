@@ -26,6 +26,7 @@ import com.kh.healthgate.opendata.weather.domain.WeatherForecast;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastPrecipitationType;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastSkyCondition;
+import com.kh.healthgate.safety.ai.briefing.ActiveIndexedSafetyDocuments;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
@@ -37,6 +38,8 @@ class SafetyBriefingServiceTest {
 
     @Mock
     private SafetyBriefingGenerator generator;
+    @Mock
+    private ActiveIndexedSafetyDocuments activeIndexedSafetyDocuments;
     @Mock
     private WeatherService weatherService;
     @Mock
@@ -50,14 +53,17 @@ class SafetyBriefingServiceTest {
         // given
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<WeatherForecast> forecasts = List.of(forecastAt(today.atTime(9, 0)));
+        List<String> documentFingerprints = List.of("fingerprint-a");
         SafetyBriefingContext context = SafetyBriefingContext.of(
                 today,
                 WeatherForecastLocation.YEOKSAM1,
-                forecasts);
+                forecasts,
+                documentFingerprints);
         SafetyBriefing cached = new SafetyBriefing(today, context.fingerprint(), "캐시된 브리핑");
 
         when(weatherService.findBusinessHoursForecasts(today, WeatherForecastLocation.YEOKSAM1))
                 .thenReturn(forecasts);
+        when(activeIndexedSafetyDocuments.getFingerprints()).thenReturn(documentFingerprints);
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.of(cached));
 
@@ -76,16 +82,21 @@ class SafetyBriefingServiceTest {
         // given
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<WeatherForecast> forecasts = List.of(forecastAt(today.atTime(9, 0)));
+        List<String> documentFingerprints = List.of("fingerprint-a");
         SafetyBriefingContext context = SafetyBriefingContext.of(
                 today,
                 WeatherForecastLocation.YEOKSAM1,
-                forecasts);
+                forecasts,
+                documentFingerprints);
 
         when(weatherService.findBusinessHoursForecasts(today, WeatherForecastLocation.YEOKSAM1))
                 .thenReturn(forecasts);
+        when(activeIndexedSafetyDocuments.getFingerprints()).thenReturn(documentFingerprints);
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.empty());
-        when(generator.generateSafetyBriefing(context.weatherContext())).thenReturn("새 브리핑");
+        when(generator.generateSafetyBriefing(
+                context.weatherContext(),
+                documentFingerprints)).thenReturn("새 브리핑");
         when(safetyBriefingRepository.save(any(SafetyBriefing.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -99,6 +110,9 @@ class SafetyBriefingServiceTest {
         ArgumentCaptor<SafetyBriefing> briefingCaptor = ArgumentCaptor.forClass(SafetyBriefing.class);
         verify(safetyBriefingRepository).save(briefingCaptor.capture());
         assertThat(briefingCaptor.getValue().getContextFingerprint()).isEqualTo(context.fingerprint());
+        verify(generator).generateSafetyBriefing(
+                context.weatherContext(),
+                documentFingerprints);
     }
 
     private WeatherForecast forecastAt(LocalDateTime forecastAt) {

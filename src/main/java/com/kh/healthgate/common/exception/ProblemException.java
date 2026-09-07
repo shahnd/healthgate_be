@@ -6,19 +6,19 @@ package com.kh.healthgate.common.exception;
  * 이 예외를 throw하면 자동으로 클라이언트로 전달됩니다.
  */
 public abstract class ProblemException extends RuntimeException {
-    private final ProblemType problemType;
+    private final ProblemDefinition problemType;
 
-    protected ProblemException(ProblemType problemType, String message) {
+    protected ProblemException(ProblemDefinition problemType, String message) {
         super(message);
         this.problemType = problemType;
     }
 
-    protected ProblemException(ProblemType problemType, String message, Throwable cause) {
+    protected ProblemException(ProblemDefinition problemType, String message, Throwable cause) {
         super(message, cause);
         this.problemType = problemType;
     }
 
-    public ProblemType problemType() {
+    public ProblemDefinition problemType() {
         return problemType;
     }
 }

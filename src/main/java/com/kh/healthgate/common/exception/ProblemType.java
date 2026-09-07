@@ -4,7 +4,7 @@ import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 
-public enum ProblemType {
+public enum ProblemType implements ProblemDefinition {
     WEATHER_FORECAST_UNAVAILABLE(
             "/problems/weather-forecast-unavailable",
             "기상예보 조회 실패",

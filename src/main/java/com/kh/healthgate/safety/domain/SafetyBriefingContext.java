@@ -13,20 +13,32 @@ import com.kh.healthgate.safety.ai.briefing.WeatherContextFormatter;
 public record SafetyBriefingContext(
         LocalDate briefingDate,
         WeatherForecastLocation location,
-        String weatherContext) {
+        String weatherContext,
+        List<String> documentFingerprints) {
 
-    private static final String CONTEXT_VERSION = "v1";
+    private static final String CONTEXT_VERSION = "v2";
+
+    public SafetyBriefingContext {
+        documentFingerprints = documentFingerprints.stream()
+                .sorted()
+                .toList();
+    }
 
     public static SafetyBriefingContext of(
             LocalDate briefingDate,
             WeatherForecastLocation location,
-            List<WeatherForecast> forecasts) {
+            List<WeatherForecast> forecasts,
+            List<String> documentFingerprints) {
         String weatherContext = forecasts.stream()
                 .sorted((left, right) -> left.getForecastAt().compareTo(right.getForecastAt()))
                 .map(WeatherContextFormatter.toWeatherContextLine)
                 .collect(Collectors.joining("\n"));
 
-        return new SafetyBriefingContext(briefingDate, location, weatherContext);
+        return new SafetyBriefingContext(
+                briefingDate,
+                location,
+                weatherContext,
+                documentFingerprints);
     }
 
     public String fingerprint() {
@@ -34,7 +46,10 @@ public record SafetyBriefingContext(
                 "\n",
                 "version=" + CONTEXT_VERSION,
                 "location=" + location.name(),
-                weatherContext);
+                weatherContext,
+                documentFingerprints.stream()
+                        .map(fingerprint -> "document=" + fingerprint)
+                        .collect(Collectors.joining("\n")));
 
         return DigestUtils.sha256Hex(normalizedContext);
     }

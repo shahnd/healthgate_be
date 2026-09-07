@@ -27,16 +27,41 @@ class SafetyBriefingContextTest {
         SafetyBriefingContext ordered = SafetyBriefingContext.of(
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
-                List.of(morning, afternoon));
+                List.of(morning, afternoon),
+                List.of("fingerprint-b", "fingerprint-a"));
         SafetyBriefingContext reversed = SafetyBriefingContext.of(
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
-                List.of(afternoon, morning));
+                List.of(afternoon, morning),
+                List.of("fingerprint-a", "fingerprint-b"));
 
         // then
         assertThat(reversed.weatherContext()).isEqualTo(ordered.weatherContext());
         assertThat(reversed.fingerprint()).isEqualTo(ordered.fingerprint());
         assertThat(ordered.fingerprint()).hasSize(64);
+    }
+
+    @Test
+    void createsDifferentFingerprintWhenDocumentSetChanges() {
+        // given
+        LocalDate briefingDate = LocalDate.of(2026, 8, 27);
+        List<WeatherForecast> forecasts = List.of(
+                forecastAt(briefingDate.atTime(9, 0), "24"));
+
+        // when
+        SafetyBriefingContext first = SafetyBriefingContext.of(
+                briefingDate,
+                WeatherForecastLocation.YEOKSAM1,
+                forecasts,
+                List.of("fingerprint-a"));
+        SafetyBriefingContext second = SafetyBriefingContext.of(
+                briefingDate,
+                WeatherForecastLocation.YEOKSAM1,
+                forecasts,
+                List.of("fingerprint-a", "fingerprint-b"));
+
+        // then
+        assertThat(second.fingerprint()).isNotEqualTo(first.fingerprint());
     }
 
     private WeatherForecast forecastAt(LocalDateTime forecastAt, String temperature) {
