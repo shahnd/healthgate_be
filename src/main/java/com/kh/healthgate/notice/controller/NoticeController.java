@@ -43,8 +43,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 
-
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
 @Tag(name="공지사항 API", description = "공지사항 조회, 등록, 수정, 삭제, 첨부파일 다운로드")
 public class NoticeController {
