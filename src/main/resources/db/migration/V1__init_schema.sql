@@ -189,7 +189,7 @@ CREATE TABLE notices (
 );
 
 CREATE TABLE notice_files (
-    notice_file_id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
     origin_name VARCHAR(255) NOT NULL,
     saved_name VARCHAR(255) NOT NULL,
@@ -198,7 +198,7 @@ CREATE TABLE notice_files (
 
     notice_id BIGINT NOT NULL,
 
-    PRIMARY KEY (notice_file_id),
+    PRIMARY KEY (id),
     CONSTRAINT fk_notice_files_notice_id
         FOREIGN KEY (notice_id) REFERENCES notices (id)
 );

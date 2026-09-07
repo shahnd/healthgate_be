@@ -32,7 +32,7 @@ import lombok.ToString;
 public class NoticeFile {
 
 	@Id
-	@Column(name="notice_file_id")
+	@Column(name="id")
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long noticeFileId;
 	
