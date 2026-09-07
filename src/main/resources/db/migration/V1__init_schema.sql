@@ -73,17 +73,19 @@ CREATE TABLE risk_threshold_settings (
 );
 
 CREATE TABLE checkups (
-    checkup_id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT NOT NULL AUTO_INCREMENT,
 
     checkup_year SMALLINT NOT NULL,
     checkup_date DATE NULL,
-    checkup_summary TEXT NULL,
+    summary TEXT NULL,
 
-    checkup_created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     employee_id BIGINT NOT NULL,
 
-    PRIMARY KEY (checkup_id),
+    PRIMARY KEY (id),
+    CONSTRAINT uk_checkups_employee_year
+        UNIQUE (employee_id, checkup_year),
     CONSTRAINT fk_checkups_employee_id
         FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
@@ -112,7 +114,7 @@ CREATE TABLE checkup_reminders (
 
     PRIMARY KEY (checkup_reminder_id),
     CONSTRAINT fk_checkup_reminders_checkup_id
-        FOREIGN KEY (checkup_id) REFERENCES checkups (checkup_id)
+        FOREIGN KEY (checkup_id) REFERENCES checkups (id)
 );
 
 CREATE TABLE consultations (
