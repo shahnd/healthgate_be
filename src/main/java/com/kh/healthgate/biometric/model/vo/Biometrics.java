@@ -46,7 +46,7 @@ public class Biometrics {
     @Column(name = "diastolic_bp", nullable = false)
     private Integer diastolicBp;
 
-    @Column(name = "temperature", nullable = false)
+    @Column(name = "temperature", nullable = true)
     private Float temperature;
 
     @Column(name = "heart_rate", nullable = false)
