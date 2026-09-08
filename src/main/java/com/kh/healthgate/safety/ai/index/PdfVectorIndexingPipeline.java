@@ -21,9 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class PdfVectorIndexingPipeline {
+    private static final int MAX_RATE_LIMIT_RETRIES = 3;
+
     private final VectorStore vectorStore;
 
     public int index(Resource resource, String fingerprint) {
+        log.info("try indexing: {}", resource.getFilename());
         vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
         List<Document> documents = extract(resource).stream()
                 .map(document -> transform(document, fingerprint))
@@ -32,6 +35,8 @@ public class PdfVectorIndexingPipeline {
         for (Document document : documents) {
             load(document);
         }
+
+        log.info("{} successfully indexed");
 
         return documents.size();
     }
@@ -57,6 +62,8 @@ public class PdfVectorIndexingPipeline {
     }
 
     private void load(Document document) {
+        int retryCount = 0;
+
         while (true) {
             try {
                 vectorStore.add(List.of(document));
@@ -65,7 +72,22 @@ public class PdfVectorIndexingPipeline {
                 if (ex.code() != 429) {
                     throw ex;
                 }
-                log.warn("429 Too Many Requests: {}", ex.getMessage());
+
+                if (retryCount >= MAX_RATE_LIMIT_RETRIES) {
+                    log.error(
+                            "429 재시도 한도를 초과했습니다. documentId={}, maxRetries={}",
+                            document.getId(),
+                            MAX_RATE_LIMIT_RETRIES);
+                    throw ex;
+                }
+
+                retryCount++;
+                log.warn(
+                        "429 Too Many Requests: 재시도합니다. documentId={}, retry={}/{}, message={}",
+                        document.getId(),
+                        retryCount,
+                        MAX_RATE_LIMIT_RETRIES,
+                        ex.getMessage());
                 waitForRateLimit();
             }
         }
