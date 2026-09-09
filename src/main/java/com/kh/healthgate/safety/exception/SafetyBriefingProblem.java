@@ -1,23 +1,18 @@
-package com.kh.healthgate.common.exception;
+package com.kh.healthgate.safety.exception;
 
 import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 
-public enum ProblemType implements ProblemDefinition {
-    INTERNAL_SERVER_ERROR(
-            "/problems/internal-server-error",
-            "서버 내부 오류",
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "INTERNAL_SERVER_ERROR",
-            "요청을 처리하는 중 오류가 발생했습니다."),
-	
-	HOLIDAY_INFO_UNAVAILABLE(
-            "/problems/holiday-info-unavailable",
-            "공휴일 정보 조회 실패",
+import com.kh.healthgate.common.exception.ProblemDefinition;
+
+public enum SafetyBriefingProblem implements ProblemDefinition {
+    SAFETY_BRIEFING_GENERATION_FAILED(
+            "/problems/safety-briefing-generation-failed",
+            "안전 브리핑 생성 실패",
             HttpStatus.SERVICE_UNAVAILABLE,
-            "HOLIDAY_INFO_UNAVAILABLE",
-            "공휴일 정보를 불러오지 못했습니다.");
+            "SAFETY_BRIEFING_GENERATION_FAILED",
+            "오늘의 안전 브리핑을 생성하지 못했습니다.");
 
     private final URI type;
     private final String title;
@@ -25,7 +20,7 @@ public enum ProblemType implements ProblemDefinition {
     private final String code;
     private final String detail;
 
-    ProblemType(String type, String title, HttpStatus status, String code, String detail) {
+    SafetyBriefingProblem(String type, String title, HttpStatus status, String code, String detail) {
         this.type = URI.create(type);
         this.title = title;
         this.status = status;

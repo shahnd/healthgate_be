@@ -27,7 +27,7 @@ import org.springdoc.core.annotations.ParameterObject;
 
 import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.common.exception.ApiProblemResponse;
-import com.kh.healthgate.common.exception.AuthenticationErrorResponse;
+import com.kh.healthgate.auth.exception.AuthenticationErrorResponse;
 import com.kh.healthgate.safety.dto.SafetyDocumentCreateRequest;
 import com.kh.healthgate.safety.dto.SafetyDocumentActivationRequest;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;

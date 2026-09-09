@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.healthgate.common.exception.ApiProblemResponse;
-import com.kh.healthgate.common.exception.AuthenticationErrorResponse;
+import com.kh.healthgate.auth.exception.AuthenticationErrorResponse;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
 import com.kh.healthgate.safety.service.SafetyBriefingService;
 
