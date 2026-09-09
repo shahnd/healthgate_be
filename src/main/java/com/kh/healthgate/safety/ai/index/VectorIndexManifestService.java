@@ -94,6 +94,14 @@ public class VectorIndexManifestService {
         repository.findById(fingerprint).orElseThrow().fail(failureMessage);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void heartbeat(String fingerprint) {
+        int updated = repository.updateHeartbeat(fingerprint, VectorIndexStatus.INDEXING);
+        if (updated == 0) {
+            throw new IllegalStateException("인덱싱 작업이 실행 상태가 아닙니다.");
+        }
+    }
+
     private SafetyDocumentException indexingRequestConflict() {
         return new SafetyDocumentException(SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT);
     }

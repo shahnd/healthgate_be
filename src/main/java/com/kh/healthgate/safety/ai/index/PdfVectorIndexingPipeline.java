@@ -24,16 +24,20 @@ public class PdfVectorIndexingPipeline {
     private static final int MAX_RATE_LIMIT_RETRIES = 3;
 
     private final VectorStore vectorStore;
+    private final VectorIndexManifestService manifestService;
 
     public int index(Resource resource, String fingerprint) {
         log.info("try indexing: {}", resource.getFilename());
+        manifestService.heartbeat(fingerprint);
         vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
         List<Document> documents = extract(resource).stream()
                 .map(document -> transform(document, fingerprint))
                 .toList();
 
         for (Document document : documents) {
-            load(document);
+            manifestService.heartbeat(fingerprint);
+            load(document, fingerprint);
+            manifestService.heartbeat(fingerprint);
         }
 
         log.info("{} successfully indexed");
@@ -61,7 +65,7 @@ public class PdfVectorIndexingPipeline {
                 metadata);
     }
 
-    private void load(Document document) {
+    private void load(Document document, String fingerprint) {
         int retryCount = 0;
 
         while (true) {
@@ -88,7 +92,9 @@ public class PdfVectorIndexingPipeline {
                         retryCount,
                         MAX_RATE_LIMIT_RETRIES,
                         ex.getMessage());
+                manifestService.heartbeat(fingerprint);
                 waitForRateLimit();
+                manifestService.heartbeat(fingerprint);
             }
         }
     }

@@ -21,4 +21,15 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
             @Param("fingerprint") String fingerprint,
             @Param("failed") VectorIndexStatus failed,
             @Param("pending") VectorIndexStatus pending);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update VectorIndexManifest manifest
+               set manifest.updatedAt = CURRENT_TIMESTAMP
+             where manifest.fingerprint = :fingerprint
+               and manifest.status = :indexing
+            """)
+    int updateHeartbeat(
+            @Param("fingerprint") String fingerprint,
+            @Param("indexing") VectorIndexStatus indexing);
 }
