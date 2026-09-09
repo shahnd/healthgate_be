@@ -66,7 +66,7 @@ public class HospitalController {
 			           @RequestParam(value = "isLiverCancer", required = false)Boolean isLiverCancer,
 			           @RequestParam(value = "isLungCancer", required = false)Boolean isLungCancer) {
 		
-		int boardLimit = 5;
+		int boardLimit = 9;
 		int pageLimit = 5;
 		
 		// > Pageable 객체 셋팅
