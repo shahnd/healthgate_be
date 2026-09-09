@@ -22,6 +22,7 @@ import com.kh.healthgate.auth.model.vo.AuthenticatedEmployee;
 import com.kh.healthgate.common.template.XssDefencePolicy;
 import com.kh.healthgate.consultation.model.service.ConsultationService;
 import com.kh.healthgate.consultation.model.vo.Consultation;
+import com.kh.healthgate.consultation.model.vo.ConsultationStatus;
 import com.kh.healthgate.employee.model.service.EmployeeService;
 import com.kh.healthgate.employee.model.vo.Employee;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -189,6 +190,7 @@ public class ReservationController {
 		}
 		
 		Long writerId = existing.getEmployee() != null ? existing.getEmployee().getId() : null; // 기존 신청자
+		boolean isTodayOrPast = !existing.getScheduledDate().isAfter(LocalDate.now());
 		
 		// 권한 체크
 		if(!isAdmin && (writerId == null || !writerId.equals(userId))) {
@@ -196,6 +198,15 @@ public class ReservationController {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN)
 								 .body("forbidden");
 		}
+		
+		// 상태, 오늘 체크
+		if(!isAdmin && (existing.getStatus() != ConsultationStatus.RESERVED
+					|| isTodayOrPast)) {
+			
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+								 .body("not_modifiable");
+		}
+		
 		
 		// 신청사유 XSS 방어
 		if(c.getReason() != null && !c.getReason().isEmpty()) {
@@ -208,7 +219,7 @@ public class ReservationController {
 		}
 		
 		c.setId(id);
-		
+		c.setEmployee(existing.getEmployee());
 		// 중복 검증 / 자기 자신(예약) 제외
 		List<Consultation> existsList = consultationService.reservationSelectByDate(c.getScheduledDate());
 		boolean isDupl = existsList.stream().anyMatch(item -> item.getScheduledTurn().equals(c.getScheduledTurn())
@@ -247,12 +258,21 @@ public class ReservationController {
 		}
 		
 		Long writerId = existing.getEmployee() != null ? existing.getEmployee().getId() : null; // 기존 신청자
+		boolean isTodayOrPast = !existing.getScheduledDate().isAfter(LocalDate.now());
 		
 		// 권한 체크
 		if(!isAdmin && (writerId == null || !writerId.equals(userId))) {
 		
 			return ResponseEntity.status(HttpStatus.FORBIDDEN)
 								 .body("forbidden");
+		}
+		
+		// 상태, 오늘 체크
+		if(!isAdmin && (existing.getStatus() != ConsultationStatus.RESERVED
+					|| isTodayOrPast)) {
+			
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+								 .body("not_modifiable");
 		}
 		
 		// soft delete
