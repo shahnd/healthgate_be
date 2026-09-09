@@ -22,7 +22,14 @@ public enum ProblemType implements ProblemDefinition {
             "서버 내부 오류",
             HttpStatus.INTERNAL_SERVER_ERROR,
             "INTERNAL_SERVER_ERROR",
-            "요청을 처리하는 중 오류가 발생했습니다.");
+            "요청을 처리하는 중 오류가 발생했습니다."),
+	
+	HOLIDAY_INFO_UNAVAILABLE(
+            "/problems/holiday-info-unavailable",
+            "공휴일 정보 조회 실패",
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "HOLIDAY_INFO_UNAVAILABLE",
+            "공휴일 정보를 불러오지 못했습니다.");
 
     private final URI type;
     private final String title;

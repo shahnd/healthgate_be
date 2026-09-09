@@ -216,6 +216,12 @@
 		<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 		<version>3.0.3</version>
 	</dependency>
+		<!-- xml 파싱 -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20260814</version>
+		</dependency>
 	</dependencies>
 
 	<build>
