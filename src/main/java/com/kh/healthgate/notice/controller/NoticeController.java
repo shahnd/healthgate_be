@@ -66,10 +66,10 @@ public class NoticeController {
 				@RequestParam(value="cpage", defaultValue="1") int currentPage) {
 		
 		
-		int boardLimit = 5;
+		int boardLimit = 9;
 		int pageLimit = 5;
 		
-		Pageable pageable = PageRequest.of(currentPage - 1, 5);
+		Pageable pageable = PageRequest.of(currentPage - 1, boardLimit);
 		
 		Page<Notice> page = noticeService.selectNoticeList(pageable);
 	
