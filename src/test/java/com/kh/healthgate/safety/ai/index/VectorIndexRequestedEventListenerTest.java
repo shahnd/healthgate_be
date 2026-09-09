@@ -93,4 +93,23 @@ class VectorIndexRequestedEventListenerTest {
         verify(manifestService).failIndexing("fingerprint", "PDF 파싱 실패");
         verify(manifestService, never()).completeIndexing(eq("fingerprint"), anyInt());
     }
+
+    @Test
+    void completesCancellationWhenWorkerDetectsCancellationRequest() {
+        // given
+        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
+        Resource resource = new ByteArrayResource("pdf".getBytes());
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.startIndexing("fingerprint")).thenReturn(true);
+        when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
+        when(indexingPipeline.index(resource, "fingerprint"))
+                .thenThrow(new VectorIndexingCancelledException());
+
+        // when
+        listener.index(event);
+
+        // then
+        verify(manifestService).completeCancellation("fingerprint");
+        verify(manifestService, never()).failIndexing(eq("fingerprint"), org.mockito.ArgumentMatchers.any());
+    }
 }

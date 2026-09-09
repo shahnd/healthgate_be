@@ -120,6 +120,67 @@ class VectorIndexManifestServiceTest {
     }
 
     @Test
+    void cancelsPendingIndexingImmediately() {
+        // given
+        when(repository.transitionStatus(
+                "fingerprint",
+                VectorIndexStatus.PENDING,
+                VectorIndexStatus.CANCELLED)).thenReturn(1);
+
+        // when
+        VectorIndexStatus status = manifestService.requestCancellation("fingerprint");
+
+        // then
+        assertSame(VectorIndexStatus.CANCELLED, status);
+    }
+
+    @Test
+    void requestsCancellationForRunningIndexing() {
+        // given
+        VectorIndexManifest manifest = mock(VectorIndexManifest.class);
+        when(manifest.getStatus()).thenReturn(VectorIndexStatus.INDEXING);
+        when(manifest.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 8, 5, 59));
+        when(repository.transitionStatus(
+                "fingerprint",
+                VectorIndexStatus.PENDING,
+                VectorIndexStatus.CANCELLED)).thenReturn(0);
+        when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
+        when(repository.transitionStatus(
+                "fingerprint",
+                VectorIndexStatus.INDEXING,
+                VectorIndexStatus.CANCEL_REQUESTED)).thenReturn(1);
+
+        // when
+        VectorIndexStatus status = manifestService.requestCancellation("fingerprint");
+
+        // then
+        assertSame(VectorIndexStatus.CANCEL_REQUESTED, status);
+    }
+
+    @Test
+    void cancelsHangingIndexingImmediately() {
+        // given
+        VectorIndexManifest manifest = mock(VectorIndexManifest.class);
+        when(manifest.getStatus()).thenReturn(VectorIndexStatus.INDEXING);
+        when(manifest.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 8, 5, 55));
+        when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
+        when(repository.transitionStatus(
+                "fingerprint",
+                VectorIndexStatus.PENDING,
+                VectorIndexStatus.CANCELLED)).thenReturn(0);
+        when(repository.transitionStatus(
+                "fingerprint",
+                VectorIndexStatus.INDEXING,
+                VectorIndexStatus.CANCELLED)).thenReturn(1);
+
+        // when
+        VectorIndexStatus status = manifestService.requestCancellation("fingerprint");
+
+        // then
+        assertSame(VectorIndexStatus.CANCELLED, status);
+    }
+
+    @Test
     void resolvesHangingIndexingAsFailedWhenStatusIsRead() {
         // given
         VectorIndexManifest manifest = mock(VectorIndexManifest.class);
@@ -138,5 +199,25 @@ class VectorIndexManifestServiceTest {
 
         // then
         assertSame(VectorIndexStatus.FAILED, status.orElseThrow());
+    }
+
+    @Test
+    void resolvesHangingCancellationAsCancelledWhenStatusIsRead() {
+        // given
+        VectorIndexManifest manifest = mock(VectorIndexManifest.class);
+        when(manifest.getFingerprint()).thenReturn("fingerprint");
+        when(manifest.getStatus()).thenReturn(VectorIndexStatus.CANCEL_REQUESTED);
+        when(manifest.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 8, 5, 55));
+        when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
+        when(repository.transitionStatus(
+                "fingerprint",
+                VectorIndexStatus.CANCEL_REQUESTED,
+                VectorIndexStatus.CANCELLED)).thenReturn(1);
+
+        // when
+        Optional<VectorIndexStatus> status = manifestService.getStatus("fingerprint");
+
+        // then
+        assertSame(VectorIndexStatus.CANCELLED, status.orElseThrow());
     }
 }

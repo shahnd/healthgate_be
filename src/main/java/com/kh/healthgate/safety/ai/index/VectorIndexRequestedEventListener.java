@@ -33,6 +33,9 @@ public class VectorIndexRequestedEventListener {
                     fileStorage.load(event.storageKey()),
                     fingerprint);
             manifestService.completeIndexing(fingerprint, chunkCount);
+        } catch (VectorIndexingCancelledException exception) {
+            manifestService.completeCancellation(fingerprint);
+            log.info("안전문서 벡터 인덱싱이 중단되었습니다. fingerprint={}", fingerprint);
         } catch (RuntimeException exception) {
             manifestService.failIndexing(fingerprint, exception.getMessage());
             log.error("안전문서 벡터 인덱싱에 실패했습니다. fingerprint={}", fingerprint, exception);
