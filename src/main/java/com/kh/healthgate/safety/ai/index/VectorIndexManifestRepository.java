@@ -49,6 +49,22 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
     @Modifying(flushAutomatically = true)
     @Query("""
             update VectorIndexManifest manifest
+               set manifest.status = :completed,
+                   manifest.failureMessage = null,
+                   manifest.chunkCount = :chunkCount,
+                   manifest.updatedAt = CURRENT_TIMESTAMP
+             where manifest.fingerprint = :fingerprint
+               and manifest.status = :indexing
+            """)
+    int completeIndexing(
+            @Param("fingerprint") String fingerprint,
+            @Param("chunkCount") int chunkCount,
+            @Param("indexing") VectorIndexStatus indexing,
+            @Param("completed") VectorIndexStatus completed);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update VectorIndexManifest manifest
                set manifest.status = :failed,
                    manifest.failureMessage = :failureMessage,
                    manifest.chunkCount = null,

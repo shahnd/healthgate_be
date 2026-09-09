@@ -91,7 +91,14 @@ public class VectorIndexManifestService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void completeIndexing(String fingerprint, int chunkCount) {
-        repository.findById(fingerprint).orElseThrow().complete(chunkCount);
+        int completed = repository.completeIndexing(
+                fingerprint,
+                chunkCount,
+                VectorIndexStatus.INDEXING,
+                VectorIndexStatus.COMPLETED);
+        if (completed == 0) {
+            throw new IllegalStateException("인덱싱 완료 상태를 저장할 수 없습니다.");
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
