@@ -42,10 +42,7 @@ class VectorIndexManifestServiceTest {
     @Test
     void acceptsFirstIndexingRequest() {
         // given
-        when(repository.retryFailed(
-                "fingerprint",
-                VectorIndexStatus.FAILED,
-                VectorIndexStatus.PENDING)).thenReturn(0);
+        when(repository.retryIndexing("fingerprint")).thenReturn(false);
         when(repository.existsById("fingerprint")).thenReturn(false);
 
         // when
@@ -62,12 +59,9 @@ class VectorIndexManifestServiceTest {
     }
 
     @Test
-    void acceptsRetryWhenFailedManifestMovesToPending() {
+    void acceptsRetryWhenFailedOrCancelledManifestMovesToPending() {
         // given
-        when(repository.retryFailed(
-                "fingerprint",
-                VectorIndexStatus.FAILED,
-                VectorIndexStatus.PENDING)).thenReturn(1);
+        when(repository.retryIndexing("fingerprint")).thenReturn(true);
 
         // when
         VectorIndexStatus status = manifestService.acceptIndexingRequest(
@@ -83,10 +77,7 @@ class VectorIndexManifestServiceTest {
     @Test
     void rejectsRequestWhenManifestIsAlreadyPresent() {
         // given
-        when(repository.retryFailed(
-                "fingerprint",
-                VectorIndexStatus.FAILED,
-                VectorIndexStatus.PENDING)).thenReturn(0);
+        when(repository.retryIndexing("fingerprint")).thenReturn(false);
         when(repository.existsById("fingerprint")).thenReturn(true);
 
         // when
@@ -102,10 +93,7 @@ class VectorIndexManifestServiceTest {
     @Test
     void convertsConcurrentManifestCreationToConflict() {
         // given
-        when(repository.retryFailed(
-                "fingerprint",
-                VectorIndexStatus.FAILED,
-                VectorIndexStatus.PENDING)).thenReturn(0);
+        when(repository.retryIndexing("fingerprint")).thenReturn(false);
         when(repository.existsById("fingerprint")).thenReturn(false);
         when(repository.saveAndFlush(org.mockito.ArgumentMatchers.any()))
                 .thenThrow(new DataIntegrityViolationException("duplicate fingerprint"));
@@ -122,10 +110,7 @@ class VectorIndexManifestServiceTest {
     @Test
     void cancelsPendingIndexingImmediately() {
         // given
-        when(repository.transitionStatus(
-                "fingerprint",
-                VectorIndexStatus.PENDING,
-                VectorIndexStatus.CANCELLED)).thenReturn(1);
+        when(repository.cancelPendingIndexing("fingerprint")).thenReturn(true);
 
         // when
         VectorIndexStatus status = manifestService.requestCancellation("fingerprint");
@@ -137,14 +122,8 @@ class VectorIndexManifestServiceTest {
     @Test
     void requestsCancellationForRunningIndexing() {
         // given
-        when(repository.transitionStatus(
-                "fingerprint",
-                VectorIndexStatus.PENDING,
-                VectorIndexStatus.CANCELLED)).thenReturn(0);
-        when(repository.transitionStatus(
-                "fingerprint",
-                VectorIndexStatus.INDEXING,
-                VectorIndexStatus.CANCEL_REQUESTED)).thenReturn(1);
+        when(repository.cancelPendingIndexing("fingerprint")).thenReturn(false);
+        when(repository.requestCancellation("fingerprint")).thenReturn(true);
 
         // when
         VectorIndexStatus status = manifestService.requestCancellation("fingerprint");
@@ -156,10 +135,7 @@ class VectorIndexManifestServiceTest {
     @Test
     void cancelsHangingIndexingImmediately() {
         // given
-        when(repository.transitionStatus(
-                "fingerprint",
-                VectorIndexStatus.PENDING,
-                VectorIndexStatus.CANCELLED)).thenReturn(0);
+        when(repository.cancelPendingIndexing("fingerprint")).thenReturn(false);
         when(repository.cancelHangingIndexing(
                 "fingerprint",
                 LocalDateTime.of(2026, 9, 8, 5, 57))).thenReturn(true);
@@ -181,9 +157,7 @@ class VectorIndexManifestServiceTest {
         when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
         when(repository.failIndexing(
                 "fingerprint",
-                "인덱싱 heartbeat가 만료되었습니다.",
-                VectorIndexStatus.INDEXING,
-                VectorIndexStatus.FAILED)).thenReturn(1);
+                "인덱싱 heartbeat가 만료되었습니다.")).thenReturn(true);
 
         // when
         Optional<VectorIndexStatus> status = manifestService.getStatus("fingerprint");
@@ -200,10 +174,7 @@ class VectorIndexManifestServiceTest {
         when(manifest.getStatus()).thenReturn(VectorIndexStatus.CANCEL_REQUESTED);
         when(manifest.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 8, 5, 55));
         when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
-        when(repository.transitionStatus(
-                "fingerprint",
-                VectorIndexStatus.CANCEL_REQUESTED,
-                VectorIndexStatus.CANCELLED)).thenReturn(1);
+        when(repository.completeCancellation("fingerprint")).thenReturn(true);
 
         // when
         Optional<VectorIndexStatus> status = manifestService.getStatus("fingerprint");
