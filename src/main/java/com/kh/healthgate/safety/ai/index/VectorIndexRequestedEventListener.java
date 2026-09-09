@@ -23,12 +23,11 @@ public class VectorIndexRequestedEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void index(VectorIndexRequestedEvent event) {
         String fingerprint = fingerprintFactory.create(event.contentChecksum());
-        if (manifestService.isCompleted(fingerprint)) {
-            log.info("완료된 벡터 인덱스를 재사용합니다. fingerprint={}", fingerprint);
+        if (!manifestService.startIndexing(fingerprint)) {
+            log.info("실행 가능한 인덱싱 요청이 아닙니다. fingerprint={}", fingerprint);
             return;
         }
 
-        manifestService.startIndexing(fingerprint, event.contentChecksum());
         try {
             int chunkCount = indexingPipeline.index(
                     fileStorage.load(event.storageKey()),

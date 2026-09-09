@@ -76,12 +76,11 @@ public class VectorIndexManifestService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startIndexing(String fingerprint, String contentChecksum) {
-        VectorIndexManifest manifest = repository.findById(fingerprint).orElse(null);
-        if (manifest == null) {
-            manifest = repository.save(new VectorIndexManifest(fingerprint, contentChecksum));
-        }
-        manifest.start();
+    public boolean startIndexing(String fingerprint) {
+        return repository.transitionStatus(
+                fingerprint,
+                VectorIndexStatus.PENDING,
+                VectorIndexStatus.INDEXING) == 1;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
