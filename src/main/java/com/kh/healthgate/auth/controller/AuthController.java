@@ -55,9 +55,8 @@ public class AuthController {
                              .claim("id", loginEmp.getId())
                              .claim("name", loginEmp.getName())
                              .claim("role", loginEmp.getRole())
-                             .claim("id", loginEmp.getId())
                              .setIssuedAt(new Date())
-                             .setExpiration(new Date(System.currentTimeMillis() + 1 * 60 * 60 * 1000))
+                             .setExpiration(new Date(System.currentTimeMillis() + 12 * 60 * 60 * 1000))
                              .signWith(key, SignatureAlgorithm.HS256)
                              .compact();
 
@@ -65,7 +64,7 @@ public class AuthController {
                     .httpOnly(true)
                     .secure(false)
                     .path("/")
-                    .maxAge(60*60)
+                    .maxAge(12*60*60)
                     .sameSite("Lax")
                     .build();
 
