@@ -1,4 +1,4 @@
-package com.kh.healthgate.common.exception;
+package com.kh.healthgate.auth.exception;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

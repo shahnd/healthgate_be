@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.net.URI;
 
+import com.kh.healthgate.opendata.weather.exception.WeatherProblem;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ProblemDetail;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -53,7 +55,7 @@ class ApiExceptionHandlerTest {
 
     private static class TestProblemException extends ProblemException {
         private TestProblemException(String message) {
-            super(ProblemType.WEATHER_FORECAST_UNAVAILABLE, message);
+            super(WeatherProblem.WEATHER_FORECAST_UNAVAILABLE, message);
         }
     }
 }
