@@ -140,16 +140,10 @@ public class VectorIndexManifestService {
             return VectorIndexStatus.CANCELLED;
         }
 
-        VectorIndexManifest manifest = repository.findById(fingerprint)
-                .orElseThrow(this::indexingCancellationConflict);
-        if (isHanging(manifest)) {
-            int cancelled = repository.transitionStatus(
-                    fingerprint,
-                    VectorIndexStatus.INDEXING,
-                    VectorIndexStatus.CANCELLED);
-            if (cancelled == 1) {
-                return VectorIndexStatus.CANCELLED;
-            }
+        if (repository.cancelHangingIndexing(
+                fingerprint,
+                heartbeatDeadline())) {
+            return VectorIndexStatus.CANCELLED;
         }
 
         if (repository.transitionStatus(

@@ -1,5 +1,7 @@
 package com.kh.healthgate.safety.ai.index;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -34,6 +36,29 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
             @Param("fingerprint") String fingerprint,
             @Param("from") VectorIndexStatus from,
             @Param("to") VectorIndexStatus to);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update VectorIndexManifest manifest
+               set manifest.status = :cancelled,
+                   manifest.updatedAt = CURRENT_TIMESTAMP
+             where manifest.fingerprint = :fingerprint
+               and manifest.status = :indexing
+               and manifest.updatedAt < :deadline
+            """)
+    int cancelHangingIndexing(
+            @Param("fingerprint") String fingerprint,
+            @Param("deadline") LocalDateTime deadline,
+            @Param("indexing") VectorIndexStatus indexing,
+            @Param("cancelled") VectorIndexStatus cancelled);
+
+    default boolean cancelHangingIndexing(String fingerprint, LocalDateTime deadline) {
+        return cancelHangingIndexing(
+                fingerprint,
+                deadline,
+                VectorIndexStatus.INDEXING,
+                VectorIndexStatus.CANCELLED) == 1;
+    }
 
     @Modifying(flushAutomatically = true)
     @Query("""
