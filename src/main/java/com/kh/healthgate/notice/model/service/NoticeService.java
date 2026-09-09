@@ -72,9 +72,9 @@ public class NoticeService {
 	}
     
 	@Transactional
-	public NoticeFile updateNoticeFile(NoticeFile nf) {
+	public NoticeFile updateNoticeFile(NoticeFile existingFile) {
 		
-		return noticeFileDao.save(nf);
+		return noticeFileDao.save(existingFile);
 	}
 
 	public NoticeFile selectNoticeFileId(Long noticeFileId) {

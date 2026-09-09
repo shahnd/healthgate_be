@@ -282,7 +282,7 @@ public class NoticeController {
 		            existingFile.setSavedPath(nf.getSavedPath());
 		            existingFile.setExtension(nf.getExtension());
 		            
-		            noticeService.insertNoticeFile(existingFile); // JPA save()로 기존 엔티티 update
+		            noticeService.updateNoticeFile(existingFile); // JPA save()로 기존 엔티티 update
 		        } else {
 		            // 기존 파일이 없던 경우 -> 새 NoticeFile 객체에 게시글 연관관계 매핑 후 등록 (INSERT)
 		            nf.setNotices(updateNo); // updateNo 또는 existingNotice 세팅
