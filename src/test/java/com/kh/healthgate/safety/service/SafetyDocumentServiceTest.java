@@ -178,6 +178,28 @@ class SafetyDocumentServiceTest {
     }
 
     @Test
+    void cancelsSafetyDocumentIndexing() {
+        // given
+        AuthenticatedEmployee loggedInEmployee = loggedInEmployee();
+        Employee employee = employee(EmployeeRole.HEALTH_ADMIN);
+        SafetyDocument document = document(employee);
+
+        when(authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee)).thenReturn(employee);
+        when(safetyDocumentRepository.findById(10L)).thenReturn(Optional.of(document));
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.requestCancellation("fingerprint"))
+                .thenReturn(VectorIndexStatus.CANCEL_REQUESTED);
+
+        // when
+        SafetyDocumentResponse result = safetyDocumentService.cancelIndexing(
+                10L,
+                loggedInEmployee);
+
+        // then
+        assertSame(VectorIndexStatus.CANCEL_REQUESTED, result.indexStatus());
+    }
+
+    @Test
     void rejectsIndexingInactiveSafetyDocument() {
         // given
         AuthenticatedEmployee loggedInEmployee = loggedInEmployee();

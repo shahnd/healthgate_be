@@ -1,5 +1,8 @@
 package com.kh.healthgate.safety.ai.index;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -19,15 +22,14 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class VectorIndexManifestService {
+    private static final Duration HEARTBEAT_TIMEOUT = Duration.ofMinutes(3);
+
     private final VectorIndexManifestRepository repository;
+    private final Clock clock;
 
     @Transactional
     public VectorIndexStatus acceptIndexingRequest(String fingerprint, String contentChecksum) {
-        int retried = repository.retryFailed(
-                fingerprint,
-                VectorIndexStatus.FAILED,
-                VectorIndexStatus.PENDING);
-        if (retried == 1) {
+        if (repository.retryIndexing(fingerprint)) {
             return VectorIndexStatus.PENDING;
         }
 
@@ -46,10 +48,10 @@ public class VectorIndexManifestService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<VectorIndexStatus> getStatus(String fingerprint) {
         return repository.findById(fingerprint)
-                .map(manifest -> manifest.getStatus());
+                .map(this::resolveStatus);
     }
 
     @Transactional(readOnly = true)
@@ -76,25 +78,108 @@ public class VectorIndexManifestService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startIndexing(String fingerprint, String contentChecksum) {
-        VectorIndexManifest manifest = repository.findById(fingerprint).orElse(null);
-        if (manifest == null) {
-            manifest = repository.save(new VectorIndexManifest(fingerprint, contentChecksum));
-        }
-        manifest.start();
+    public boolean startIndexing(String fingerprint) {
+        return repository.startIndexing(fingerprint);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void completeIndexing(String fingerprint, int chunkCount) {
-        repository.findById(fingerprint).orElseThrow().complete(chunkCount);
+        if (!repository.completeIndexing(fingerprint, chunkCount)) {
+            throwIfCancellationRequested(fingerprint);
+            throw new IllegalStateException("인덱싱 완료 상태를 저장할 수 없습니다.");
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void failIndexing(String fingerprint, String failureMessage) {
-        repository.findById(fingerprint).orElseThrow().fail(failureMessage);
+        if (!repository.failIndexing(fingerprint, truncate(failureMessage))) {
+            completeCancellation(fingerprint);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void heartbeat(String fingerprint) {
+        if (!repository.updateHeartbeat(fingerprint)) {
+            throwIfCancellationRequested(fingerprint);
+            throw new IllegalStateException("인덱싱 작업이 실행 상태가 아닙니다.");
+        }
+    }
+
+    @Transactional
+    public VectorIndexStatus requestCancellation(String fingerprint) {
+        if (repository.cancelPendingIndexing(fingerprint)) {
+            return VectorIndexStatus.CANCELLED;
+        }
+
+        if (repository.cancelHangingIndexing(
+                fingerprint,
+                heartbeatDeadline())) {
+            return VectorIndexStatus.CANCELLED;
+        }
+
+        if (repository.requestCancellation(fingerprint)) {
+            return VectorIndexStatus.CANCEL_REQUESTED;
+        }
+
+        return repository.findById(fingerprint)
+                .map(m -> m.getStatus())
+                .filter(status -> status == VectorIndexStatus.CANCEL_REQUESTED
+                        || status == VectorIndexStatus.CANCELLED)
+                .orElseThrow(this::indexingCancellationConflict);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void completeCancellation(String fingerprint) {
+        repository.completeCancellation(fingerprint);
     }
 
     private SafetyDocumentException indexingRequestConflict() {
         return new SafetyDocumentException(SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT);
+    }
+
+    private SafetyDocumentException indexingCancellationConflict() {
+        return new SafetyDocumentException(SafetyDocumentProblem.INDEXING_CANCELLATION_CONFLICT);
+    }
+
+    private void throwIfCancellationRequested(String fingerprint) {
+        repository.findById(fingerprint)
+                .filter(manifest -> manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED)
+                .ifPresent(manifest -> {
+                    throw new VectorIndexingCancelledException();
+                });
+    }
+
+    private String truncate(String message) {
+        if (message == null || message.length() <= 1000) {
+            return message;
+        }
+        return message.substring(0, 1000);
+    }
+
+    private boolean isHanging(VectorIndexManifest manifest) {
+        return (manifest
+                .getStatus() == VectorIndexStatus.INDEXING
+                || manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED)
+                && manifest.getUpdatedAt().isBefore(heartbeatDeadline());
+    }
+
+    private VectorIndexStatus resolveStatus(VectorIndexManifest manifest) {
+        if (!isHanging(manifest)) {
+            return manifest.getStatus();
+        }
+
+        if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED) {
+            boolean updated = repository.completeCancellation(manifest.getFingerprint());
+            return updated ? VectorIndexStatus.CANCELLED : manifest.getStatus();
+        }
+
+        boolean updated = repository.failIndexing(
+                manifest.getFingerprint(),
+                "인덱싱 heartbeat가 만료되었습니다.");
+        return updated ? VectorIndexStatus.FAILED : manifest.getStatus();
+    }
+
+    private LocalDateTime heartbeatDeadline() {
+        return LocalDateTime.now(clock).minus(HEARTBEAT_TIMEOUT);
     }
 }

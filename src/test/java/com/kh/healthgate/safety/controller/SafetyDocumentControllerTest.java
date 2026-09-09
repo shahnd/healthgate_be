@@ -256,6 +256,25 @@ class SafetyDocumentControllerTest {
     }
 
     @Test
+    void cancelsSafetyDocumentIndexing() throws Exception {
+        // given
+        AuthenticatedEmployee loggedInEmployee = new AuthenticatedEmployee(
+                1L,
+                "admin01",
+                "HEALTH_ADMIN");
+        when(safetyDocumentService.cancelIndexing(10L, loggedInEmployee))
+                .thenReturn(response());
+
+        // when, then
+        mockMvc.perform(post("/safety-documents/10/index/cancel")
+                .requestAttr("empId", loggedInEmployee.id())
+                .requestAttr("employeeNumber", loggedInEmployee.employeeNumber())
+                .requestAttr("empRole", loggedInEmployee.role()))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.id").value(10));
+    }
+
+    @Test
     void rejectsMissingActivationValue() throws Exception {
         // given
         String request = "{}";

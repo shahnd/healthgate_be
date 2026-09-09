@@ -204,6 +204,22 @@ public class SafetyDocumentService {
     }
 
     @Transactional
+    public SafetyDocumentResponse cancelIndexing(
+            Long id,
+            AuthenticatedEmployee loggedInEmployee) {
+        Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
+
+        if (employee.getRole() != EmployeeRole.HEALTH_ADMIN) {
+            throw new SafetyDocumentException(SafetyDocumentProblem.FORBIDDEN);
+        }
+
+        SafetyDocument document = getDocument(id);
+        String fingerprint = fingerprintFactory.create(document.getContentChecksum());
+        VectorIndexStatus indexStatus = manifestService.requestCancellation(fingerprint);
+        return SafetyDocumentResponse.from(document, indexStatus);
+    }
+
+    @Transactional
     public void delete(Long id, AuthenticatedEmployee loggedInEmployee) {
         Employee employee = authenticatedEmployeeService.getLoggedInEmployee(loggedInEmployee);
 

@@ -19,21 +19,23 @@ public class VectorIndexRequestedEventListener {
     private final VectorIndexManifestService manifestService;
     private final PdfVectorIndexingPipeline indexingPipeline;
 
-    @Async
+    @Async("safetyIndexExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void index(VectorIndexRequestedEvent event) {
         String fingerprint = fingerprintFactory.create(event.contentChecksum());
-        if (manifestService.isCompleted(fingerprint)) {
-            log.info("완료된 벡터 인덱스를 재사용합니다. fingerprint={}", fingerprint);
+        if (!manifestService.startIndexing(fingerprint)) {
+            log.info("실행 가능한 인덱싱 요청이 아닙니다. fingerprint={}", fingerprint);
             return;
         }
 
-        manifestService.startIndexing(fingerprint, event.contentChecksum());
         try {
             int chunkCount = indexingPipeline.index(
                     fileStorage.load(event.storageKey()),
                     fingerprint);
             manifestService.completeIndexing(fingerprint, chunkCount);
+        } catch (VectorIndexingCancelledException exception) {
+            manifestService.completeCancellation(fingerprint);
+            log.info("안전문서 벡터 인덱싱이 중단되었습니다. fingerprint={}", fingerprint);
         } catch (RuntimeException exception) {
             manifestService.failIndexing(fingerprint, exception.getMessage());
             log.error("안전문서 벡터 인덱싱에 실패했습니다. fingerprint={}", fingerprint, exception);

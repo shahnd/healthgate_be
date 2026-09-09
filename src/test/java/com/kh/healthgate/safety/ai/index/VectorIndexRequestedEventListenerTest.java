@@ -43,18 +43,18 @@ class VectorIndexRequestedEventListenerTest {
     }
 
     @Test
-    void reusesCompletedVectorIndex() {
+    void ignoresIndexingRequestThatCannotStart() {
         // given
         VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
         when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
-        when(manifestService.isCompleted("fingerprint")).thenReturn(true);
+        when(manifestService.startIndexing("fingerprint")).thenReturn(false);
 
         // when
         listener.index(event);
 
         // then
         verifyNoInteractions(fileStorage, indexingPipeline);
-        verify(manifestService, never()).startIndexing("fingerprint", "checksum");
+        verify(manifestService).startIndexing("fingerprint");
     }
 
     @Test
@@ -63,6 +63,7 @@ class VectorIndexRequestedEventListenerTest {
         VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
         Resource resource = new ByteArrayResource("pdf".getBytes());
         when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.startIndexing("fingerprint")).thenReturn(true);
         when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
         when(indexingPipeline.index(resource, "fingerprint")).thenReturn(3);
 
@@ -70,7 +71,7 @@ class VectorIndexRequestedEventListenerTest {
         listener.index(event);
 
         // then
-        verify(manifestService).startIndexing("fingerprint", "checksum");
+        verify(manifestService).startIndexing("fingerprint");
         verify(manifestService).completeIndexing("fingerprint", 3);
     }
 
@@ -81,6 +82,7 @@ class VectorIndexRequestedEventListenerTest {
         Resource resource = new ByteArrayResource("invalid-pdf".getBytes());
         IllegalStateException failure = new IllegalStateException("PDF 파싱 실패");
         when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.startIndexing("fingerprint")).thenReturn(true);
         when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
         when(indexingPipeline.index(resource, "fingerprint")).thenThrow(failure);
 
@@ -90,5 +92,24 @@ class VectorIndexRequestedEventListenerTest {
         // then
         verify(manifestService).failIndexing("fingerprint", "PDF 파싱 실패");
         verify(manifestService, never()).completeIndexing(eq("fingerprint"), anyInt());
+    }
+
+    @Test
+    void completesCancellationWhenWorkerDetectsCancellationRequest() {
+        // given
+        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
+        Resource resource = new ByteArrayResource("pdf".getBytes());
+        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        when(manifestService.startIndexing("fingerprint")).thenReturn(true);
+        when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
+        when(indexingPipeline.index(resource, "fingerprint"))
+                .thenThrow(new VectorIndexingCancelledException());
+
+        // when
+        listener.index(event);
+
+        // then
+        verify(manifestService).completeCancellation("fingerprint");
+        verify(manifestService, never()).failIndexing(eq("fingerprint"), org.mockito.ArgumentMatchers.any());
     }
 }

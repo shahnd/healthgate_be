@@ -93,6 +93,16 @@ public class SafetyDocumentController {
               "code": "SAFETY_DOCUMENT_CONFLICT"
             }
             """;
+    private static final String CANCELLATION_CONFLICT_EXAMPLE = """
+            {
+              "type": "/problems/vector-index-cancellation-conflict",
+              "title": "인덱싱 중단 충돌",
+              "status": 409,
+              "detail": "대기 또는 실행 중인 인덱싱 작업이 아닙니다.",
+              "instance": "/healthgate/safety-documents/1/index/cancel",
+              "code": "VECTOR_INDEX_CANCELLATION_CONFLICT"
+            }
+            """;
     private static final String INTERNAL_SERVER_ERROR_EXAMPLE = """
             {
               "type": "about:blank",
@@ -330,6 +340,48 @@ public class SafetyDocumentController {
             @PathVariable Long id,
             @Parameter(hidden = true) AuthenticatedEmployee loggedInEmployee) {
         SafetyDocumentResponse response = safetyDocumentService.requestIndexing(
+                id,
+                loggedInEmployee);
+        return ResponseEntity.accepted().body(response);
+    }
+
+    @Operation(
+            summary = "안전문서 인덱싱 중단",
+            description = "대기 중인 인덱싱은 즉시 중단하고, 실행 중인 인덱싱에는 중단을 요청합니다.")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "202",
+                    description = "인덱싱 중단 요청 접수",
+                    useReturnTypeSchema = true),
+            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = AuthenticationErrorResponse.class),
+                    examples = @ExampleObject(value = AUTHENTICATION_ERROR_EXAMPLE))),
+            @ApiResponse(responseCode = "403", description = "안전문서 관리 권한 없음", content = @Content(
+                    mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                    schema = @Schema(implementation = ApiProblemResponse.class),
+                    examples = @ExampleObject(value = FORBIDDEN_EXAMPLE))),
+            @ApiResponse(responseCode = "404", description = "안전문서를 찾을 수 없음", content = @Content(
+                    mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                    schema = @Schema(implementation = ApiProblemResponse.class),
+                    examples = @ExampleObject(value = NOT_FOUND_EXAMPLE))),
+            @ApiResponse(responseCode = "409", description = "중단 가능한 인덱싱 작업이 아님", content = @Content(
+                    mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                    schema = @Schema(implementation = ApiProblemResponse.class),
+                    examples = @ExampleObject(value = CANCELLATION_CONFLICT_EXAMPLE))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(
+                    mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                    schema = @Schema(implementation = ApiProblemResponse.class),
+                    examples = @ExampleObject(value = INTERNAL_SERVER_ERROR_EXAMPLE)))
+    })
+    @PostMapping("/{id}/index/cancel")
+    public ResponseEntity<SafetyDocumentResponse> cancelIndexing(
+            @Parameter(
+                    description = "안전문서 ID",
+                    schema = @Schema(type = "integer", format = "int64"))
+            @PathVariable Long id,
+            @Parameter(hidden = true) AuthenticatedEmployee loggedInEmployee) {
+        SafetyDocumentResponse response = safetyDocumentService.cancelIndexing(
                 id,
                 loggedInEmployee);
         return ResponseEntity.accepted().body(response);
