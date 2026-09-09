@@ -84,6 +84,7 @@ public final class LocalDatabaseReset {
                 SELECT version
                 FROM flyway_schema_history
                 WHERE success = TRUE
+                  AND version IS NOT NULL
                 ORDER BY installed_rank DESC
                 LIMIT 1
                 """)) {
