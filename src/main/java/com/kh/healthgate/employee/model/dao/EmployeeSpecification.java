@@ -22,6 +22,8 @@ public class EmployeeSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.equal(root.get("status"), "Y"));
+
             if (StringUtils.hasText(condition.employeeNumber())) {
                 predicates.add(cb.like(root.get("employeeNumber"), "%" + condition.employeeNumber() + "%"));
             }
