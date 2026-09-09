@@ -19,7 +19,7 @@ public class VectorIndexRequestedEventListener {
     private final VectorIndexManifestService manifestService;
     private final PdfVectorIndexingPipeline indexingPipeline;
 
-    @Async
+    @Async("safetyIndexExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void index(VectorIndexRequestedEvent event) {
         String fingerprint = fingerprintFactory.create(event.contentChecksum());
