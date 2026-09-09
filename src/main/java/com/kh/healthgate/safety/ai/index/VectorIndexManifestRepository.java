@@ -45,4 +45,20 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
     int updateHeartbeat(
             @Param("fingerprint") String fingerprint,
             @Param("indexing") VectorIndexStatus indexing);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update VectorIndexManifest manifest
+               set manifest.status = :failed,
+                   manifest.failureMessage = :failureMessage,
+                   manifest.chunkCount = null,
+                   manifest.updatedAt = CURRENT_TIMESTAMP
+             where manifest.fingerprint = :fingerprint
+               and manifest.status = :indexing
+            """)
+    int failIndexing(
+            @Param("fingerprint") String fingerprint,
+            @Param("failureMessage") String failureMessage,
+            @Param("indexing") VectorIndexStatus indexing,
+            @Param("failed") VectorIndexStatus failed);
 }

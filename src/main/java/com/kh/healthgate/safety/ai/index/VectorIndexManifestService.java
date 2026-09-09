@@ -1,5 +1,8 @@
 package com.kh.healthgate.safety.ai.index;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +22,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class VectorIndexManifestService {
+    private static final Duration HEARTBEAT_TIMEOUT = Duration.ofMinutes(3);
+
     private final VectorIndexManifestRepository repository;
+    private final Clock clock;
 
     @Transactional
     public VectorIndexStatus acceptIndexingRequest(String fingerprint, String contentChecksum) {
@@ -46,10 +52,10 @@ public class VectorIndexManifestService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<VectorIndexStatus> getStatus(String fingerprint) {
         return repository.findById(fingerprint)
-                .map(manifest -> manifest.getStatus());
+                .map(this::resolveStatus);
     }
 
     @Transactional(readOnly = true)
@@ -103,5 +109,27 @@ public class VectorIndexManifestService {
 
     private SafetyDocumentException indexingRequestConflict() {
         return new SafetyDocumentException(SafetyDocumentProblem.INDEXING_REQUEST_CONFLICT);
+    }
+
+    private boolean isHanging(VectorIndexManifest manifest) {
+        return (manifest.getStatus() == VectorIndexStatus.INDEXING)
+                && manifest.getUpdatedAt().isBefore(heartbeatDeadline());
+    }
+
+    private VectorIndexStatus resolveStatus(VectorIndexManifest manifest) {
+        if (!isHanging(manifest)) {
+            return manifest.getStatus();
+        }
+
+        int updated = repository.failIndexing(
+                manifest.getFingerprint(),
+                "인덱싱 heartbeat가 만료되었습니다.",
+                VectorIndexStatus.INDEXING,
+                VectorIndexStatus.FAILED);
+        return updated == 1 ? VectorIndexStatus.FAILED : manifest.getStatus();
+    }
+
+    private LocalDateTime heartbeatDeadline() {
+        return LocalDateTime.now(clock).minus(HEARTBEAT_TIMEOUT);
     }
 }
