@@ -2379,6 +2379,6 @@ VALUES
 ('여름철 건강 관리 수칙 안내.pdf', '2026060809000089566.pdf', '/healthgate/notice_upfiles', 'pdf', 9),
 ('정기 소방/안전 교육 일정 안내.docx', '2026070809000016466.docx', '/healthgate/notice_upfiles', 'docx', 11),
 ('건강검진 결과 상담 신청 안내.pdf', '2026080709000034346.pdf', '/healthgate/notice_upfiles', 'pdf', 12),
-('신규 입사자 건강검진 안내.pdf', '2026090109000072346.pdf', '/healthgate/notice_upfiles', 'pdf', 13),
-('명절 연휴 근무 안내.pdf', '2026090509000012346.pdf', '/healthgate/notice_upfiles', 'pdf', 14),
-('안전주의 안내.docx', '2026091009000012345.docx', '/healthgate/notice_upfiles', 'docx', 15);
+('신규 입사자 건강검진 안내.pdf', '2026090109000072346.pdf', '/healthgate/notice_upfiles', 'pdf', 14),
+('명절 연휴 근무 안내.pdf', '2026090509000012346.pdf', '/healthgate/notice_upfiles', 'pdf', 15),
+('안전주의 안내.docx', '2026091009000012345.docx', '/healthgate/notice_upfiles', 'docx', 16);
