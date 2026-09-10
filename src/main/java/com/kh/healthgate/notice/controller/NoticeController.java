@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -121,7 +122,7 @@ public class NoticeController {
 	
 	// 공지사항 작성용 컨트롤러
 	@Operation(summary="공지사항 등록(첨부파일도 등록)", description="공지사항 정보를 등록합니다.(첨부파일도 등록)")
-	@PostMapping(value="/notices/new", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value="/notices", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> insertNotice(@RequestPart("title") String title,
 	                                           @RequestPart("content") String content,
 								               @RequestPart(value = "upfile", required = false)MultipartFile upfile, 
@@ -229,7 +230,7 @@ public class NoticeController {
 	
 	// 공지사항 수정용 컨트롤러
 	@Operation(summary="공지사항 수정", description="공지사항 정보를 수정 검색합니다.")
-	@PostMapping(value="/notices/{noticeId}/edit", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PutMapping(value="/notices/{noticeId}", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> updateNotice(@PathVariable("noticeId") Long noticeId,
 											   @RequestPart("title") String title,
 									           @RequestPart("content") String content,
