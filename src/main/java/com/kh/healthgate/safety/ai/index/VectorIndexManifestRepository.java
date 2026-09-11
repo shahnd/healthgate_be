@@ -38,6 +38,10 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
         return transitionStatus(fingerprint, VectorIndexStatus.CANCEL_REQUESTED, VectorIndexStatus.CANCELLED);
     }
 
+    default boolean updateHeartbeat(String fingerprint) {
+        return updateHeartbeat(fingerprint, VectorIndexStatus.INDEXING) == 1;
+    }
+
     default boolean completeIndexing(String fingerprint, int chunkCount) {
         return completeIndexing(
                 fingerprint, chunkCount, VectorIndexStatus.INDEXING, VectorIndexStatus.COMPLETED) == 1;
@@ -109,9 +113,11 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
             update VectorIndexManifest manifest
                set manifest.updatedAt = CURRENT_TIMESTAMP
              where manifest.fingerprint = :fingerprint
+               and manifest.status = :indexing
             """)
     int updateHeartbeat(
-            @Param("fingerprint") String fingerprint);
+            @Param("fingerprint") String fingerprint,
+            @Param("indexing") VectorIndexStatus indexing);
 
     @Modifying(flushAutomatically = true)
     @Query("""
