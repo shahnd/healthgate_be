@@ -183,4 +183,23 @@ class VectorIndexManifestServiceTest {
         // then
         assertSame(VectorIndexStatus.CANCELLED, status.orElseThrow());
     }
+
+    @Test
+    void resolvesIndexing() {
+        // given
+        VectorIndexManifest manifest = mock(VectorIndexManifest.class);
+        when(manifest.getFingerprint()).thenReturn("fingerprint");
+        when(manifest.getStatus()).thenReturn(VectorIndexStatus.INDEXING);
+        when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
+        when(repository.failHangingIndexing(
+                eq("fingerprint"),
+                eq("인덱싱 heartbeat가 만료되었습니다."),
+                any(LocalDateTime.class))).thenReturn(false);
+
+        // when
+        Optional<VectorIndexStatus> status = manifestService.getStatus("fingerprint");
+
+        // then
+        assertSame(VectorIndexStatus.INDEXING, status.orElseThrow());
+    }
 }
