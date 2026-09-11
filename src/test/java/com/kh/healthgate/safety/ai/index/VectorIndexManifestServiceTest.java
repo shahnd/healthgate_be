@@ -3,6 +3,8 @@ package com.kh.healthgate.safety.ai.index;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -153,11 +155,11 @@ class VectorIndexManifestServiceTest {
         VectorIndexManifest manifest = mock(VectorIndexManifest.class);
         when(manifest.getFingerprint()).thenReturn("fingerprint");
         when(manifest.getStatus()).thenReturn(VectorIndexStatus.INDEXING);
-        when(manifest.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 8, 5, 55));
         when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
-        when(repository.failIndexing(
-                "fingerprint",
-                "인덱싱 heartbeat가 만료되었습니다.")).thenReturn(true);
+        when(repository.failHangingIndexing(
+                eq("fingerprint"),
+                eq("인덱싱 heartbeat가 만료되었습니다."),
+                any(LocalDateTime.class))).thenReturn(true);
 
         // when
         Optional<VectorIndexStatus> status = manifestService.getStatus("fingerprint");
@@ -172,7 +174,6 @@ class VectorIndexManifestServiceTest {
         VectorIndexManifest manifest = mock(VectorIndexManifest.class);
         when(manifest.getFingerprint()).thenReturn("fingerprint");
         when(manifest.getStatus()).thenReturn(VectorIndexStatus.CANCEL_REQUESTED);
-        when(manifest.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 8, 5, 55));
         when(repository.findById("fingerprint")).thenReturn(Optional.of(manifest));
         when(repository.completeCancellation("fingerprint")).thenReturn(true);
 

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -121,7 +122,7 @@ public class NoticeController {
 	
 	// 공지사항 작성용 컨트롤러
 	@Operation(summary="공지사항 등록(첨부파일도 등록)", description="공지사항 정보를 등록합니다.(첨부파일도 등록)")
-	@PostMapping(value="/notices/new", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value="/notices", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> insertNotice(@RequestPart("title") String title,
 	                                           @RequestPart("content") String content,
 								               @RequestPart(value = "upfile", required = false)MultipartFile upfile, 
@@ -175,61 +176,36 @@ public class NoticeController {
 	// 공지사항 상세조회용 컨트롤러
 	@Operation(summary="공지사항 상세조회(상세조회시 조회수 증가)", description="공지사항 정보를 상세조회합니다.(상세조회시 조회수 증가)")
 	@GetMapping("/notices/{noticeId}")
-	public ResponseEntity<HashMap<String, Object>> selectNotice(@PathVariable Long noticeId) {
+	public ResponseEntity<HashMap<String, Object>> selectNotice(@PathVariable Long noticeId,
+			@RequestParam(value = "increaseViewCount", required = false, defaultValue = "true") boolean increaseViewCount) {
 		
 		// 조회수 증가
-		int result = noticeService.increaseCount(noticeId);
-		
-		if(result > 0) {
-			// > 조회수 증가에 성공한 경우
-			
-			Notice n = noticeService.selectNotice(noticeId);
-			
-			NoticeFile nf = noticeService.selectNoticeFile(noticeId);
-			
-			// DB 조회 결과 첨부파일이 없어서 null인 경우 빈 객체 생성
-			if (nf == null) {
-			    nf = new NoticeFile();
-			}
-			
-			// Map 객체 생성 후 데이터 담기
-	        HashMap<String, Object> map = new HashMap<>();
-	        map.put("notice", n);
-	        map.put("noticeFile", nf);
-	        
-			return ResponseEntity.status(HttpStatus.OK)
-								 .body(map);
-			
-		} else {
-			// > 조회수 증가에 실패한 경우
-			
-			return ResponseEntity.status(HttpStatus.OK)
-								 .body(null);
+		if (increaseViewCount) {
+			 noticeService.increaseCount(noticeId);
 		}
-	}
-	
-
-	// 수정용 공지사항 상세 조회용 컨트롤러 - (다시 상세조회하면 조회수 증가될수있으므로)
-	@Operation(summary="공지사항 상세조회(새로고침,수정후 조회)", description="공지사항 정보를 상세조회합니다.(새로고침,수정후 조회)")
-	@GetMapping("/notices/{noticeId}/form")
-	public ResponseEntity<HashMap<String, Object>> selectNoticeForm(@PathVariable Long noticeId) {
 		
 		Notice n = noticeService.selectNotice(noticeId);
 		
 		NoticeFile nf = noticeService.selectNoticeFile(noticeId);
 		
+		// DB 조회 결과 첨부파일이 없어서 null인 경우 빈 객체 생성
+		if (nf == null) {
+		    nf = new NoticeFile();
+		}
+		
 		// Map 객체 생성 후 데이터 담기
         HashMap<String, Object> map = new HashMap<>();
         map.put("notice", n);
         map.put("noticeFile", nf);
-		
+        
 		return ResponseEntity.status(HttpStatus.OK)
 							 .body(map);
+			
 	}
 	
 	// 공지사항 수정용 컨트롤러
 	@Operation(summary="공지사항 수정", description="공지사항 정보를 수정 검색합니다.")
-	@PostMapping(value="/notices/{noticeId}/edit", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PutMapping(value="/notices/{noticeId}", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> updateNotice(@PathVariable("noticeId") Long noticeId,
 											   @RequestPart("title") String title,
 									           @RequestPart("content") String content,

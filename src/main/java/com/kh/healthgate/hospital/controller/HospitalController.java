@@ -127,7 +127,7 @@ public class HospitalController {
 	
 	// 검진가능 병원 등록(생성)용 컨트롤러
 	@Operation(summary="병원 등록", description="병원을 등록합니다.")
-	@PostMapping("/hospitals/new")
+	@PostMapping("/hospitals")
 	public ResponseEntity<String> insertHospital(@RequestBody Hospital h) {
 		
 		h.setStatus("Y");

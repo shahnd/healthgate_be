@@ -1,20 +1,46 @@
 -- ============================================
--- HealthGate 초기 더미데이터
--- 실행 순서: departments -> positions -> employee (FK 순서 고려)
---
--- INSERT IGNORE 사용 이유:
---   departments/positions는 PK(id) 중복 시, employee는 employee_number(unique) 중복 시
---   에러 없이 조용히 skip 됩니다. 즉 서버를 몇 번을 재시작해도 이미 있는 행은
---   다시 쌓이지 않고, 새로 추가한 INSERT 문만 반영됩니다.
+-- HealthGate 더미데이터 (전면 재생성)
+-- 사번(employee_number) 포맷: 0001 ~ 0100 (admin 제외)
+-- 기존 데이터를 모두 삭제하고 새로 적재합니다.
 -- ============================================
 
--- ------------------------------
--- 0. risk threshold settings
--- ------------------------------
+SET FOREIGN_KEY_CHECKS = 0;
 
+-- ------------------------------
+-- 0. 기존 데이터 전체 삭제
+-- ------------------------------
+DELETE FROM notice_files;
+DELETE FROM notices;
+DELETE FROM checkup_reminders;
+DELETE FROM checkup_reminder_settings;
+DELETE FROM consultations;
+DELETE FROM checkups;
+DELETE FROM biometrics;
+DELETE FROM timecards;
+DELETE FROM hospitals;
+DELETE FROM employees;
+DELETE FROM positions;
+DELETE FROM departments;
 DELETE FROM risk_threshold_settings;
 
-INSERT IGNORE INTO risk_threshold_settings (metric_name, risk_level, threshold_value) VALUES
+ALTER TABLE employees AUTO_INCREMENT = 1;
+ALTER TABLE departments AUTO_INCREMENT = 1;
+ALTER TABLE positions AUTO_INCREMENT = 1;
+ALTER TABLE hospitals AUTO_INCREMENT = 1;
+ALTER TABLE timecards AUTO_INCREMENT = 1;
+ALTER TABLE biometrics AUTO_INCREMENT = 1;
+ALTER TABLE checkups AUTO_INCREMENT = 1;
+ALTER TABLE checkup_reminders AUTO_INCREMENT = 1;
+ALTER TABLE consultations AUTO_INCREMENT = 1;
+ALTER TABLE notices AUTO_INCREMENT = 1;
+ALTER TABLE notice_files AUTO_INCREMENT = 1;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ------------------------------
+-- 1. risk threshold settings
+-- ------------------------------
+INSERT INTO risk_threshold_settings (metric_name, risk_level, threshold_value) VALUES
 ('SYSTOLIC_BP', 'HIGH', 140),
 ('SYSTOLIC_BP', 'WARN', 130),
 ('DIASTOLIC_BP', 'HIGH', 90),
@@ -23,1042 +49,1974 @@ INSERT IGNORE INTO risk_threshold_settings (metric_name, risk_level, threshold_v
 ('HEART_RATE', 'WARN', 80);
 
 -- ------------------------------
--- 1. departments
+-- 2. departments
 -- ------------------------------
-INSERT IGNORE INTO departments (id, name) VALUES (1, '인사팀');
-INSERT IGNORE INTO departments (id, name) VALUES (2, '총무팀');
-INSERT IGNORE INTO departments (id, name) VALUES (3, '안전보건팀');
-INSERT IGNORE INTO departments (id, name) VALUES (4, '생산1팀');
-INSERT IGNORE INTO departments (id, name) VALUES (5, '생산2팀');
-INSERT IGNORE INTO departments (id, name) VALUES (6, '품질관리팀');
-INSERT IGNORE INTO departments (id, name) VALUES (7, '영업팀');
-INSERT IGNORE INTO departments (id, name) VALUES (8, '전산팀');
+INSERT INTO departments (id, name) VALUES (1, '인사팀');
+INSERT INTO departments (id, name) VALUES (2, '총무팀');
+INSERT INTO departments (id, name) VALUES (3, '안전보건팀');
+INSERT INTO departments (id, name) VALUES (4, '생산1팀');
+INSERT INTO departments (id, name) VALUES (5, '생산2팀');
+INSERT INTO departments (id, name) VALUES (6, '품질관리팀');
+INSERT INTO departments (id, name) VALUES (7, '영업팀');
+INSERT INTO departments (id, name) VALUES (8, '전산팀');
 
 -- ------------------------------
--- 2. positions
+-- 3. positions
 -- ------------------------------
-INSERT IGNORE INTO positions (id, name) VALUES (1, '사원');
-INSERT IGNORE INTO positions (id, name) VALUES (2, '주임');
-INSERT IGNORE INTO positions (id, name) VALUES (3, '대리');
-INSERT IGNORE INTO positions (id, name) VALUES (4, '과장');
-INSERT IGNORE INTO positions (id, name) VALUES (5, '차장');
-INSERT IGNORE INTO positions (id, name) VALUES (6, '부장');
-INSERT IGNORE INTO positions (id, name) VALUES (7, '이사');
+INSERT INTO positions (id, name) VALUES (1, '사원');
+INSERT INTO positions (id, name) VALUES (2, '주임');
+INSERT INTO positions (id, name) VALUES (3, '대리');
+INSERT INTO positions (id, name) VALUES (4, '과장');
+INSERT INTO positions (id, name) VALUES (5, '차장');
+INSERT INTO positions (id, name) VALUES (6, '부장');
+INSERT INTO positions (id, name) VALUES (7, '이사');
 
 -- ------------------------------
--- 3. employee
+-- 4. employees
+--    employee_number: admin1~3(관리자), 0001~0100(일반 사원)
 --    role: EMPLOYEE / HR_ADMIN / HEALTH_ADMIN
 --    status: Y(재직) / N(퇴사)
---    password는 전부 평문 '1234' 더미값입니다.
---    실제 로그인 테스트 시 BCryptPasswordEncoder로 인코딩한 값으로 교체하세요.
+--    password는 전부 평문 '1234'의 BCrypt 해시입니다.
 -- ------------------------------
 
--- 관리자 계정 (HR_ADMIN, HEALTH_ADMIN)
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('admin1', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '김인사', '2018-03-02', 'kim.hr@healthgate.com', '010-1111-0001', 'HR_ADMIN', 'Y', 1, 6);
+INSERT INTO employees (id, employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id) VALUES (1, 'admin1', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '김인사', '2018-03-02', 'kim.hr@healthgate.com', '010-1111-0001', 'HR_ADMIN', 'Y', 1, 6);
+INSERT INTO employees (id, employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id) VALUES (2, 'admin2', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '박보건', '2019-05-13', 'park.health@healthgate.com', '010-1111-0002', 'HEALTH_ADMIN', 'Y', 3, 5);
+INSERT INTO employees (id, employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id) VALUES (3, 'admin3', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '이산업', '2017-01-10', 'lee.health@healthgate.com', '010-1111-0003', 'HEALTH_ADMIN', 'Y', 3, 6);
 
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('admin2', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '박보건', '2019-05-13', 'park.health@healthgate.com', '010-1111-0002', 'HEALTH_ADMIN', 'Y', 3, 5);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('admin3', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '이산업', '2017-01-10', 'lee.health@healthgate.com', '010-1111-0003', 'HEALTH_ADMIN', 'Y', 3, 6);
-
--- 일반 사원 (EMPLOYEE)
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp01', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '최민준', '2020-01-06', 'choi.mj@healthgate.com', '010-2000-1001', 'EMPLOYEE', 'Y', 4, 1);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp02', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정서연', '2020-02-17', 'jung.sy@healthgate.com', '010-2000-1002', 'EMPLOYEE', 'Y', 4, 2);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp03', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '강도윤', '2019-07-01', 'kang.dy@healthgate.com', '010-2000-1003', 'EMPLOYEE', 'Y', 4, 3);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp04', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤하은', '2021-03-15', 'yoon.he@healthgate.com', '010-2000-1004', 'EMPLOYEE', 'Y', 5, 1);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp05', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '임지호', '2018-11-20', 'lim.jh@healthgate.com', '010-2000-1005', 'EMPLOYEE', 'Y', 5, 4);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp06', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '한소율', '2022-06-01', 'han.sy@healthgate.com', '010-2000-1006', 'EMPLOYEE', 'Y', 5, 1);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp07', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '오은우', '2016-09-05', 'oh.eu@healthgate.com', '010-2000-1007', 'EMPLOYEE', 'Y', 6, 5);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp08', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '서예은', '2021-01-11', 'seo.ye@healthgate.com', '010-2000-1008', 'EMPLOYEE', 'Y', 6, 2);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp09', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '신유準', '2019-04-22', 'shin.yj@healthgate.com', '010-2000-1009', 'EMPLOYEE', 'Y', 7, 3);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp10', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '홍지안', '2020-08-03', 'hong.ja@healthgate.com', '010-2000-1010', 'EMPLOYEE', 'Y', 7, 1);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp11', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '문시우', '2017-12-18', 'moon.su@healthgate.com', '010-2000-1011', 'EMPLOYEE', 'Y', 8, 4);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp12', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '배아윤', '2023-02-27', 'bae.ay@healthgate.com', '010-2000-1012', 'EMPLOYEE', 'Y', 8, 1);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp13', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '조현우', '2015-05-30', 'jo.hw@healthgate.com', '010-2000-1013', 'EMPLOYEE', 'Y', 2, 6);
-
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp14', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '권나은', '2022-10-14', 'kwon.ne@healthgate.com', '010-2000-1014', 'EMPLOYEE', 'Y', 2, 1);
-
--- 퇴사자 (status = N) 예시
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp15', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '남건우', '2014-03-03', 'nam.gw@healthgate.com', '010-2000-1015', 'EMPLOYEE', 'N', 4, 3);
-
--- ------------------------------
--- 4. hospitals
--- ------------------------------
-INSERT IGNORE INTO hospitals (name, address, phone, url, description, is_general_exam_available, is_stomach_cancer_exam_available, is_colon_cancer_exam_available, is_liver_cancer_exam_available, is_lung_cancer_exam_available, status)
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
 VALUES
-('강남메디컬센터', '서울특별시 강남구 테헤란로 123', '02-555-1111', 'https://gangnam-medical.example', '종합검진 및 내과 전문 진료를 제공하는 의료기관입니다.', 1, 1, 1, 1, 1, 'Y'),
-('서울건강검진병원', '서울특별시 서초구 반포대로 45', '02-555-2222', 'https://seoul-health.example', '일반검진, 위암, 대장암, 간암 검사를 수행합니다.', 1, 1, 1, 1, 1, 'Y'),
-('부산의료원', '부산광역시 해운대구 해운대로 88', '051-555-3333', 'https://busan-med.example', '산업안전검진과 정기 건강검진을 전문으로 합니다.', 1, 1, 1, 0, 1, 'Y');
-
--- ------------------------------
--- 5. timecards
--- ------------------------------
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
+('0001', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤민환', '2018-04-08', 'emp0001@healthgate.com', '010-4001-1001', 'EMPLOYEE', 'Y', 2, 3),
+('0002', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차도솔', '2020-01-01', 'emp0002@healthgate.com', '010-4002-1002', 'EMPLOYEE', 'Y', 4, 2),
+('0003', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '이소율', '2025-11-23', 'emp0003@healthgate.com', '010-4003-1003', 'EMPLOYEE', 'Y', 4, 2),
+('0004', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '송경완', '2014-03-23', 'emp0004@healthgate.com', '010-4004-1004', 'EMPLOYEE', 'Y', 5, 1),
+('0005', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '고지윤', '2020-02-12', 'emp0005@healthgate.com', '010-4005-1005', 'EMPLOYEE', 'Y', 5, 4),
+('0006', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심소서', '2020-02-18', 'emp0006@healthgate.com', '010-4006-1006', 'EMPLOYEE', 'Y', 6, 3),
+('0007', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정서희', '2017-05-03', 'emp0007@healthgate.com', '010-4007-1007', 'EMPLOYEE', 'Y', 2, 2),
+('0008', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심수교', '2019-03-12', 'emp0008@healthgate.com', '010-4008-1008', 'EMPLOYEE', 'Y', 5, 3),
+('0009', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정성경', '2016-09-24', 'emp0009@healthgate.com', '010-4009-1009', 'EMPLOYEE', 'Y', 8, 2),
+('0010', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '주하희', '2019-01-08', 'emp0010@healthgate.com', '010-4010-1010', 'EMPLOYEE', 'Y', 6, 2);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
 VALUES
-('ATTENDANCE', '2026-09-01 08:55:00', 1),
-('ATTENDANCE', '2026-09-01 08:50:00', 2),
-('LEAVE', '2026-09-01 18:10:00', 3),
-('ATTENDANCE', '2026-09-01 09:05:00', 4),
-('ATTENDANCE', '2026-09-01 08:40:00', 5);
-
--- ------------------------------
--- 6. biometrics
--- ------------------------------
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+('0011', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정시별', '2023-12-11', 'emp0011@healthgate.com', '010-4011-1011', 'EMPLOYEE', 'Y', 8, 2),
+('0012', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심현진', '2016-04-24', 'emp0012@healthgate.com', '010-4012-1012', 'EMPLOYEE', 'Y', 5, 4),
+('0013', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '허라솔', '2020-06-08', 'emp0013@healthgate.com', '010-4013-1013', 'EMPLOYEE', 'Y', 3, 2),
+('0014', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '강규우', '2015-03-21', 'emp0014@healthgate.com', '010-4014-1014', 'EMPLOYEE', 'Y', 7, 3),
+('0015', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '손아나', '2021-09-09', 'emp0015@healthgate.com', '010-4015-1015', 'EMPLOYEE', 'Y', 1, 3),
+('0016', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤진엽', '2022-05-25', 'emp0016@healthgate.com', '010-4016-1016', 'EMPLOYEE', 'Y', 2, 1),
+('0017', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '한재준', '2025-12-09', 'emp0017@healthgate.com', '010-4017-1017', 'EMPLOYEE', 'Y', 3, 2),
+('0018', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '조정경', '2018-11-17', 'emp0018@healthgate.com', '010-4018-1018', 'EMPLOYEE', 'Y', 3, 2),
+('0019', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '한소석', '2022-01-20', 'emp0019@healthgate.com', '010-4019-1019', 'EMPLOYEE', 'Y', 1, 1),
+('0020', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '양라교', '2026-05-08', 'emp0020@healthgate.com', '010-4020-1020', 'EMPLOYEE', 'Y', 2, 1);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
 VALUES
-('2026-09-01 08:30:00', 122, 78, 36.6, 72, 'NORMAL', 1),
-('2026-09-01 08:35:00', 138, 88, 36.8, 76, 'WARN', 2),
-('2026-09-01 08:40:00', 146, 94, 37.1, 82, 'HIGH', 3),
-('2026-09-01 08:45:00', 128, 82, 36.7, 70, 'NORMAL', 4),
-('2026-09-01 08:50:00', 132, 84, 36.9, 74, 'WARN', 5);
-
--- ------------------------------
--- 7. checkups
--- ------------------------------
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
+('0021', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '하동윤', '2026-09-25', 'emp0021@healthgate.com', '010-4021-1021', 'EMPLOYEE', 'Y', 8, 6),
+('0022', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '한유원', '2023-07-07', 'emp0022@healthgate.com', '010-4022-1022', 'EMPLOYEE', 'Y', 4, 3),
+('0023', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '배진경', '2019-08-17', 'emp0023@healthgate.com', '010-4023-1023', 'EMPLOYEE', 'Y', 4, 1),
+('0024', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '고민솔', '2022-04-19', 'emp0024@healthgate.com', '010-4024-1024', 'EMPLOYEE', 'Y', 2, 3),
+('0025', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '최하윤', '2014-06-03', 'emp0025@healthgate.com', '010-4025-1025', 'EMPLOYEE', 'Y', 5, 3),
+('0026', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '신소연', '2025-10-19', 'emp0026@healthgate.com', '010-4026-1026', 'EMPLOYEE', 'Y', 8, 4),
+('0027', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '서지서', '2024-07-12', 'emp0027@healthgate.com', '010-4027-1027', 'EMPLOYEE', 'Y', 8, 5),
+('0028', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '최진경', '2024-02-02', 'emp0028@healthgate.com', '010-4028-1028', 'EMPLOYEE', 'Y', 6, 4),
+('0029', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '조하율', '2017-09-15', 'emp0029@healthgate.com', '010-4029-1029', 'EMPLOYEE', 'Y', 3, 1),
+('0030', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '황정별', '2015-08-26', 'emp0030@healthgate.com', '010-4030-1030', 'EMPLOYEE', 'Y', 2, 1);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
 VALUES
-(2026, '2026-06-15', '혈압 정상, 체중 유지, 간 기능 검사 양호', '2026-06-16 09:00:00', 1),
-(2026, '2026-07-02', '혈압 경계, 생활습관 개선 권고', '2026-07-03 10:15:00', 2),
-(2026, NULL, '검진 미실시 상태', '2026-08-10 11:00:00', 3),
-(2026, '2026-05-20', '정상 범위, 특이 소견 없음', '2026-05-21 08:30:00', 4),
-(2026, '2026-06-28', '심전도 검사는 정상, 피로 회복 권고', '2026-06-29 09:40:00', 5);
+('0031', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차동준', '2015-04-06', 'emp0031@healthgate.com', '010-4031-1031', 'EMPLOYEE', 'Y', 8, 1),
+('0032', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '배라우', '2016-07-01', 'emp0032@healthgate.com', '010-4032-1032', 'EMPLOYEE', 'Y', 5, 5),
+('0033', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심준영', '2025-12-26', 'emp0033@healthgate.com', '010-4033-1033', 'EMPLOYEE', 'Y', 8, 1),
+('0034', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '전시우', '2023-12-18', 'emp0034@healthgate.com', '010-4034-1034', 'EMPLOYEE', 'Y', 6, 1),
+('0035', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '구태원', '2022-03-02', 'emp0035@healthgate.com', '010-4035-1035', 'EMPLOYEE', 'Y', 2, 5),
+('0036', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정성윤', '2024-04-13', 'emp0036@healthgate.com', '010-4036-1036', 'EMPLOYEE', 'Y', 4, 3),
+('0037', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '박성윤', '2020-11-19', 'emp0037@healthgate.com', '010-4037-1037', 'EMPLOYEE', 'Y', 6, 6),
+('0038', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '신진림', '2019-04-09', 'emp0038@healthgate.com', '010-4038-1038', 'EMPLOYEE', 'Y', 5, 2),
+('0039', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정민훈', '2023-10-04', 'emp0039@healthgate.com', '010-4039-1039', 'EMPLOYEE', 'Y', 4, 2),
+('0040', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장다은', '2015-04-12', 'emp0040@healthgate.com', '010-4040-1040', 'EMPLOYEE', 'Y', 8, 4);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
+VALUES
+('0041', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '홍성형', '2024-09-01', 'emp0041@healthgate.com', '010-4041-1041', 'EMPLOYEE', 'Y', 5, 6),
+('0042', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '조라연', '2018-02-04', 'emp0042@healthgate.com', '010-4042-1042', 'EMPLOYEE', 'Y', 3, 1),
+('0043', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '민시림', '2019-04-22', 'emp0043@healthgate.com', '010-4043-1043', 'EMPLOYEE', 'Y', 5, 2),
+('0044', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '안라별', '2014-02-21', 'emp0044@healthgate.com', '010-4044-1044', 'EMPLOYEE', 'Y', 5, 1),
+('0045', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '고규연', '2024-05-06', 'emp0045@healthgate.com', '010-4045-1045', 'EMPLOYEE', 'Y', 7, 3),
+('0046', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤도엽', '2025-03-18', 'emp0046@healthgate.com', '010-4046-1046', 'EMPLOYEE', 'N', 6, 3),
+('0047', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '임윤연', '2014-05-12', 'emp0047@healthgate.com', '010-4047-1047', 'EMPLOYEE', 'Y', 1, 5),
+('0048', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '신진현', '2024-02-12', 'emp0048@healthgate.com', '010-4048-1048', 'EMPLOYEE', 'Y', 7, 6),
+('0049', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '임다별', '2017-03-26', 'emp0049@healthgate.com', '010-4049-1049', 'EMPLOYEE', 'Y', 7, 1),
+('0050', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '고경별', '2020-11-28', 'emp0050@healthgate.com', '010-4050-1050', 'EMPLOYEE', 'Y', 4, 1);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
+VALUES
+('0051', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '조아완', '2014-08-08', 'emp0051@healthgate.com', '010-4051-1051', 'EMPLOYEE', 'Y', 8, 1),
+('0052', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '권하준', '2024-04-13', 'emp0052@healthgate.com', '010-4052-1052', 'EMPLOYEE', 'Y', 2, 6),
+('0053', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '송은경', '2022-07-22', 'emp0053@healthgate.com', '010-4053-1053', 'EMPLOYEE', 'Y', 6, 6),
+('0054', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤라진', '2016-10-09', 'emp0054@healthgate.com', '010-4054-1054', 'EMPLOYEE', 'N', 7, 1),
+('0055', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '유윤나', '2022-02-13', 'emp0055@healthgate.com', '010-4055-1055', 'EMPLOYEE', 'Y', 4, 1),
+('0056', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '허민원', '2026-09-22', 'emp0056@healthgate.com', '010-4056-1056', 'EMPLOYEE', 'Y', 4, 2),
+('0057', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정진별', '2019-10-11', 'emp0057@healthgate.com', '010-4057-1057', 'EMPLOYEE', 'Y', 2, 3),
+('0058', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '홍건호', '2024-07-11', 'emp0058@healthgate.com', '010-4058-1058', 'EMPLOYEE', 'Y', 5, 3),
+('0059', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '서윤희', '2020-11-24', 'emp0059@healthgate.com', '010-4059-1059', 'EMPLOYEE', 'Y', 5, 2),
+('0060', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '김준호', '2017-07-26', 'emp0060@healthgate.com', '010-4060-1060', 'EMPLOYEE', 'Y', 6, 2);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
+VALUES
+('0061', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '남진율', '2022-08-26', 'emp0061@healthgate.com', '010-4061-1061', 'EMPLOYEE', 'Y', 3, 3),
+('0062', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '전건희', '2024-10-11', 'emp0062@healthgate.com', '010-4062-1062', 'EMPLOYEE', 'Y', 4, 3),
+('0063', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '권경율', '2016-01-02', 'emp0063@healthgate.com', '010-4063-1063', 'EMPLOYEE', 'Y', 8, 3),
+('0064', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정재영', '2024-10-07', 'emp0064@healthgate.com', '010-4064-1064', 'EMPLOYEE', 'Y', 7, 2),
+('0065', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '황현경', '2025-01-25', 'emp0065@healthgate.com', '010-4065-1065', 'EMPLOYEE', 'Y', 2, 4),
+('0066', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '권예형', '2025-09-15', 'emp0066@healthgate.com', '010-4066-1066', 'EMPLOYEE', 'Y', 4, 5),
+('0067', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤재연', '2026-08-22', 'emp0067@healthgate.com', '010-4067-1067', 'EMPLOYEE', 'Y', 6, 6),
+('0068', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '남성교', '2025-09-14', 'emp0068@healthgate.com', '010-4068-1068', 'EMPLOYEE', 'Y', 8, 5),
+('0069', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '노재진', '2026-04-27', 'emp0069@healthgate.com', '010-4069-1069', 'EMPLOYEE', 'Y', 8, 3),
+('0070', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '송재윤', '2025-05-08', 'emp0070@healthgate.com', '010-4070-1070', 'EMPLOYEE', 'Y', 6, 5);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
+VALUES
+('0071', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '강현연', '2017-07-23', 'emp0071@healthgate.com', '010-4071-1071', 'EMPLOYEE', 'Y', 4, 1),
+('0072', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '백우인', '2021-07-02', 'emp0072@healthgate.com', '010-4072-1072', 'EMPLOYEE', 'Y', 7, 2),
+('0073', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '구연준', '2026-10-13', 'emp0073@healthgate.com', '010-4073-1073', 'EMPLOYEE', 'Y', 6, 1),
+('0074', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '손정엽', '2020-09-24', 'emp0074@healthgate.com', '010-4074-1074', 'EMPLOYEE', 'Y', 4, 2),
+('0075', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '송윤혁', '2014-07-11', 'emp0075@healthgate.com', '010-4075-1075', 'EMPLOYEE', 'Y', 7, 3),
+('0076', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심다연', '2023-09-01', 'emp0076@healthgate.com', '010-4076-1076', 'EMPLOYEE', 'Y', 1, 1),
+('0077', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '허현완', '2021-03-02', 'emp0077@healthgate.com', '010-4077-1077', 'EMPLOYEE', 'Y', 6, 1),
+('0078', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '유우석', '2020-05-25', 'emp0078@healthgate.com', '010-4078-1078', 'EMPLOYEE', 'Y', 7, 1),
+('0079', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '강태준', '2025-09-02', 'emp0079@healthgate.com', '010-4079-1079', 'EMPLOYEE', 'Y', 6, 1),
+('0080', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정규경', '2014-01-08', 'emp0080@healthgate.com', '010-4080-1080', 'EMPLOYEE', 'Y', 1, 3);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
+VALUES
+('0081', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '황현혁', '2024-02-19', 'emp0081@healthgate.com', '010-4081-1081', 'EMPLOYEE', 'Y', 8, 3),
+('0082', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '양예나', '2023-12-23', 'emp0082@healthgate.com', '010-4082-1082', 'EMPLOYEE', 'Y', 3, 6),
+('0083', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '조영준', '2018-10-22', 'emp0083@healthgate.com', '010-4083-1083', 'EMPLOYEE', 'Y', 7, 2),
+('0084', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '서도솔', '2025-11-08', 'emp0084@healthgate.com', '010-4084-1084', 'EMPLOYEE', 'Y', 5, 5),
+('0085', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '민경서', '2026-10-26', 'emp0085@healthgate.com', '010-4085-1085', 'EMPLOYEE', 'N', 7, 3),
+('0086', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정건경', '2019-01-28', 'emp0086@healthgate.com', '010-4086-1086', 'EMPLOYEE', 'Y', 8, 1),
+('0087', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '양수엽', '2021-12-05', 'emp0087@healthgate.com', '010-4087-1087', 'EMPLOYEE', 'Y', 5, 3),
+('0088', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차규혁', '2021-07-27', 'emp0088@healthgate.com', '010-4088-1088', 'EMPLOYEE', 'Y', 5, 1),
+('0089', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '황동별', '2015-05-15', 'emp0089@healthgate.com', '010-4089-1089', 'EMPLOYEE', 'Y', 8, 3),
+('0090', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '손우준', '2021-06-06', 'emp0090@healthgate.com', '010-4090-1090', 'EMPLOYEE', 'Y', 6, 4);
+INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
+VALUES
+('0091', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '고유엽', '2023-12-09', 'emp0091@healthgate.com', '010-4091-1091', 'EMPLOYEE', 'Y', 4, 1),
+('0092', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '백태인', '2026-04-23', 'emp0092@healthgate.com', '010-4092-1092', 'EMPLOYEE', 'Y', 8, 2),
+('0093', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '이도호', '2017-07-23', 'emp0093@healthgate.com', '010-4093-1093', 'EMPLOYEE', 'Y', 6, 2),
+('0094', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '성은영', '2025-09-11', 'emp0094@healthgate.com', '010-4094-1094', 'EMPLOYEE', 'Y', 8, 1),
+('0095', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '안하서', '2025-04-11', 'emp0095@healthgate.com', '010-4095-1095', 'EMPLOYEE', 'Y', 3, 1),
+('0096', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '노유환', '2023-09-20', 'emp0096@healthgate.com', '010-4096-1096', 'EMPLOYEE', 'Y', 2, 4),
+('0097', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '전하은', '2016-05-01', 'emp0097@healthgate.com', '010-4097-1097', 'EMPLOYEE', 'Y', 3, 1),
+('0098', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '최소호', '2025-03-21', 'emp0098@healthgate.com', '010-4098-1098', 'EMPLOYEE', 'Y', 8, 1),
+('0099', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '김영호', '2021-08-15', 'emp0099@healthgate.com', '010-4099-1099', 'EMPLOYEE', 'Y', 1, 1),
+('0100', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '노지교', '2015-07-16', 'emp0100@healthgate.com', '010-4100-1100', 'EMPLOYEE', 'Y', 1, 1);
 
 -- ------------------------------
--- 8. checkup reminders settings
+-- 5. hospitals
 -- ------------------------------
-INSERT IGNORE INTO checkup_reminder_settings (type, message_template, cron_schedule, is_active)
+INSERT INTO hospitals (name, address, phone, url, description, is_general_exam_available, is_stomach_cancer_exam_available, is_colon_cancer_exam_available, is_liver_cancer_exam_available, is_lung_cancer_exam_available, created_at, status)
+VALUES
+('강남베스트내과의원', '서울시 강남구 광평로 281 (수서동, 2층일부)', '1566-0115', 'https://www.kbestclinic.com/', '건강검진 내시경 잘하는 강남 베스트 내과 입니다. 국가건강검진 지정 검진기관 입니다.', 1, 1, 0, 0, 0, '2020-08-01 09:00:00', 'Y'),
+('강남바른내과의원', '서울시 강남구 선릉로 324 SH타워 4층', '02-6232-7500', 'http://www.barunmed.co.kr/', '건강검진은 진단에 대한 상담 및 치료가 가능한 곳에서 받는 것이 좋습니다. 상담을 통한 개개인의 맞춤 검진이 가능하며 진단과 동시에 치료까지 이어지는 원스탑 검진을 받으실 수 있습니다.', 1, 1, 0, 0, 0, '2020-09-09 09:00:00', 'Y'),
+('연세정앤김내과의원', '서울시 강남구 강남대로 240 양재 SK 허브프리모 3층 315호 (도곡동)', '02-6205-7582', 'https://xn--vb0b0x37cfy1au2e7xa33i.com/', '지역사회 주민의 건강증진을 위하여 일합니다. 치료진과 환자분 사이의 충분한 소통을 추구합니다.', 1, 1, 0, 0, 0, '2020-09-10 09:00:00', 'Y'),
+('더편한내과의원', '서울시 강남구 도곡로 323 다른빌딩 2층(역상동)', '02-563-7588', 'http://thecomfortclinic.co.kr/', '내과전문의 2인 원장님이 건강한 삶을 위한 당신의 평생 주치의가 되어 드립니다.', 1, 1, 1, 1, 1, '2020-10-03 09:00:00', 'Y'),
+('윤영석내과의원', '서울시 강남구 남부순환로 2912 (대치동, 305,306,307호)', '02-508-7781', 'https://medieus.com/sub_detail/hospital_detail.asp?hos_num=28502', '수준 높은 진료와 치료로 환우들의 편안한 쉼터가 되겠습니다. 여러분의 건강하고 행복한 삶을 도와 드립니다.', 1, 0, 0, 1, 0, '2020-10-04 09:00:00', 'Y'),
+('개포삼성앤서울내과의원', '서울시 강남구 삼성로 14 3층 (개포동,개포자이 프레지던스)', '02-451-1105', 'https://gaeposns.dothome.co.kr/', '환자분들의 건강과 행복을 최우선으로 생각합니다. 따뜻한 마음과 최선의 진료를 약속드립니다. 환자분들의 건강한 내일을 위해 언제나 노력하는 개포삼성앤서울내과의원이 되겠습니다.', 1, 1, 1, 1, 0, '2020-10-04 10:00:00', 'Y'),
+('문찬수압구정성모내과의원', '서울시 강남구 압구정로 14길 6 2층 (신사동)', '02-518-6080', 'https://drcsmoon.imweb.me/', '문찬수압구정성모내과의원은 국가건강검진 지정 검진기관 입니다.', 1, 1, 1, 1, 1, '2020-10-05 10:00:00', 'Y'),
+('강남드림내과의원', '서울시 강남구 자곡로 120 세곡드림프라자 4층(자곡동)', '02-459-9777', '', '내과, 신경과, 이비인후과', 1, 1, 0, 0, 0, '2020-10-05 10:10:00', 'Y'),
+('문앤장내과의원', '서울시 강동구 고덕로 390 고덕아르테온아파트(상가1동) 2층 (상일제1동)', '050-71355-8278', '', '여러분의 질병 예방을 위해 맺은 인연으로 말미암아 따뜻한 주치의가 되어 환자의 평생건강을 지켜드리고자 노력하겠습니다.', 1, 1, 1, 1, 0, '2020-10-05 10:30:00', 'Y'),
+('더조은내과의원', '서울시 강동구 구천면로 664 2,3층 (상일동)', '02-897-5755', 'http://the-joun.co.kr/', '대학병원급 장비와 풍부한 임상 경험을 바탕으로 환자분들이 안심하고 검사와 진료를 받을 수 있는 환경을 마련했습니다.', 1, 1, 1, 1, 0, '2026-10-05 11:00:00', 'Y'),
+('강동서울의원', '서울시 강동구 천호대로 1119 (길동)', '02-488-1190', '', '늘 여러분과 가까이에서 보다 편리하고 편안한 진료를 제공함으로써 여러분의 평생 주치의가 되고자 합니다.', 1, 1, 1, 1, 0, '2026-10-05 11:04:00', 'Y'),
+('염문선내과의원', '서울시 마포구 마포대로24길 56 3층,4층 (아현동,보령빌딩)', '02-392-0077', 'http://www.ymsclinic.co.kr/2019/index.html', '최신장비 및 전자차트를 도입하여 정확한 진료와 대기시간을 최소화해 환자분들의 편의를 최우선으로 하고자 합니다.', 1, 1, 1, 1, 0, '2020-10-06 09:00:00', 'Y'),
+('연세우리내과의원', '서울시 마포구 백범로10 101,201호(노고산동,현대벤쳐빌)', '02-334-7560', 'https://yswoori.com/', '연세우리내과의원은 국가건강검진 지정 검진기관 입니다.', 1, 1, 0, 1, 0, '2020-10-07 09:00:00', 'Y'),
+('누리꿈서울아산내과의원', '서울시 마포구 월드컵북로 396 B1008,1009,1010호 (상암동,누리꿈스퀘어)', '02-2132-8555', '', '내과, 이비인후과, 피부과, 비뇨기과, 가정의학과', 1, 1, 1, 1, 0, '2020-10-07 10:00:00', 'Y'),
+('대한의료영상의학과의원', '서울시 마포구 신촌로 102-1 3,4층 (노고산동)', '02-326-0611', 'https://kmih.co.kr/', '내과, 영상의학과', 1, 0, 0, 1, 0, '2020-10-07 11:00:00', 'Y'),
+('마포의료복지사회적협동조합 무지개의원', '서울시 마포구 월드컵로 80 7층 (서교동,아침뜨락빌딩)', '02-326-0616', 'https://www.mapomedcoop.net/', '내과, 신경과, 외과, 소아청소년과, 피부과, 비뇨기과', 1, 1, 1, 0, 0, '2020-10-07 11:10:00', 'Y'),
+('상암고려가정의학과의원', '서울시 마포구 월드컵북로 502 2층 (상암동,월드컵파크프라자)', '02-373-7515', '', '내과, 소아청소년과, 이비인후과, 가정의학과', 1, 0, 1, 0, 0, '2020-10-07 11:12:00', 'Y'),
+('유태석내과의원', '서울시 중구 동호로 180 대승빌딩 5층 (신당동)', '02-2233-7117', 'http://www.y-doctor.co.kr/', '유태석내과의원은 국가건강검진 지정 검진기관 입니다. 환자분들의 쾌유를 위해 정성을 다해 진료하고 있습니다.', 1, 1, 1, 1, 1, '2020-10-20 09:00:00', 'Y'),
+('삼성푸른의원', '서울시 중구 다산로42길 80 1층 (신당동)', '02-2231-4154', '', '내과, 외과, 소아청소년과, 이비인후과, 피부과', 1, 1, 0, 0, 0, '2020-11-29 09:00:00', 'Y'),
+('서울내과의원', '서울시 중구 청구로 70 신진빌딩 5층 (신당동)', '02-552-4891', 'http://www.smclinic.kr/', '내과, 신경과, 정신건강의학과, 소아청소년과', 1, 0, 0, 1, 0, '2021-03-01 09:00:00', 'Y'),
+('나주속편한내과의원', '전남광주시 나주시 영산로 5426 2층 (성북동)', '061-813-2275', '', '내과, 정형외과, 소아청소년과, 이비인후과, 피부과', 1, 1, 1, 1, 0, '2021-04-05 09:00:00', 'Y'),
+('박용선내과의원', '전남광주시 나주시 영산로 5406 (성북동)', '061-330-9125', '', '내과', 1, 1, 1, 1, 0, '2021-05-07 09:00:00', 'Y'),
+('혁신속편한내과의원', '전남광주시 나주시 상야1길 7 4층 (빛가람동)', '061-334-0600', '', '내과, 신경과, 정형외과, 소아청소년과, 이비인후과', 1, 1, 1, 1, 0, '2021-07-01 09:00:00', 'Y'),
+('즐거운내과의원', '전남광주시 고흥군 도양읍 녹동남문길 8-25', '062-972-3636', '', '내과, 외과, 소아청소년과, 안과, 이비인후과, 피부과', 1, 1, 1, 1, 0, '2021-09-01 09:00:00', 'Y'),
+('나눔내과의원', '전남광주시 담양군 수북면 추성1로 736', '061-381-8275', '', '내과, 외과, 정형외과, 신경외과, 소아청소년과', 1, 1, 1, 1, 0, '2021-09-10 09:00:00', 'Y'),
+('서병기내과의원', '전남광주시 보성군 보성읍 중앙로 61-15', '061-852-9878', '', '내과, 신경과, 정형외과, 소아청소년과, 이비인후과', 1, 1, 1, 1, 0, '2021-10-01 09:00:00', 'Y'),
+('전남연합의원', '전남광주시 보성군 벌교읍 채동선로 149', '061-858-4100', '', '내과, 정형외과', 1, 0, 0, 1, 0, '2021-11-01 09:00:00', 'Y'),
+('부평바른내과의원', '인천시 부평구 길주로364번길 9 2층 (산곡동,부평 IPARK)', '032-299-7575', 'https://www.bpbarun.com/', '바르고 정확하게 진료하는 바른내과 의료진', 1, 1, 1, 1, 0, '2022-01-22 09:00:00', 'Y'),
+('삼성장편한내과', '인천시 부평구 열우물로 90 상가 F동 3층 310호, 4층(십정동, 더부평센트렐시티)', '032-433-7588', 'https://www.goodbowel.com/', '삼성장편한내과는 가장 신뢰받는 병원을 목표로 지역주민의 건강관리에 최선을 다하겠습니다.', 1, 1, 1, 1, 0, '2022-02-19 09:00:00', 'Y'),
+('임성식 내과의원', '인천시 강화군 강화읍 강화대로 395 준프라자 빌딩 3층', '032-932-3375', '', '풍부한 진료경험을 바탕으로 한 환자입장에서의 편안한 개인별 맞춤진료, 임성식 내과의원은 국가건강검진 지정 검진기관 입니다.', 1, 1, 1, 1, 0, '2022-05-01 09:00:00', 'Y'),
+('호평아산내과의원', '경기도 남양주시 늘을2로 26 메인시네마타워 4층 (호평동)', '031-511-2460', 'http://www.dr-addb.com/', '환자들로부터 신뢰가 허물어진 시대에 묵묵히 환자를 위한 변화를 시도해 가면서 궁극적으로는 가장 신뢰받는 검진기관으로서의 호평아산내과 건강검진센터가 될 수 있도록 노력하겠습니다.', 1, 1, 1, 1, 0, '2022-09-01 09:00:00', 'Y'),
+('안종훈내과의원', '경기도 남양주시 화도읍 마석중앙로 78 메디닥터 빌딩 3,4층', '031-593-7390', '', '안종훈내과의원은 국가건강검진 지정 검진기관 입니다.', 1, 1, 1, 1, 0, '2022-10-01 09:00:00', 'Y'),
+('서봉수내과의원', '경기도 남양주시 별내3로 340 3층 302호 (별내동)', '031-575-8778', '', '서봉수내과의원은 국가건강검진 지정 검진기관 입니다.', 1, 1, 1, 1, 0, '2022-10-02 09:00:00', 'Y'),
+('고려엔도홍내과의원', '경기도 남양주시 진접읍 해밀예당3로 57 3층', '031-571-7100', 'https://kendohim.medisay.co.kr/', '건강검진부터 일반내과 진료까지, 내분비내과 전문의에 의한 체계적인 만성질환관리', 1, 1, 1, 1, 0, '2022-10-03 09:00:00', 'Y'),
+('서울퍼스트내과의원', '경기도 남양주시 다산중앙로82번안길 118 306-311호 (다산동)', '032-511-7588', 'http://www.seoul-1st.com/', '항상 기본에 충실하고 정성을 다하며 정직하고 정확한 진료를 위해 노력하겠습니다', 1, 1, 1, 1, 0, '2023-05-01 09:00:00', 'Y'),
+('서울리더스내과의원', '경기도 수원시 영통구 영통로 195 골든스퀘어 6층 (망포동)', '031-206-8808', 'https://seoulleaders.com/', '대학병원급 최첨단 의료설비를 갖춘 쾌적하고 편안한 건강검진센터를 운영하며, 검사와 동시에 진단과 치료가 가능한 ONE-STOP 의료서비스를 제공합니다.', 1, 1, 0, 1, 0, '2023-06-01 09:00:00','Y'),
+('김영순내과의원', '경기도 수원시 팔달구 덕영대로 695 (화서동,201호,202호,203호)', '031-254-3396', '', '내과, 이비인후과, 피부과', 1, 0, 0, 1, 0, '2023-11-01 09:00:00', 'Y'),
+('연세푸르른내과의원', '경기도 양평군 양평읍 역전길 24 402호 (오성프라자)', '031-772-0163', 'http://www.ysprrn.co.kr/', '수준 높은 진료, 친절한 서비스, 정직한 경영, 아이부터 노인까지 건강하고 푸르른 삶을 누리도록 함께 합니다.', 1, 1, 1, 1, 0, '2023-11-04 09:00:00', 'Y'),
+('정내과의원', '경기도 양평군 용문면 용문로 376-1 2.3층', '02-866-0356', 'http://www.chungsclinic.co.kr/html/main.php', '내과, 정형외과, 소아청소년과, 이비인후과, 피부과', 1, 1, 1, 1, 0, '2023-09-01 09:00:00', 'Y'),
+('365잘봄내과의원', '경기도 하남시 신평로 45 SN 타워 3층 (신장동)', '032-8028-0782', 'https://www.xn--365-rg8lx2mlmwu3q.com/', '체계적이고 정밀한 건강검진 시스템을 통해 5대암 및 다양한 질병을 조기에 발견하고 치료합니다.', 1, 1, 1, 1, 0, '2023-12-01 09:00:00', 'Y'),
+('미소준내과의원', '경기도 하남시 미사강변중앙로 220 우성미사타워 301호 (망월동)', '031-8028-3082', 'https://misojunmed.com/', '따뜻하고 부드러운 마음과 미소, 환자 한 분 한 분께 성실하고 가까이 다가가는 의료진이 되겠습니다.', 1, 1, 1, 1, 0, '2023-12-06 09:00:00', 'Y'),
+('수호신경외과의원', '경기도 하남시 미사강변한강로 135 스카이폴리스 나동 2층 (망월동)', '031-8028-3008', 'https://suhoclinic.com/', '내과, 정형외과, 신경외과, 마취통증의학과', 1, 0, 0, 1, 0, '2024-03-01 09:00:00', 'Y'),
+('성모속튼튼내과의원', '경기도 포천시 소흘읍 봉솔로5길 27 2층 202호', '02-2671-5656', 'http://www.sokgood.com/', '환자와 질환에 대해 꾸준히 고민하고 치료하는 내과 병원 입니다.', 1, 1, 1, 1, 0, '2024-03-07 09:00:00', 'Y'),
+('일동연세의원', '경기도 포천시 일동면 화동로 1066', '031-532-0396', '', '내과, 정형외과, 산부인과, 소아청소년과, 이비인후과', 1, 0, 0, 1, 0, '2024-05-17 09:00:00', 'Y'),
+('장바로내과의원', '경기도 의정부시 용민로 493 201~203호,222~223호 (민락동)', '031-874-8585', 'https://www.jangbaro.co.kr/', '"검진은 정확하게, 상담은 배려있게, 가족력, 병력, 생활습관 등 개인 특성에 맞춘 맞춤형 검진을 시행하고 있습니다.', 1, 1, 1, 1, 0, '2024-06-01 09:00:00', 'Y'),
+('강앤강내과의원', '경기도 의정부시 평화로 540 퍼시픽타워 4층 (의정부동)', '031-894-7585', 'https://www.knkmed.co.kr/', '임상경험이 풍부한 소화기내과 분과전문의 2인이 소화기 위장관질환 및 만성 내과질환에 대해 정밀한 진단과 치료를 하고 있습니다.', 1, 1, 1, 1, 0, '2024-06-09 09:00:00', 'Y'),
+('이재수내과의원', '충정북도 청주시 상당구 청남로 2194-2 2층,3층 (석교동)', '043-255-2233', '', '내과질환전문 및 종합건강검진 기관입니다. 항상 정성진료를 실현하는 병원이 되겠습니다.', 1, 1, 1, 1, 0, '2024-09-01 09:00:00', 'Y'),
+('편한내과의원', '충정북도 청주시 상당구 청남로 2196 2층,3층 (석교동,중앙메디컬빌딩)', '043-224-2008', '', '지역 주민 여러분의 건강지킴이로서 늘 환자의 입장에 서서 환자분들의 건강을 지켜 드리기위해 최선을 다하고 있습니다.', 1, 0, 0, 1, 0,'2024-09-07 09:00:00', 'Y'),
+('김명수내과의원', '충정북도 청주시 서원구 구룡산로 386 (수곡동,김명수내과의원)', '043-284-5356', 'http://drkims88.co.kr/', '내과, 소아청소년과', 1, 1, 0, 1, 0, '2024-09-12 09:00:00', 'Y'),
+('최상현내과의원', '충정북도 제천시 용두대로15길 4 용두시티 2층 201호 (하소동)', '043-647-1111', '', '백세시대 건강 파트너 최상현내과 입니다. 국가건강검진 지정 검진기관 입니다.', 1, 1, 1, 1, 0, '2024-09-21 09:00:00', 'Y'),
+('정다운내과의원', '충정북도 제천시 의림대로 222 두손메디칼센타 3층 (청전동)', '043-653-7722', 'http://m.xn--vb0bn4e83bx98ansb.com/main', '건강한 삶을 위해 여러분의 평생 주치의가 되고자하는 마음으로 진료에 임하겠습니다.', 1, 1, 1, 1, 0, '2024-09-22 09:00:00', 'Y'),
+('모아산부인과의원', '충정북도 제천시 명륜로 91 (의림동)', '062-670-7700', 'https://moalady.co.kr/', '산부인과', 1, 1, 1, 0, 0, '2024-10-01 09:00:00', 'Y'),
+('동산내과의원', '제주도 제주시 중앙로 337 3,5층 (이도이동)', '064-723-0865', 'https://dongsanclinic.co.kr/', '동산내과는 내과 전문의로 구성된 진료기관으로 만성 질환, 소화기 질환, 신장,내분비 질환등을 포함한 내과 전문 진료를 시행하고 있습니다.', 1, 1, 1, 1, 0, '2024-10-11 09:00:00', 'Y'),
+('서울삼성내과의원', '제주도 제주시 애월읍 하광로 12 2층', '064-805-8333', 'https://www.smcjeju.com/', '하귀 하나로마트 맞은편, 베스킨라빈스 건물에 신규 오픈한 내과입니다. 5대암 검진 국가지정기관으로 삼성의료원 출신의 소화기내과 전문의가 직접 위, 대장내시경 및 초음파를 시행하고 있습니다.', 1, 1, 1, 1, 0, '2024-11-01 09:00:00', 'Y'),
+('365플러스내과의원', '제주도 서귀포시 일주동로 9159 4층 (법환동)', '064-767-3650', 'https://www.jeju365plus.com/', '내과, 신경과, 정신건강의학과, 산부인과', 1, 1, 1, 1, 0, '2024-12-01 09:00:00', 'Y'),
+('바로내과의원', '제주도 서귀포시 월드컵로 8 3층 (강정동)', '064-738-8877', '', '내과, 신경과, 소아청소년과, 가정의학과', 1, 1, 1, 1, 0, '2025-01-21 09:00:00', 'Y'),
+('박양훈내과의원', '경상남도 김해시 가락로 27 (부원동)', '055-338-1117', 'http://drparkmedical.co.kr/', '박양훈내과의원은 국가건강검진 지정 검진기관 입니다.', 1, 1, 1, 1, 1, '2025-01-22 09:00:00', 'Y'),
+('으뜸내과의원', '경상남도 김해시 삼계중앙로 36 4,5층 (삼계동)', '055-724-0511', 'http://www.numberonemedi.co.kr/', '저희 음뜸내과/건강검진센터의 모토는 실력과 친절입니다. 지역민 여러분의 좋은 주치의로서 오랜 세월동안 갈고 닦은 실력을 이곳에서 발휘하고자 합니다.', 1, 1, 1, 1, 0, '2025-06-01 09:00:00', 'Y'),
+('윤앤김내과의원', '경상남도 거제시 고현천로 20 2층 201호 (고현동,칠천빌딩)', '055-638-5286', '', '앞으로 여러분들의 건강하고 편안한 삶을 위하여 끊임없이 노력할 것을 약속 드립니다.', 1, 1, 1, 1, 0, '2025-09-01 09:00:00', 'Y'),
+('계룡내과의원', '경상남도 거제시 고현로14길 25 (고현동)', '055-634-0711', '', '내과, 신경과, 소아청소년과, 이비인후과, 피부과', 1, 0, 0, 1, 0, '2025-10-01 09:00:00', 'Y'),
+('김환태내과의원', '경상남도 고성군 고성읍 동외로 156', '055-674-8275', '', '내과, 소아청소년과, 이비인후과, 피부과, 영상의학과', 1, 1, 1, 1, 0, '2025-11-01 09:00:00', 'Y'),
+('삼성가정의학과의원', '경상남도 고성군 고성읍 남포로162번길 76', '055-673-4123', '', '내과, 외과, 정형외과, 신경외과, 산부인과', 1, 1, 0, 1, 0, '2025-12-01 09:00:00', 'Y'),
+('김내과의원', '경상남도 밀양시 내이2길 28 2~5층 (내이동)', '055-353-5354', '', '내과', 1, 1, 1, 1, 0, '2026-01-15 09:00:00', 'Y'),
+('지정내과의원', '강원도 원주시 지정면 신지정로 266 3층', '033-733-2355', '', '원주기업도시에 첫 개원한 내과이며, 공단검진 지정의료기관으로 일반검진 및 위·대장, 간암검진을 위한 최신시설을 구비하고 있습니다.', 1, 1, 1, 1, 0, '2026-02-01 09:00:00', 'Y'),
+('원주영상의학과의원', '강원도 원주시 능라동길 61 정한빌딩  6층 (무실동)', '033-764-9700', '', '원주영상의학과의원은 국가건강검진 지정 검진기관 입니다.', 1, 0, 0, 1, 0, '2026-02-07 09:00:00', 'Y'),
+('윤덕형내과의원', '강원도 춘천시 동내면 춘천순환로 58 2,4층', '033-264-9897', 'https://yooncvclinic.medisay.co.kr/', '사랑과 정성을 다하는 진료로 올 때마다 기분 좋은 병원이 될 수 있도록 노력하겠습니다.', 1, 0, 0, 1, 0, '2026-03-04 09:00:00', 'Y'),
+('두드림내과의원', '강원도 춘천시 우두1길 87 2층 (우두동)', '033-257-2575', 'http://dodream-clinic.com/home/sub/index.php', '건강검진에서 기본 내과 질환 및 소화기내과 전문 질환까지 폭넓은 서비스를 제공합니다. 특히, 강북 유일의 5대암 검진 기관으로 total care를 지향하며, 지역 주민의 건강 증진을 위해 노력하겠습니다.', 1, 0, 0, 1, 0, '2026-04-01 09:00:00', 'Y'),
+('김영돈내과의원', '강원도 강릉시 선수촌로 77 송원빌딩 5층 (홍제동)', '033-823-2275', '', '내과', 1, 1, 1, 1, 0,'2026-05-01 09:00:00', 'Y'),
+('경선산부인과의원', '강원도 강릉시 옥가로7번길 3 (옥천동)', '033-643-7131', 'https://xn--289ase702ci5c8pas81a.kr/', '내과, 산부인과', 1, 0, 0, 0, 0, '2026-06-01 09:30:00', 'Y'),
+('삼성서울병원', '서울시 강남구 일원로 81 (06351) 삼성서울병원', '1599-3114', 'http://www.samsunghospital.com/home/cancer/carecenter/lung.do', '치료방침 결정이 어려운 경우 여러 진료과의 전문의가 함께 모여 
+최적의 치료 방침을 논의하고 환자 중심의 개별 맞춤 치료를 시행하기 
+위해 암병원에서는 대면/비대면 다학제 진료가 이루어지고 있습니다.', 1, 1, 1, 1, 1, '2026-07-20 09:00:00', 'Y'),
+('서울본내과', '서울특별시 마포구 양화로 133 서교타워 3/5/18층', '02-3143-2220', 'https://www.seoulbon.co.kr/spc07', '처음 건강 그대로!사랑의 진료, 서울본내과입니다. 2000년 1월 대한민국 문화의 중심 홍대입구에 개원한 이래 통합내과클리닉을 표방하며 치료의 내실화에 심혈을 기울여 온 서울본내과가 더욱 우수한 진료와 환자 한분 한분을 위한 아낌없는 투자, 연구개발로 환자 중심의 진료를 위해 최선을 다하고 있습니다.', 1, 1, 1, 1, 1, '2026-09-01 09:00:00', 'Y'),
+('한일병원', '서울시 도봉구 우이천로 308 한일병원', '02-901-3114', 'https://www.hanilmed.net/portal/index.do', '', 1, 1, 1, 1, 1, '2026-09-09 09:00:00', 'Y');
+
+-- ------------------------------
+-- 6. timecards (최근 14일치, 재직 중인 사원 대상)
+-- ------------------------------
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-26 09:19:00', 4),
+('ATTENDANCE', '2026-08-30 09:19:00', 4),
+('ATTENDANCE', '2026-08-27 08:39:00', 4),
+('ATTENDANCE', '2026-08-31 08:48:00', 4),
+('ATTENDANCE', '2026-08-19 08:16:00', 4),
+('LEAVE', '2026-08-21 08:15:00', 4),
+('LEAVE', '2026-08-20 08:10:00', 4),
+('ATTENDANCE', '2026-08-28 09:44:00', 4),
+('ATTENDANCE', '2026-08-25 09:02:00', 4),
+('ATTENDANCE', '2026-08-24 09:44:00', 4),
+('LEAVE', '2026-08-27 08:41:00', 5),
+('LEAVE', '2026-08-26 09:52:00', 5),
+('ATTENDANCE', '2026-08-19 08:10:00', 5),
+('LEAVE', '2026-08-21 09:28:00', 5),
+('ATTENDANCE', '2026-08-31 09:44:00', 5),
+('ATTENDANCE', '2026-08-20 09:32:00', 5),
+('ATTENDANCE', '2026-08-30 08:43:00', 6),
+('ATTENDANCE', '2026-08-31 08:48:00', 6),
+('LEAVE', '2026-08-24 09:36:00', 6),
+('ATTENDANCE', '2026-08-25 08:30:00', 6);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-28 09:58:00', 6),
+('ATTENDANCE', '2026-08-26 09:40:00', 6),
+('ATTENDANCE', '2026-08-21 08:30:00', 6),
+('ATTENDANCE', '2026-08-20 09:20:00', 6),
+('ATTENDANCE', '2026-08-27 08:21:00', 6),
+('ATTENDANCE', '2026-08-26 09:55:00', 7),
+('ATTENDANCE', '2026-08-24 08:42:00', 7),
+('LEAVE', '2026-08-31 09:26:00', 7),
+('ATTENDANCE', '2026-08-27 09:39:00', 7),
+('LEAVE', '2026-08-21 09:48:00', 7),
+('LEAVE', '2026-08-28 09:35:00', 7),
+('ATTENDANCE', '2026-08-19 09:28:00', 7),
+('LEAVE', '2026-08-30 09:07:00', 7),
+('LEAVE', '2026-08-25 08:45:00', 7),
+('ATTENDANCE', '2026-08-31 09:32:00', 8),
+('ATTENDANCE', '2026-08-20 09:53:00', 8),
+('ATTENDANCE', '2026-08-24 09:15:00', 8),
+('ATTENDANCE', '2026-08-19 08:24:00', 8),
+('LEAVE', '2026-08-30 08:55:00', 8),
+('ATTENDANCE', '2026-08-21 09:21:00', 8);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-27 09:52:00', 8),
+('ATTENDANCE', '2026-08-26 09:53:00', 8),
+('LEAVE', '2026-08-28 09:55:00', 8),
+('ATTENDANCE', '2026-08-25 09:22:00', 8),
+('ATTENDANCE', '2026-08-24 09:47:00', 9),
+('ATTENDANCE', '2026-08-21 09:24:00', 9),
+('ATTENDANCE', '2026-08-25 08:31:00', 9),
+('ATTENDANCE', '2026-08-19 08:32:00', 9),
+('LEAVE', '2026-08-30 09:55:00', 9),
+('ATTENDANCE', '2026-08-20 09:06:00', 9),
+('ATTENDANCE', '2026-08-27 09:00:00', 9),
+('ATTENDANCE', '2026-08-31 09:55:00', 9),
+('ATTENDANCE', '2026-08-26 08:04:00', 9),
+('ATTENDANCE', '2026-08-28 09:21:00', 9),
+('ATTENDANCE', '2026-08-30 08:40:00', 10),
+('ATTENDANCE', '2026-08-25 09:14:00', 10),
+('ATTENDANCE', '2026-08-24 09:06:00', 10),
+('LEAVE', '2026-08-28 08:28:00', 10),
+('LEAVE', '2026-08-20 09:57:00', 10),
+('LEAVE', '2026-08-27 09:50:00', 10);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-31 09:23:00', 10),
+('ATTENDANCE', '2026-08-21 08:33:00', 10),
+('LEAVE', '2026-08-26 08:10:00', 10),
+('LEAVE', '2026-08-24 09:42:00', 11),
+('ATTENDANCE', '2026-08-27 09:57:00', 11),
+('ATTENDANCE', '2026-08-21 08:04:00', 11),
+('ATTENDANCE', '2026-08-26 09:37:00', 11),
+('ATTENDANCE', '2026-08-30 09:44:00', 11),
+('ATTENDANCE', '2026-08-25 09:12:00', 11),
+('ATTENDANCE', '2026-08-20 09:06:00', 11),
+('ATTENDANCE', '2026-08-28 09:36:00', 11),
+('ATTENDANCE', '2026-08-19 09:01:00', 11),
+('LEAVE', '2026-08-31 09:17:00', 11),
+('ATTENDANCE', '2026-08-19 09:14:00', 12),
+('ATTENDANCE', '2026-08-21 09:43:00', 12),
+('LEAVE', '2026-08-26 08:40:00', 12),
+('ATTENDANCE', '2026-08-24 08:19:00', 12),
+('ATTENDANCE', '2026-08-30 08:37:00', 12),
+('ATTENDANCE', '2026-08-20 08:05:00', 12),
+('ATTENDANCE', '2026-08-24 09:58:00', 13);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-28 09:51:00', 13),
+('LEAVE', '2026-08-27 09:51:00', 13),
+('ATTENDANCE', '2026-08-30 08:09:00', 13),
+('ATTENDANCE', '2026-08-26 08:55:00', 13),
+('ATTENDANCE', '2026-08-20 09:54:00', 13),
+('ATTENDANCE', '2026-08-25 09:05:00', 13),
+('ATTENDANCE', '2026-08-31 08:16:00', 13),
+('ATTENDANCE', '2026-08-25 09:01:00', 14),
+('ATTENDANCE', '2026-08-26 09:58:00', 14),
+('ATTENDANCE', '2026-08-24 08:40:00', 14),
+('ATTENDANCE', '2026-08-21 09:41:00', 14),
+('ATTENDANCE', '2026-08-19 08:02:00', 14),
+('LEAVE', '2026-08-28 09:31:00', 14),
+('ATTENDANCE', '2026-08-31 08:56:00', 14),
+('ATTENDANCE', '2026-08-20 09:29:00', 14),
+('ATTENDANCE', '2026-08-27 09:37:00', 14),
+('ATTENDANCE', '2026-08-24 09:13:00', 15),
+('ATTENDANCE', '2026-08-30 08:54:00', 15),
+('ATTENDANCE', '2026-08-21 09:34:00', 15),
+('ATTENDANCE', '2026-08-26 09:03:00', 15);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-27 08:07:00', 15),
+('ATTENDANCE', '2026-08-28 09:05:00', 15),
+('ATTENDANCE', '2026-08-31 08:03:00', 15),
+('ATTENDANCE', '2026-08-28 08:21:00', 16),
+('ATTENDANCE', '2026-08-27 08:17:00', 16),
+('ATTENDANCE', '2026-08-30 08:08:00', 16),
+('ATTENDANCE', '2026-08-24 08:07:00', 16),
+('LEAVE', '2026-08-26 08:08:00', 16),
+('ATTENDANCE', '2026-08-21 08:37:00', 16),
+('LEAVE', '2026-08-25 08:16:00', 16),
+('ATTENDANCE', '2026-08-20 08:46:00', 17),
+('ATTENDANCE', '2026-08-30 09:29:00', 17),
+('ATTENDANCE', '2026-08-19 08:03:00', 17),
+('ATTENDANCE', '2026-08-27 09:27:00', 17),
+('ATTENDANCE', '2026-08-24 09:45:00', 17),
+('LEAVE', '2026-08-28 08:57:00', 17),
+('LEAVE', '2026-08-31 08:04:00', 17),
+('ATTENDANCE', '2026-08-21 09:24:00', 17),
+('ATTENDANCE', '2026-08-25 09:29:00', 17),
+('ATTENDANCE', '2026-08-30 09:26:00', 18);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-19 09:27:00', 18),
+('ATTENDANCE', '2026-08-27 09:23:00', 18),
+('LEAVE', '2026-08-21 09:04:00', 18),
+('ATTENDANCE', '2026-08-24 08:05:00', 18),
+('LEAVE', '2026-08-20 09:51:00', 18),
+('ATTENDANCE', '2026-08-25 08:37:00', 18),
+('LEAVE', '2026-08-26 09:42:00', 18),
+('ATTENDANCE', '2026-08-28 09:55:00', 18),
+('LEAVE', '2026-08-31 08:54:00', 19),
+('ATTENDANCE', '2026-08-26 09:07:00', 19),
+('ATTENDANCE', '2026-08-20 08:51:00', 19),
+('ATTENDANCE', '2026-08-28 08:38:00', 19),
+('ATTENDANCE', '2026-08-19 09:01:00', 19),
+('ATTENDANCE', '2026-08-21 09:58:00', 19),
+('ATTENDANCE', '2026-08-30 08:11:00', 19),
+('LEAVE', '2026-08-25 09:04:00', 19),
+('ATTENDANCE', '2026-08-27 08:05:00', 19),
+('ATTENDANCE', '2026-08-24 09:49:00', 20),
+('LEAVE', '2026-08-19 08:56:00', 20),
+('ATTENDANCE', '2026-08-21 08:48:00', 20);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-28 08:17:00', 20),
+('ATTENDANCE', '2026-08-30 09:31:00', 20),
+('ATTENDANCE', '2026-08-20 09:17:00', 20),
+('ATTENDANCE', '2026-08-26 08:22:00', 20),
+('ATTENDANCE', '2026-08-19 08:19:00', 21),
+('ATTENDANCE', '2026-08-21 08:48:00', 21),
+('LEAVE', '2026-08-26 09:07:00', 21),
+('LEAVE', '2026-08-31 09:11:00', 21),
+('ATTENDANCE', '2026-08-30 08:32:00', 21),
+('ATTENDANCE', '2026-08-27 09:04:00', 21),
+('LEAVE', '2026-08-24 08:27:00', 21),
+('ATTENDANCE', '2026-08-20 08:55:00', 21),
+('ATTENDANCE', '2026-08-19 09:53:00', 22),
+('ATTENDANCE', '2026-08-24 09:05:00', 22),
+('ATTENDANCE', '2026-08-20 08:15:00', 22),
+('LEAVE', '2026-08-28 09:33:00', 22),
+('ATTENDANCE', '2026-08-31 09:47:00', 22),
+('LEAVE', '2026-08-27 09:49:00', 22),
+('ATTENDANCE', '2026-08-25 08:33:00', 22),
+('ATTENDANCE', '2026-08-30 09:22:00', 22);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-26 08:15:00', 22),
+('ATTENDANCE', '2026-08-27 09:29:00', 23),
+('ATTENDANCE', '2026-08-28 09:43:00', 23),
+('ATTENDANCE', '2026-08-20 09:55:00', 23),
+('ATTENDANCE', '2026-08-24 09:09:00', 23),
+('ATTENDANCE', '2026-08-25 09:28:00', 23),
+('LEAVE', '2026-08-31 09:37:00', 23),
+('ATTENDANCE', '2026-08-30 08:19:00', 23),
+('ATTENDANCE', '2026-08-21 08:03:00', 23),
+('ATTENDANCE', '2026-08-30 08:20:00', 24),
+('ATTENDANCE', '2026-08-19 08:03:00', 24),
+('LEAVE', '2026-08-24 09:45:00', 24),
+('ATTENDANCE', '2026-08-27 08:02:00', 24),
+('ATTENDANCE', '2026-08-26 09:28:00', 24),
+('ATTENDANCE', '2026-08-25 08:23:00', 24),
+('ATTENDANCE', '2026-08-31 09:24:00', 24),
+('ATTENDANCE', '2026-08-20 09:43:00', 24),
+('LEAVE', '2026-08-30 08:21:00', 25),
+('ATTENDANCE', '2026-08-25 08:58:00', 25),
+('ATTENDANCE', '2026-08-19 09:08:00', 25);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-26 08:19:00', 25),
+('LEAVE', '2026-08-20 09:52:00', 25),
+('ATTENDANCE', '2026-08-27 08:41:00', 25),
+('ATTENDANCE', '2026-08-28 09:01:00', 25),
+('ATTENDANCE', '2026-08-21 08:13:00', 25),
+('ATTENDANCE', '2026-08-27 09:56:00', 26),
+('ATTENDANCE', '2026-08-19 08:38:00', 26),
+('ATTENDANCE', '2026-08-28 08:11:00', 26),
+('ATTENDANCE', '2026-08-30 08:46:00', 26),
+('ATTENDANCE', '2026-08-31 09:23:00', 26),
+('ATTENDANCE', '2026-08-21 08:28:00', 26),
+('ATTENDANCE', '2026-08-25 09:14:00', 26),
+('ATTENDANCE', '2026-08-26 09:51:00', 26),
+('ATTENDANCE', '2026-08-20 08:23:00', 26),
+('ATTENDANCE', '2026-08-21 09:03:00', 27),
+('ATTENDANCE', '2026-08-19 09:35:00', 27),
+('LEAVE', '2026-08-26 08:18:00', 27),
+('ATTENDANCE', '2026-08-24 08:17:00', 27),
+('ATTENDANCE', '2026-08-27 08:53:00', 27),
+('ATTENDANCE', '2026-08-20 08:52:00', 27);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-25 09:59:00', 27),
+('ATTENDANCE', '2026-08-31 08:25:00', 27),
+('ATTENDANCE', '2026-08-28 08:24:00', 27),
+('LEAVE', '2026-08-30 09:14:00', 27),
+('ATTENDANCE', '2026-08-25 08:48:00', 28),
+('LEAVE', '2026-08-28 09:39:00', 28),
+('ATTENDANCE', '2026-08-20 08:01:00', 28),
+('ATTENDANCE', '2026-08-31 08:35:00', 28),
+('ATTENDANCE', '2026-08-21 09:07:00', 28),
+('LEAVE', '2026-08-27 08:19:00', 28),
+('LEAVE', '2026-08-24 08:45:00', 29),
+('ATTENDANCE', '2026-08-21 09:00:00', 29),
+('ATTENDANCE', '2026-08-30 08:36:00', 29),
+('ATTENDANCE', '2026-08-31 08:33:00', 29),
+('ATTENDANCE', '2026-08-27 08:33:00', 29),
+('ATTENDANCE', '2026-08-26 08:24:00', 29),
+('ATTENDANCE', '2026-08-19 08:40:00', 29),
+('ATTENDANCE', '2026-08-26 08:49:00', 30),
+('LEAVE', '2026-08-31 09:08:00', 30),
+('ATTENDANCE', '2026-08-25 09:52:00', 30);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-24 09:44:00', 30),
+('LEAVE', '2026-08-20 08:51:00', 30),
+('ATTENDANCE', '2026-08-28 09:02:00', 30),
+('ATTENDANCE', '2026-08-30 08:50:00', 30),
+('ATTENDANCE', '2026-08-19 08:20:00', 30),
+('ATTENDANCE', '2026-08-24 09:07:00', 31),
+('ATTENDANCE', '2026-08-20 09:56:00', 31),
+('ATTENDANCE', '2026-08-21 09:57:00', 31),
+('ATTENDANCE', '2026-08-28 09:11:00', 31),
+('ATTENDANCE', '2026-08-31 09:23:00', 31),
+('LEAVE', '2026-08-30 09:51:00', 31),
+('ATTENDANCE', '2026-08-19 09:05:00', 31),
+('ATTENDANCE', '2026-08-26 08:34:00', 31),
+('ATTENDANCE', '2026-08-25 08:05:00', 31),
+('ATTENDANCE', '2026-08-27 09:19:00', 31),
+('ATTENDANCE', '2026-08-28 08:42:00', 32),
+('ATTENDANCE', '2026-08-21 09:32:00', 32),
+('LEAVE', '2026-08-25 08:01:00', 32),
+('LEAVE', '2026-08-27 09:02:00', 32),
+('ATTENDANCE', '2026-08-31 08:49:00', 32);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-19 09:24:00', 32),
+('LEAVE', '2026-08-24 08:38:00', 32),
+('ATTENDANCE', '2026-08-30 09:23:00', 32),
+('LEAVE', '2026-08-20 08:36:00', 32),
+('ATTENDANCE', '2026-08-24 09:58:00', 33),
+('ATTENDANCE', '2026-08-25 09:49:00', 33),
+('ATTENDANCE', '2026-08-26 09:13:00', 33),
+('ATTENDANCE', '2026-08-30 09:44:00', 33),
+('LEAVE', '2026-08-31 09:12:00', 33),
+('LEAVE', '2026-08-20 08:28:00', 33),
+('ATTENDANCE', '2026-08-19 09:05:00', 33),
+('ATTENDANCE', '2026-08-27 09:42:00', 33),
+('ATTENDANCE', '2026-08-20 09:32:00', 34),
+('LEAVE', '2026-08-19 08:50:00', 34),
+('ATTENDANCE', '2026-08-26 09:01:00', 34),
+('ATTENDANCE', '2026-08-28 09:29:00', 34),
+('ATTENDANCE', '2026-08-30 08:39:00', 34),
+('ATTENDANCE', '2026-08-25 08:19:00', 34),
+('ATTENDANCE', '2026-08-20 09:29:00', 35),
+('ATTENDANCE', '2026-08-24 09:08:00', 35);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-19 08:49:00', 35),
+('ATTENDANCE', '2026-08-21 09:32:00', 35),
+('LEAVE', '2026-08-26 08:53:00', 35),
+('LEAVE', '2026-08-31 08:19:00', 35),
+('ATTENDANCE', '2026-08-30 09:59:00', 35),
+('ATTENDANCE', '2026-08-27 09:33:00', 35),
+('ATTENDANCE', '2026-08-25 08:16:00', 35),
+('ATTENDANCE', '2026-08-26 09:53:00', 36),
+('ATTENDANCE', '2026-08-28 08:52:00', 36),
+('ATTENDANCE', '2026-08-19 08:02:00', 36),
+('ATTENDANCE', '2026-08-21 09:41:00', 36),
+('ATTENDANCE', '2026-08-24 09:39:00', 36),
+('ATTENDANCE', '2026-08-31 09:56:00', 36),
+('ATTENDANCE', '2026-08-30 09:41:00', 36),
+('ATTENDANCE', '2026-08-20 09:15:00', 36),
+('ATTENDANCE', '2026-08-25 09:19:00', 36),
+('ATTENDANCE', '2026-08-27 08:10:00', 36),
+('ATTENDANCE', '2026-08-21 09:08:00', 37),
+('ATTENDANCE', '2026-08-27 08:20:00', 37),
+('ATTENDANCE', '2026-08-25 08:17:00', 37);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-26 08:06:00', 37),
+('ATTENDANCE', '2026-08-30 09:55:00', 37),
+('ATTENDANCE', '2026-08-28 08:55:00', 37),
+('ATTENDANCE', '2026-08-24 09:59:00', 37),
+('ATTENDANCE', '2026-08-20 09:12:00', 37),
+('ATTENDANCE', '2026-08-19 09:32:00', 37),
+('LEAVE', '2026-08-21 09:03:00', 38),
+('ATTENDANCE', '2026-08-31 09:38:00', 38),
+('ATTENDANCE', '2026-08-30 09:18:00', 38),
+('LEAVE', '2026-08-27 08:27:00', 38),
+('ATTENDANCE', '2026-08-26 09:46:00', 38),
+('LEAVE', '2026-08-24 09:23:00', 38),
+('ATTENDANCE', '2026-08-19 08:36:00', 38),
+('ATTENDANCE', '2026-08-20 09:35:00', 38),
+('ATTENDANCE', '2026-08-20 09:23:00', 39),
+('ATTENDANCE', '2026-08-21 09:35:00', 39),
+('ATTENDANCE', '2026-08-26 08:12:00', 39),
+('LEAVE', '2026-08-24 09:32:00', 39),
+('ATTENDANCE', '2026-08-19 08:08:00', 39),
+('ATTENDANCE', '2026-08-25 09:33:00', 39);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-31 08:20:00', 39),
+('ATTENDANCE', '2026-08-27 09:10:00', 39),
+('ATTENDANCE', '2026-08-28 09:37:00', 39),
+('ATTENDANCE', '2026-08-20 09:50:00', 40),
+('ATTENDANCE', '2026-08-21 08:38:00', 40),
+('LEAVE', '2026-08-26 08:46:00', 40),
+('ATTENDANCE', '2026-08-27 09:10:00', 40),
+('ATTENDANCE', '2026-08-31 09:09:00', 40),
+('ATTENDANCE', '2026-08-28 08:02:00', 40),
+('LEAVE', '2026-08-19 08:12:00', 40),
+('LEAVE', '2026-08-24 09:26:00', 40),
+('ATTENDANCE', '2026-08-25 08:26:00', 40),
+('ATTENDANCE', '2026-08-30 09:55:00', 40),
+('ATTENDANCE', '2026-08-28 09:20:00', 41),
+('ATTENDANCE', '2026-08-20 09:58:00', 41),
+('ATTENDANCE', '2026-08-27 09:43:00', 41),
+('ATTENDANCE', '2026-08-26 09:39:00', 41),
+('ATTENDANCE', '2026-08-19 08:17:00', 41),
+('ATTENDANCE', '2026-08-21 08:19:00', 41),
+('ATTENDANCE', '2026-08-21 08:36:00', 42);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-25 09:57:00', 42),
+('ATTENDANCE', '2026-08-19 09:49:00', 42),
+('ATTENDANCE', '2026-08-28 09:02:00', 42),
+('ATTENDANCE', '2026-08-26 08:22:00', 42),
+('ATTENDANCE', '2026-08-24 09:47:00', 42),
+('ATTENDANCE', '2026-08-20 08:52:00', 42),
+('LEAVE', '2026-08-26 08:03:00', 43),
+('ATTENDANCE', '2026-08-28 09:45:00', 43),
+('ATTENDANCE', '2026-08-30 08:00:00', 43),
+('ATTENDANCE', '2026-08-19 08:26:00', 43),
+('ATTENDANCE', '2026-08-25 09:30:00', 43),
+('ATTENDANCE', '2026-08-24 09:20:00', 43),
+('ATTENDANCE', '2026-08-21 08:58:00', 43),
+('ATTENDANCE', '2026-08-31 08:34:00', 43),
+('ATTENDANCE', '2026-08-20 08:58:00', 43),
+('ATTENDANCE', '2026-08-27 09:56:00', 43),
+('ATTENDANCE', '2026-08-24 08:19:00', 44),
+('ATTENDANCE', '2026-08-21 08:59:00', 44),
+('ATTENDANCE', '2026-08-28 09:29:00', 44),
+('ATTENDANCE', '2026-08-25 09:56:00', 44);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-20 09:17:00', 44),
+('LEAVE', '2026-08-31 08:21:00', 44),
+('ATTENDANCE', '2026-08-26 09:32:00', 45),
+('LEAVE', '2026-08-28 09:42:00', 45),
+('ATTENDANCE', '2026-08-31 08:30:00', 45),
+('ATTENDANCE', '2026-08-25 08:00:00', 45),
+('ATTENDANCE', '2026-08-20 08:28:00', 45),
+('ATTENDANCE', '2026-08-24 09:19:00', 45),
+('ATTENDANCE', '2026-08-30 08:16:00', 45),
+('ATTENDANCE', '2026-08-21 08:03:00', 45),
+('LEAVE', '2026-08-27 09:19:00', 45),
+('ATTENDANCE', '2026-08-26 09:47:00', 46),
+('ATTENDANCE', '2026-08-30 09:26:00', 46),
+('ATTENDANCE', '2026-08-19 09:48:00', 46),
+('ATTENDANCE', '2026-08-28 08:48:00', 46),
+('ATTENDANCE', '2026-08-21 08:33:00', 46),
+('ATTENDANCE', '2026-08-20 09:04:00', 46),
+('ATTENDANCE', '2026-08-25 08:03:00', 46),
+('ATTENDANCE', '2026-08-31 08:36:00', 46),
+('ATTENDANCE', '2026-08-27 08:20:00', 46);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-24 09:07:00', 46),
+('ATTENDANCE', '2026-08-21 08:35:00', 47),
+('LEAVE', '2026-08-30 09:46:00', 47),
+('LEAVE', '2026-08-19 09:52:00', 47),
+('LEAVE', '2026-08-24 08:37:00', 47),
+('ATTENDANCE', '2026-08-31 09:22:00', 47),
+('ATTENDANCE', '2026-08-27 08:59:00', 47),
+('ATTENDANCE', '2026-08-20 09:02:00', 47),
+('LEAVE', '2026-08-28 08:49:00', 47),
+('ATTENDANCE', '2026-08-26 09:23:00', 47),
+('ATTENDANCE', '2026-08-25 09:28:00', 47),
+('ATTENDANCE', '2026-08-24 08:46:00', 48),
+('LEAVE', '2026-08-30 08:48:00', 48),
+('ATTENDANCE', '2026-08-28 09:29:00', 48),
+('ATTENDANCE', '2026-08-25 09:34:00', 48),
+('ATTENDANCE', '2026-08-21 08:15:00', 48),
+('ATTENDANCE', '2026-08-31 08:17:00', 48),
+('ATTENDANCE', '2026-08-20 08:02:00', 48),
+('ATTENDANCE', '2026-08-19 09:39:00', 48),
+('ATTENDANCE', '2026-08-27 08:15:00', 48);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-19 08:47:00', 50),
+('ATTENDANCE', '2026-08-31 09:14:00', 50),
+('ATTENDANCE', '2026-08-21 08:08:00', 50),
+('ATTENDANCE', '2026-08-26 09:14:00', 50),
+('ATTENDANCE', '2026-08-25 09:36:00', 50),
+('ATTENDANCE', '2026-08-20 09:15:00', 50),
+('ATTENDANCE', '2026-08-20 09:35:00', 51),
+('ATTENDANCE', '2026-08-27 09:41:00', 51),
+('ATTENDANCE', '2026-08-24 09:44:00', 51),
+('ATTENDANCE', '2026-08-28 08:19:00', 51),
+('ATTENDANCE', '2026-08-21 09:15:00', 51),
+('ATTENDANCE', '2026-08-31 09:54:00', 51),
+('LEAVE', '2026-08-30 09:58:00', 51),
+('ATTENDANCE', '2026-08-24 09:54:00', 52),
+('ATTENDANCE', '2026-08-20 08:03:00', 52),
+('LEAVE', '2026-08-28 08:55:00', 52),
+('ATTENDANCE', '2026-08-27 08:30:00', 52),
+('ATTENDANCE', '2026-08-30 09:19:00', 52),
+('ATTENDANCE', '2026-08-21 08:13:00', 52),
+('ATTENDANCE', '2026-08-25 08:47:00', 52);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-19 09:58:00', 52),
+('ATTENDANCE', '2026-08-31 08:25:00', 52),
+('ATTENDANCE', '2026-08-25 09:06:00', 53),
+('ATTENDANCE', '2026-08-26 09:48:00', 53),
+('ATTENDANCE', '2026-08-24 08:23:00', 53),
+('ATTENDANCE', '2026-08-27 08:36:00', 53),
+('ATTENDANCE', '2026-08-20 08:01:00', 53),
+('LEAVE', '2026-08-28 09:18:00', 53),
+('ATTENDANCE', '2026-08-19 09:14:00', 53),
+('ATTENDANCE', '2026-08-30 08:31:00', 53),
+('ATTENDANCE', '2026-08-21 09:16:00', 53),
+('ATTENDANCE', '2026-08-31 09:46:00', 53),
+('ATTENDANCE', '2026-08-21 08:53:00', 54),
+('LEAVE', '2026-08-28 08:48:00', 54),
+('ATTENDANCE', '2026-08-25 08:53:00', 54),
+('LEAVE', '2026-08-30 08:45:00', 54),
+('ATTENDANCE', '2026-08-24 08:32:00', 54),
+('ATTENDANCE', '2026-08-26 08:39:00', 54),
+('ATTENDANCE', '2026-08-27 09:42:00', 54),
+('ATTENDANCE', '2026-08-31 08:34:00', 54);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-20 08:01:00', 54),
+('LEAVE', '2026-08-20 08:33:00', 55),
+('ATTENDANCE', '2026-08-26 08:39:00', 55),
+('ATTENDANCE', '2026-08-31 09:17:00', 55),
+('ATTENDANCE', '2026-08-19 08:23:00', 55),
+('ATTENDANCE', '2026-08-25 09:36:00', 55),
+('ATTENDANCE', '2026-08-27 08:19:00', 55),
+('ATTENDANCE', '2026-08-30 08:41:00', 55),
+('ATTENDANCE', '2026-08-21 08:05:00', 55),
+('ATTENDANCE', '2026-08-20 09:36:00', 56),
+('ATTENDANCE', '2026-08-21 08:57:00', 56),
+('ATTENDANCE', '2026-08-31 08:14:00', 56),
+('LEAVE', '2026-08-25 09:17:00', 56),
+('ATTENDANCE', '2026-08-19 08:43:00', 56),
+('ATTENDANCE', '2026-08-30 08:11:00', 56),
+('ATTENDANCE', '2026-08-24 09:01:00', 56),
+('ATTENDANCE', '2026-08-26 08:48:00', 56),
+('LEAVE', '2026-08-28 09:59:00', 56),
+('ATTENDANCE', '2026-08-19 08:50:00', 58),
+('ATTENDANCE', '2026-08-27 08:32:00', 58);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-24 09:03:00', 58),
+('LEAVE', '2026-08-25 08:53:00', 58),
+('ATTENDANCE', '2026-08-26 09:49:00', 58),
+('ATTENDANCE', '2026-08-28 09:50:00', 58),
+('ATTENDANCE', '2026-08-20 09:14:00', 58),
+('LEAVE', '2026-08-24 08:17:00', 59),
+('ATTENDANCE', '2026-08-28 08:47:00', 59),
+('LEAVE', '2026-08-19 09:06:00', 59),
+('ATTENDANCE', '2026-08-31 09:28:00', 59),
+('LEAVE', '2026-08-26 09:06:00', 59),
+('ATTENDANCE', '2026-08-20 08:27:00', 59),
+('LEAVE', '2026-08-30 09:06:00', 59),
+('LEAVE', '2026-08-25 09:35:00', 59),
+('ATTENDANCE', '2026-08-21 09:55:00', 59),
+('LEAVE', '2026-08-24 09:10:00', 60),
+('ATTENDANCE', '2026-08-19 09:17:00', 60),
+('ATTENDANCE', '2026-08-30 08:10:00', 60),
+('ATTENDANCE', '2026-08-25 09:19:00', 60),
+('ATTENDANCE', '2026-08-26 08:23:00', 60),
+('ATTENDANCE', '2026-08-21 08:46:00', 60);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-20 08:29:00', 60),
+('ATTENDANCE', '2026-08-28 09:00:00', 60),
+('ATTENDANCE', '2026-08-19 09:38:00', 61),
+('ATTENDANCE', '2026-08-24 08:30:00', 61),
+('ATTENDANCE', '2026-08-25 09:20:00', 61),
+('ATTENDANCE', '2026-08-27 09:36:00', 61),
+('ATTENDANCE', '2026-08-28 09:24:00', 61),
+('LEAVE', '2026-08-20 09:23:00', 61),
+('ATTENDANCE', '2026-08-30 08:37:00', 61),
+('ATTENDANCE', '2026-08-26 08:43:00', 61),
+('ATTENDANCE', '2026-08-21 09:43:00', 62),
+('ATTENDANCE', '2026-08-27 09:15:00', 62),
+('ATTENDANCE', '2026-08-19 08:45:00', 62),
+('ATTENDANCE', '2026-08-24 09:04:00', 62),
+('ATTENDANCE', '2026-08-28 09:37:00', 62),
+('LEAVE', '2026-08-31 09:34:00', 62),
+('ATTENDANCE', '2026-08-20 08:36:00', 63),
+('ATTENDANCE', '2026-08-30 09:48:00', 63),
+('LEAVE', '2026-08-19 09:06:00', 63),
+('ATTENDANCE', '2026-08-24 09:14:00', 63);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-21 08:28:00', 63),
+('ATTENDANCE', '2026-08-28 09:49:00', 63),
+('ATTENDANCE', '2026-08-25 08:22:00', 63),
+('ATTENDANCE', '2026-08-26 09:06:00', 63),
+('ATTENDANCE', '2026-08-30 08:33:00', 64),
+('ATTENDANCE', '2026-08-28 09:06:00', 64),
+('LEAVE', '2026-08-25 09:20:00', 64),
+('ATTENDANCE', '2026-08-20 08:51:00', 64),
+('ATTENDANCE', '2026-08-24 08:54:00', 64),
+('ATTENDANCE', '2026-08-27 08:43:00', 64),
+('ATTENDANCE', '2026-08-20 08:51:00', 65),
+('ATTENDANCE', '2026-08-28 08:11:00', 65),
+('LEAVE', '2026-08-19 09:25:00', 65),
+('ATTENDANCE', '2026-08-21 08:28:00', 65),
+('ATTENDANCE', '2026-08-26 09:00:00', 65),
+('ATTENDANCE', '2026-08-27 08:17:00', 65),
+('LEAVE', '2026-08-25 08:36:00', 65),
+('ATTENDANCE', '2026-08-28 09:39:00', 66),
+('ATTENDANCE', '2026-08-25 08:22:00', 66),
+('LEAVE', '2026-08-20 09:39:00', 66);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-30 09:58:00', 66),
+('LEAVE', '2026-08-27 08:43:00', 66),
+('ATTENDANCE', '2026-08-31 08:15:00', 66),
+('ATTENDANCE', '2026-08-19 08:23:00', 66),
+('ATTENDANCE', '2026-08-21 09:26:00', 66),
+('ATTENDANCE', '2026-08-24 09:27:00', 66),
+('LEAVE', '2026-08-26 08:35:00', 66),
+('LEAVE', '2026-08-28 08:31:00', 67),
+('ATTENDANCE', '2026-08-19 09:35:00', 67),
+('ATTENDANCE', '2026-08-25 09:26:00', 67),
+('ATTENDANCE', '2026-08-24 09:45:00', 67),
+('LEAVE', '2026-08-27 09:10:00', 67),
+('ATTENDANCE', '2026-08-26 08:50:00', 67),
+('ATTENDANCE', '2026-08-31 09:02:00', 67),
+('ATTENDANCE', '2026-08-30 09:10:00', 67),
+('LEAVE', '2026-08-21 08:27:00', 68),
+('ATTENDANCE', '2026-08-20 08:19:00', 68),
+('ATTENDANCE', '2026-08-30 08:28:00', 68),
+('ATTENDANCE', '2026-08-26 08:28:00', 68),
+('ATTENDANCE', '2026-08-31 08:49:00', 68);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-28 08:51:00', 68),
+('ATTENDANCE', '2026-08-24 09:55:00', 68),
+('ATTENDANCE', '2026-08-27 09:10:00', 68),
+('ATTENDANCE', '2026-08-25 08:52:00', 68),
+('ATTENDANCE', '2026-08-19 08:36:00', 68),
+('ATTENDANCE', '2026-08-19 09:54:00', 69),
+('ATTENDANCE', '2026-08-20 08:08:00', 69),
+('LEAVE', '2026-08-28 09:58:00', 69),
+('ATTENDANCE', '2026-08-21 09:55:00', 69),
+('LEAVE', '2026-08-25 08:15:00', 69),
+('ATTENDANCE', '2026-08-24 09:53:00', 69),
+('LEAVE', '2026-08-26 09:31:00', 69),
+('ATTENDANCE', '2026-08-27 09:40:00', 69),
+('LEAVE', '2026-08-30 09:37:00', 70),
+('ATTENDANCE', '2026-08-19 08:46:00', 70),
+('LEAVE', '2026-08-24 09:54:00', 70),
+('ATTENDANCE', '2026-08-26 09:13:00', 70),
+('ATTENDANCE', '2026-08-25 08:31:00', 70),
+('ATTENDANCE', '2026-08-28 09:21:00', 70),
+('ATTENDANCE', '2026-08-21 08:36:00', 70);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-20 09:57:00', 70),
+('LEAVE', '2026-08-27 08:02:00', 70),
+('ATTENDANCE', '2026-08-31 09:10:00', 71),
+('ATTENDANCE', '2026-08-30 09:05:00', 71),
+('ATTENDANCE', '2026-08-28 09:05:00', 71),
+('ATTENDANCE', '2026-08-27 08:03:00', 71),
+('ATTENDANCE', '2026-08-24 09:46:00', 71),
+('ATTENDANCE', '2026-08-19 08:27:00', 71),
+('ATTENDANCE', '2026-08-25 08:00:00', 71),
+('ATTENDANCE', '2026-08-26 08:08:00', 71),
+('LEAVE', '2026-08-21 09:00:00', 71),
+('ATTENDANCE', '2026-08-30 08:06:00', 72),
+('ATTENDANCE', '2026-08-24 09:08:00', 72),
+('ATTENDANCE', '2026-08-28 08:41:00', 72),
+('ATTENDANCE', '2026-08-27 08:04:00', 72),
+('ATTENDANCE', '2026-08-31 08:39:00', 72),
+('ATTENDANCE', '2026-08-19 09:22:00', 72),
+('ATTENDANCE', '2026-08-20 08:58:00', 72),
+('ATTENDANCE', '2026-08-25 09:55:00', 72),
+('ATTENDANCE', '2026-08-28 08:15:00', 73);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-30 08:15:00', 73),
+('ATTENDANCE', '2026-08-24 09:49:00', 73),
+('ATTENDANCE', '2026-08-19 08:54:00', 73),
+('ATTENDANCE', '2026-08-27 09:13:00', 73),
+('ATTENDANCE', '2026-08-21 08:47:00', 73),
+('ATTENDANCE', '2026-08-27 08:33:00', 74),
+('ATTENDANCE', '2026-08-21 08:23:00', 74),
+('ATTENDANCE', '2026-08-24 08:24:00', 74),
+('ATTENDANCE', '2026-08-31 09:23:00', 74),
+('ATTENDANCE', '2026-08-30 08:48:00', 74),
+('ATTENDANCE', '2026-08-19 08:01:00', 74),
+('ATTENDANCE', '2026-08-26 09:40:00', 75),
+('ATTENDANCE', '2026-08-27 09:27:00', 75),
+('ATTENDANCE', '2026-08-31 08:40:00', 75),
+('LEAVE', '2026-08-21 08:17:00', 75),
+('ATTENDANCE', '2026-08-20 08:32:00', 75),
+('ATTENDANCE', '2026-08-19 08:34:00', 75),
+('ATTENDANCE', '2026-08-30 09:39:00', 76),
+('ATTENDANCE', '2026-08-26 09:42:00', 76),
+('LEAVE', '2026-08-24 08:07:00', 76);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-25 08:44:00', 76),
+('ATTENDANCE', '2026-08-19 09:22:00', 76),
+('ATTENDANCE', '2026-08-31 09:10:00', 76),
+('ATTENDANCE', '2026-08-21 09:46:00', 76),
+('ATTENDANCE', '2026-08-20 08:21:00', 76),
+('LEAVE', '2026-08-27 09:33:00', 76),
+('ATTENDANCE', '2026-08-28 08:31:00', 76),
+('ATTENDANCE', '2026-08-31 08:14:00', 77),
+('ATTENDANCE', '2026-08-21 08:02:00', 77),
+('LEAVE', '2026-08-28 08:15:00', 77),
+('ATTENDANCE', '2026-08-20 09:24:00', 77),
+('ATTENDANCE', '2026-08-30 08:59:00', 77),
+('ATTENDANCE', '2026-08-24 08:35:00', 77),
+('ATTENDANCE', '2026-08-19 09:14:00', 77),
+('ATTENDANCE', '2026-08-26 09:58:00', 77),
+('LEAVE', '2026-08-30 08:25:00', 78),
+('ATTENDANCE', '2026-08-25 09:55:00', 78),
+('LEAVE', '2026-08-19 09:20:00', 78),
+('ATTENDANCE', '2026-08-26 09:00:00', 78),
+('ATTENDANCE', '2026-08-20 09:36:00', 78);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-31 08:29:00', 78),
+('ATTENDANCE', '2026-08-21 09:49:00', 78),
+('LEAVE', '2026-08-24 08:09:00', 78),
+('ATTENDANCE', '2026-08-31 09:06:00', 79),
+('ATTENDANCE', '2026-08-27 08:26:00', 79),
+('ATTENDANCE', '2026-08-25 08:09:00', 79),
+('ATTENDANCE', '2026-08-21 08:02:00', 79),
+('ATTENDANCE', '2026-08-24 09:44:00', 79),
+('LEAVE', '2026-08-19 09:47:00', 79),
+('LEAVE', '2026-08-28 08:32:00', 79),
+('ATTENDANCE', '2026-08-26 09:04:00', 79),
+('ATTENDANCE', '2026-08-30 08:27:00', 79),
+('ATTENDANCE', '2026-08-27 09:28:00', 80),
+('LEAVE', '2026-08-26 08:12:00', 80),
+('LEAVE', '2026-08-20 08:09:00', 80),
+('ATTENDANCE', '2026-08-24 09:29:00', 80),
+('ATTENDANCE', '2026-08-28 08:34:00', 80),
+('ATTENDANCE', '2026-08-19 08:28:00', 80),
+('LEAVE', '2026-08-25 09:54:00', 80),
+('ATTENDANCE', '2026-08-26 08:22:00', 81);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-31 08:43:00', 81),
+('ATTENDANCE', '2026-08-27 08:01:00', 81),
+('ATTENDANCE', '2026-08-24 09:35:00', 81),
+('ATTENDANCE', '2026-08-28 08:06:00', 81),
+('LEAVE', '2026-08-30 08:07:00', 81),
+('ATTENDANCE', '2026-08-20 08:08:00', 81),
+('ATTENDANCE', '2026-08-25 08:05:00', 82),
+('LEAVE', '2026-08-30 09:07:00', 82),
+('LEAVE', '2026-08-26 09:03:00', 82),
+('ATTENDANCE', '2026-08-24 09:52:00', 82),
+('ATTENDANCE', '2026-08-31 09:01:00', 82),
+('ATTENDANCE', '2026-08-19 09:11:00', 82),
+('ATTENDANCE', '2026-08-21 08:17:00', 82),
+('ATTENDANCE', '2026-08-27 08:02:00', 82),
+('ATTENDANCE', '2026-08-20 08:41:00', 82),
+('ATTENDANCE', '2026-08-20 08:40:00', 83),
+('ATTENDANCE', '2026-08-21 08:24:00', 83),
+('ATTENDANCE', '2026-08-31 09:30:00', 83),
+('ATTENDANCE', '2026-08-19 09:22:00', 83),
+('ATTENDANCE', '2026-08-28 09:24:00', 83);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-27 08:20:00', 83),
+('ATTENDANCE', '2026-08-30 08:57:00', 83),
+('ATTENDANCE', '2026-08-26 09:03:00', 83),
+('ATTENDANCE', '2026-08-24 09:33:00', 83),
+('ATTENDANCE', '2026-08-27 09:22:00', 84),
+('ATTENDANCE', '2026-08-28 08:11:00', 84),
+('ATTENDANCE', '2026-08-30 09:51:00', 84),
+('ATTENDANCE', '2026-08-21 09:58:00', 84),
+('ATTENDANCE', '2026-08-25 09:36:00', 84),
+('ATTENDANCE', '2026-08-24 08:53:00', 84),
+('ATTENDANCE', '2026-08-20 09:34:00', 84),
+('LEAVE', '2026-08-19 09:02:00', 84),
+('ATTENDANCE', '2026-08-31 08:38:00', 84),
+('ATTENDANCE', '2026-08-26 09:00:00', 84),
+('ATTENDANCE', '2026-08-27 08:54:00', 85),
+('ATTENDANCE', '2026-08-28 09:04:00', 85),
+('LEAVE', '2026-08-25 09:37:00', 85),
+('LEAVE', '2026-08-21 09:20:00', 85),
+('ATTENDANCE', '2026-08-30 08:46:00', 85),
+('ATTENDANCE', '2026-08-20 09:41:00', 85);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-31 09:14:00', 85),
+('ATTENDANCE', '2026-08-19 08:24:00', 85),
+('LEAVE', '2026-08-26 09:08:00', 85),
+('ATTENDANCE', '2026-08-24 08:44:00', 85),
+('ATTENDANCE', '2026-08-19 09:09:00', 86),
+('ATTENDANCE', '2026-08-31 08:15:00', 86),
+('ATTENDANCE', '2026-08-28 09:10:00', 86),
+('ATTENDANCE', '2026-08-26 08:52:00', 86),
+('LEAVE', '2026-08-21 09:28:00', 86),
+('ATTENDANCE', '2026-08-24 08:15:00', 86),
+('ATTENDANCE', '2026-08-30 09:16:00', 86),
+('ATTENDANCE', '2026-08-25 08:03:00', 86),
+('ATTENDANCE', '2026-08-20 09:10:00', 86),
+('ATTENDANCE', '2026-08-24 08:51:00', 87),
+('ATTENDANCE', '2026-08-25 09:01:00', 87),
+('ATTENDANCE', '2026-08-19 08:04:00', 87),
+('ATTENDANCE', '2026-08-31 09:10:00', 87),
+('ATTENDANCE', '2026-08-27 08:21:00', 87),
+('LEAVE', '2026-08-26 09:45:00', 87),
+('ATTENDANCE', '2026-08-30 08:38:00', 87);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-21 08:03:00', 87),
+('ATTENDANCE', '2026-08-20 08:12:00', 87),
+('LEAVE', '2026-08-20 08:23:00', 89),
+('ATTENDANCE', '2026-08-26 08:18:00', 89),
+('LEAVE', '2026-08-19 09:12:00', 89),
+('ATTENDANCE', '2026-08-28 08:10:00', 89),
+('ATTENDANCE', '2026-08-30 08:30:00', 89),
+('ATTENDANCE', '2026-08-31 09:50:00', 89),
+('ATTENDANCE', '2026-08-21 09:57:00', 89),
+('ATTENDANCE', '2026-08-25 08:41:00', 89),
+('ATTENDANCE', '2026-08-24 08:23:00', 89),
+('ATTENDANCE', '2026-08-27 09:11:00', 89),
+('ATTENDANCE', '2026-08-21 08:05:00', 90),
+('ATTENDANCE', '2026-08-19 09:48:00', 90),
+('ATTENDANCE', '2026-08-26 08:53:00', 90),
+('ATTENDANCE', '2026-08-30 09:34:00', 90),
+('ATTENDANCE', '2026-08-28 09:36:00', 90),
+('LEAVE', '2026-08-20 09:19:00', 90),
+('ATTENDANCE', '2026-08-31 08:32:00', 90),
+('ATTENDANCE', '2026-08-27 08:07:00', 90);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-28 09:12:00', 91),
+('ATTENDANCE', '2026-08-19 08:53:00', 91),
+('ATTENDANCE', '2026-08-27 09:58:00', 91),
+('ATTENDANCE', '2026-08-24 08:05:00', 91),
+('ATTENDANCE', '2026-08-30 09:35:00', 91),
+('ATTENDANCE', '2026-08-25 09:33:00', 91),
+('ATTENDANCE', '2026-08-31 08:50:00', 91),
+('ATTENDANCE', '2026-08-26 09:07:00', 91),
+('ATTENDANCE', '2026-08-21 08:36:00', 91),
+('ATTENDANCE', '2026-08-30 09:16:00', 92),
+('ATTENDANCE', '2026-08-19 09:36:00', 92),
+('ATTENDANCE', '2026-08-26 08:11:00', 92),
+('ATTENDANCE', '2026-08-24 08:39:00', 92),
+('ATTENDANCE', '2026-08-21 09:02:00', 92),
+('ATTENDANCE', '2026-08-28 09:44:00', 92),
+('ATTENDANCE', '2026-08-26 08:08:00', 93),
+('ATTENDANCE', '2026-08-25 09:49:00', 93),
+('ATTENDANCE', '2026-08-31 09:46:00', 93),
+('ATTENDANCE', '2026-08-28 08:12:00', 93),
+('ATTENDANCE', '2026-08-24 09:47:00', 93);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('LEAVE', '2026-08-20 09:52:00', 93),
+('ATTENDANCE', '2026-08-19 08:04:00', 93),
+('ATTENDANCE', '2026-08-30 09:08:00', 93),
+('ATTENDANCE', '2026-08-21 08:11:00', 93),
+('ATTENDANCE', '2026-08-31 09:23:00', 94),
+('ATTENDANCE', '2026-08-27 09:40:00', 94),
+('ATTENDANCE', '2026-08-19 08:15:00', 94),
+('ATTENDANCE', '2026-08-20 09:11:00', 94),
+('ATTENDANCE', '2026-08-21 09:37:00', 94),
+('ATTENDANCE', '2026-08-28 09:10:00', 94),
+('ATTENDANCE', '2026-08-30 09:47:00', 94),
+('ATTENDANCE', '2026-08-26 08:54:00', 95),
+('ATTENDANCE', '2026-08-31 08:43:00', 95),
+('LEAVE', '2026-08-24 09:32:00', 95),
+('ATTENDANCE', '2026-08-20 08:30:00', 95),
+('ATTENDANCE', '2026-08-30 08:38:00', 95),
+('ATTENDANCE', '2026-08-19 08:16:00', 95),
+('ATTENDANCE', '2026-08-26 09:19:00', 96),
+('LEAVE', '2026-08-24 09:37:00', 96),
+('ATTENDANCE', '2026-08-20 09:35:00', 96);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-21 09:19:00', 96),
+('ATTENDANCE', '2026-08-28 09:04:00', 96),
+('ATTENDANCE', '2026-08-27 09:40:00', 96),
+('ATTENDANCE', '2026-08-25 09:16:00', 96),
+('LEAVE', '2026-08-31 09:12:00', 96),
+('ATTENDANCE', '2026-08-31 09:16:00', 97),
+('ATTENDANCE', '2026-08-24 09:24:00', 97),
+('ATTENDANCE', '2026-08-25 08:21:00', 97),
+('ATTENDANCE', '2026-08-21 08:43:00', 97),
+('ATTENDANCE', '2026-08-30 09:58:00', 97),
+('ATTENDANCE', '2026-08-19 09:32:00', 97),
+('ATTENDANCE', '2026-08-27 08:53:00', 97),
+('ATTENDANCE', '2026-08-28 08:22:00', 98),
+('ATTENDANCE', '2026-08-26 09:26:00', 98),
+('ATTENDANCE', '2026-08-30 09:23:00', 98),
+('ATTENDANCE', '2026-08-27 09:29:00', 98),
+('ATTENDANCE', '2026-08-21 09:03:00', 98),
+('ATTENDANCE', '2026-08-19 08:30:00', 98),
+('ATTENDANCE', '2026-08-25 08:55:00', 98),
+('LEAVE', '2026-08-20 09:26:00', 98);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-24 08:08:00', 98),
+('ATTENDANCE', '2026-08-31 09:26:00', 98),
+('LEAVE', '2026-08-28 09:40:00', 99),
+('ATTENDANCE', '2026-08-25 09:17:00', 99),
+('ATTENDANCE', '2026-08-19 08:36:00', 99),
+('ATTENDANCE', '2026-08-24 09:50:00', 99),
+('ATTENDANCE', '2026-08-31 08:08:00', 99),
+('ATTENDANCE', '2026-08-27 09:25:00', 99),
+('LEAVE', '2026-08-21 09:24:00', 99),
+('ATTENDANCE', '2026-08-26 08:46:00', 99),
+('ATTENDANCE', '2026-08-20 08:57:00', 99),
+('ATTENDANCE', '2026-08-27 08:06:00', 100),
+('LEAVE', '2026-08-31 09:10:00', 100),
+('ATTENDANCE', '2026-08-20 08:19:00', 100),
+('ATTENDANCE', '2026-08-25 09:46:00', 100),
+('ATTENDANCE', '2026-08-24 09:27:00', 100),
+('ATTENDANCE', '2026-08-30 08:21:00', 100),
+('ATTENDANCE', '2026-08-26 09:22:00', 100),
+('ATTENDANCE', '2026-08-28 08:58:00', 100),
+('ATTENDANCE', '2026-08-19 09:01:00', 100);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-21 08:13:00', 100),
+('LEAVE', '2026-08-20 08:42:00', 101),
+('ATTENDANCE', '2026-08-28 08:03:00', 101),
+('ATTENDANCE', '2026-08-30 09:28:00', 101),
+('ATTENDANCE', '2026-08-19 09:30:00', 101),
+('ATTENDANCE', '2026-08-25 08:44:00', 101),
+('ATTENDANCE', '2026-08-31 08:19:00', 101),
+('ATTENDANCE', '2026-08-27 08:42:00', 101),
+('ATTENDANCE', '2026-08-24 08:26:00', 101),
+('ATTENDANCE', '2026-08-21 08:32:00', 101),
+('LEAVE', '2026-08-26 08:18:00', 101),
+('ATTENDANCE', '2026-08-21 08:22:00', 102),
+('LEAVE', '2026-08-27 09:10:00', 102),
+('ATTENDANCE', '2026-08-20 09:58:00', 102),
+('ATTENDANCE', '2026-08-24 09:21:00', 102),
+('LEAVE', '2026-08-28 08:42:00', 102),
+('ATTENDANCE', '2026-08-26 08:53:00', 102),
+('ATTENDANCE', '2026-08-28 09:18:00', 103),
+('ATTENDANCE', '2026-08-30 08:06:00', 103),
+('ATTENDANCE', '2026-08-20 08:54:00', 103);
+INSERT INTO timecards (status, clock_in_at, employee_id)
+VALUES
+('ATTENDANCE', '2026-08-25 09:27:00', 103),
+('ATTENDANCE', '2026-08-24 08:54:00', 103),
+('ATTENDANCE', '2026-08-31 08:00:00', 103),
+('ATTENDANCE', '2026-08-19 08:21:00', 103),
+('ATTENDANCE', '2026-08-27 09:39:00', 103),
+('ATTENDANCE', '2026-08-26 08:23:00', 103);
+
+-- ------------------------------
+-- 7. biometrics (최근 10일치, 재직 중인 사원 대상)
+-- ------------------------------
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-31 15:25:00', 129, 77, 37.4, 90, 'HIGH', 4),
+('2026-08-24 15:41:00', 110, 67, 36.4, 63, 'NORMAL', 4),
+('2026-08-24 09:06:00', 126, 90, 37.3, 88, 'HIGH', 4),
+('2026-08-30 15:49:00', 122, 61, 37.4, 68, 'NORMAL', 4),
+('2026-08-27 15:07:00', 126, 88, 36.3, 76, 'WARN', 4),
+('2026-08-28 08:45:00', 143, 93, 37.3, 96, 'HIGH', 5),
+('2026-08-25 09:42:00', 121, 93, 36.9, 66, 'HIGH', 5),
+('2026-08-27 09:30:00', 122, 84, 36.4, 95, 'HIGH', 5),
+('2026-08-26 08:00:00', 141, 70, 36.9, 90, 'HIGH', 5),
+('2026-08-24 15:55:00', 110, 64, 37.3, 80, 'WARN', 5),
+('2026-08-30 14:17:00', 103, 92, 36.5, 84, 'HIGH', 5),
+('2026-08-27 09:05:00', 129, 88, 37.3, 88, 'WARN', 5),
+('2026-08-31 15:28:00', 120, 67, 37.6, 61, 'NORMAL', 5),
+('2026-08-31 15:26:00', 102, 95, 37.0, 65, 'HIGH', 5),
+('2026-08-26 14:56:00', 132, 95, 36.5, 89, 'HIGH', 6),
+('2026-08-28 14:52:00', 103, 74, 37.4, 81, 'WARN', 6),
+('2026-08-26 15:45:00', 142, 83, 37.2, 67, 'HIGH', 6),
+('2026-08-31 09:00:00', 121, 82, 37.4, 78, 'WARN', 6),
+('2026-08-26 14:44:00', 106, 62, 37.5, 91, 'HIGH', 6),
+('2026-08-30 15:06:00', 116, 72, 36.5, 85, 'WARN', 6);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-30 15:52:00', 150, 72, 37.2, 66, 'HIGH', 6),
+('2026-08-24 15:02:00', 140, 67, 37.3, 88, 'HIGH', 6),
+('2026-08-25 09:31:00', 100, 93, 37.2, 95, 'HIGH', 7),
+('2026-08-27 15:59:00', 132, 71, 37.2, 71, 'WARN', 7),
+('2026-08-25 09:06:00', 124, 80, 36.9, 84, 'WARN', 7),
+('2026-08-27 09:17:00', 125, 81, 37.6, 88, 'WARN', 7),
+('2026-08-24 09:08:00', 126, 92, 36.6, 95, 'HIGH', 7),
+('2026-08-24 14:45:00', 147, 95, 37.1, 72, 'HIGH', 7),
+('2026-08-30 14:43:00', 122, 68, 37.6, 71, 'NORMAL', 7),
+('2026-08-26 14:45:00', 107, 82, 37.0, 97, 'HIGH', 8),
+('2026-08-26 15:43:00', 147, 94, 36.6, 87, 'HIGH', 8),
+('2026-08-24 08:33:00', 106, 61, 36.7, 63, 'NORMAL', 8),
+('2026-08-25 08:12:00', 117, 70, 37.6, 76, 'NORMAL', 8),
+('2026-08-30 08:44:00', 150, 78, 36.5, 94, 'HIGH', 8),
+('2026-08-31 14:52:00', 128, 66, 37.1, 95, 'HIGH', 8),
+('2026-08-24 09:47:00', 141, 95, 36.7, 92, 'HIGH', 8),
+('2026-08-24 14:44:00', 142, 63, 37.5, 84, 'HIGH', 8),
+('2026-08-24 14:35:00', 103, 60, 37.2, 72, 'NORMAL', 9),
+('2026-08-26 15:53:00', 114, 83, 37.3, 94, 'HIGH', 9),
+('2026-08-25 09:49:00', 146, 72, 36.6, 71, 'HIGH', 9);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-25 08:11:00', 111, 92, 36.4, 62, 'HIGH', 9),
+('2026-08-27 14:35:00', 116, 68, 36.4, 76, 'NORMAL', 9),
+('2026-08-31 14:29:00', 145, 69, 36.3, 80, 'HIGH', 9),
+('2026-08-26 08:49:00', 140, 79, 36.9, 96, 'HIGH', 9),
+('2026-08-28 08:50:00', 145, 80, 36.9, 71, 'HIGH', 10),
+('2026-08-26 08:50:00', 132, 70, 36.8, 94, 'HIGH', 10),
+('2026-08-27 08:22:00', 114, 73, 37.1, 81, 'WARN', 10),
+('2026-08-28 14:13:00', 148, 93, 36.9, 95, 'HIGH', 10),
+('2026-08-24 08:07:00', 142, 82, 36.8, 75, 'HIGH', 10),
+('2026-08-31 14:24:00', 150, 67, 36.7, 94, 'HIGH', 10),
+('2026-08-25 14:01:00', 133, 83, 36.9, 92, 'HIGH', 10),
+('2026-08-27 15:02:00', 118, 72, 36.6, 65, 'NORMAL', 10),
+('2026-08-30 08:40:00', 104, 73, 37.1, 73, 'NORMAL', 11),
+('2026-08-24 15:53:00', 106, 73, 37.0, 87, 'WARN', 11),
+('2026-08-25 08:47:00', 143, 69, 36.2, 81, 'HIGH', 11),
+('2026-08-31 08:04:00', 103, 71, 37.3, 95, 'HIGH', 11),
+('2026-08-26 09:58:00', 116, 86, 36.7, 85, 'WARN', 12),
+('2026-08-27 14:01:00', 124, 67, 36.9, 64, 'NORMAL', 12),
+('2026-08-24 08:44:00', 104, 82, 37.5, 66, 'WARN', 12),
+('2026-08-28 14:38:00', 105, 78, 37.3, 88, 'WARN', 12);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-27 08:30:00', 110, 94, 36.5, 85, 'HIGH', 13),
+('2026-08-24 14:40:00', 109, 79, 37.1, 83, 'WARN', 13),
+('2026-08-31 09:07:00', 102, 60, 37.0, 85, 'WARN', 13),
+('2026-08-26 08:19:00', 113, 82, 36.5, 92, 'HIGH', 13),
+('2026-08-30 09:11:00', 114, 76, 36.5, 71, 'NORMAL', 13),
+('2026-08-25 08:54:00', 148, 95, 36.8, 95, 'HIGH', 13),
+('2026-08-31 14:42:00', 104, 76, 36.3, 97, 'HIGH', 13),
+('2026-08-28 14:08:00', 142, 75, 36.3, 64, 'HIGH', 14),
+('2026-08-30 14:31:00', 128, 81, 37.1, 79, 'WARN', 14),
+('2026-08-25 09:36:00', 136, 83, 37.3, 87, 'WARN', 14),
+('2026-08-30 08:20:00', 115, 74, 37.2, 87, 'WARN', 14),
+('2026-08-28 14:08:00', 143, 81, 37.4, 89, 'HIGH', 14),
+('2026-08-27 14:49:00', 119, 91, 37.0, 71, 'HIGH', 14),
+('2026-08-25 08:53:00', 117, 68, 37.4, 72, 'NORMAL', 14),
+('2026-08-25 08:46:00', 104, 61, 37.4, 61, 'NORMAL', 15),
+('2026-08-24 15:49:00', 137, 73, 37.5, 95, 'HIGH', 15),
+('2026-08-28 15:41:00', 149, 69, 36.7, 74, 'HIGH', 15),
+('2026-08-24 14:08:00', 129, 92, 36.9, 85, 'HIGH', 15),
+('2026-08-28 08:42:00', 115, 70, 37.3, 68, 'NORMAL', 15),
+('2026-08-27 09:11:00', 136, 96, 37.1, 69, 'HIGH', 15);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-25 15:22:00', 102, 74, 37.3, 74, 'NORMAL', 16),
+('2026-08-31 14:23:00', 114, 62, 37.1, 93, 'HIGH', 16),
+('2026-08-24 14:24:00', 130, 89, 37.4, 62, 'WARN', 16),
+('2026-08-25 14:06:00', 145, 93, 37.1, 77, 'HIGH', 16),
+('2026-08-24 14:37:00', 134, 96, 36.4, 84, 'HIGH', 16),
+('2026-08-28 08:33:00', 116, 84, 37.6, 74, 'WARN', 16),
+('2026-08-26 15:22:00', 122, 91, 37.3, 98, 'HIGH', 16),
+('2026-08-31 09:28:00', 110, 74, 36.3, 77, 'NORMAL', 16),
+('2026-08-30 09:11:00', 110, 83, 37.0, 67, 'WARN', 16),
+('2026-08-30 15:51:00', 121, 67, 36.9, 90, 'HIGH', 17),
+('2026-08-27 09:37:00', 110, 86, 36.2, 62, 'WARN', 17),
+('2026-08-30 09:08:00', 140, 92, 36.3, 96, 'HIGH', 17),
+('2026-08-30 08:10:00', 116, 71, 36.9, 85, 'WARN', 17),
+('2026-08-26 08:56:00', 146, 78, 37.5, 73, 'HIGH', 17),
+('2026-08-27 15:55:00', 130, 70, 36.5, 86, 'WARN', 17),
+('2026-08-26 09:50:00', 137, 71, 37.1, 92, 'HIGH', 17),
+('2026-08-28 09:46:00', 143, 81, 37.5, 98, 'HIGH', 17),
+('2026-08-26 08:14:00', 124, 84, 36.4, 61, 'WARN', 17),
+('2026-08-26 15:52:00', 109, 66, 36.4, 98, 'HIGH', 18),
+('2026-08-31 08:05:00', 130, 68, 37.5, 94, 'HIGH', 18);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 08:57:00', 149, 87, 36.9, 83, 'HIGH', 18),
+('2026-08-24 08:44:00', 133, 87, 36.5, 90, 'HIGH', 18),
+('2026-08-24 15:22:00', 137, 96, 36.3, 68, 'HIGH', 18),
+('2026-08-27 09:58:00', 105, 78, 37.0, 94, 'HIGH', 19),
+('2026-08-27 14:12:00', 100, 60, 37.0, 67, 'NORMAL', 19),
+('2026-08-26 08:24:00', 141, 73, 37.2, 80, 'HIGH', 19),
+('2026-08-27 14:06:00', 109, 87, 37.1, 76, 'WARN', 19),
+('2026-08-28 15:36:00', 123, 77, 37.6, 85, 'WARN', 19),
+('2026-08-24 09:26:00', 135, 95, 36.9, 83, 'HIGH', 19),
+('2026-08-26 15:16:00', 119, 96, 36.7, 85, 'HIGH', 20),
+('2026-08-25 09:54:00', 142, 67, 37.2, 88, 'HIGH', 20),
+('2026-08-24 09:06:00', 113, 92, 36.8, 81, 'HIGH', 20),
+('2026-08-24 08:10:00', 124, 60, 37.3, 69, 'NORMAL', 20),
+('2026-08-27 15:05:00', 104, 76, 36.5, 65, 'NORMAL', 20),
+('2026-08-26 08:46:00', 124, 85, 37.1, 93, 'HIGH', 20),
+('2026-08-28 08:49:00', 111, 91, 36.8, 72, 'HIGH', 20),
+('2026-08-24 14:12:00', 102, 92, 36.9, 74, 'HIGH', 20),
+('2026-08-30 08:23:00', 115, 60, 37.6, 65, 'NORMAL', 21),
+('2026-08-28 15:22:00', 142, 85, 36.8, 72, 'HIGH', 21),
+('2026-08-26 08:47:00', 145, 64, 37.5, 95, 'HIGH', 21);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-28 14:22:00', 117, 74, 37.0, 72, 'NORMAL', 21),
+('2026-08-27 15:36:00', 100, 76, 36.4, 92, 'HIGH', 21),
+('2026-08-31 08:32:00', 118, 81, 37.5, 92, 'HIGH', 21),
+('2026-08-28 14:44:00', 128, 84, 37.0, 75, 'WARN', 21),
+('2026-08-24 14:49:00', 129, 89, 37.5, 61, 'WARN', 21),
+('2026-08-31 14:04:00', 124, 74, 37.1, 74, 'NORMAL', 22),
+('2026-08-24 14:26:00', 122, 93, 36.9, 76, 'HIGH', 22),
+('2026-08-30 14:05:00', 125, 81, 36.3, 71, 'WARN', 22),
+('2026-08-27 14:22:00', 113, 96, 36.6, 72, 'HIGH', 22),
+('2026-08-27 09:15:00', 147, 75, 37.4, 73, 'HIGH', 22),
+('2026-08-30 09:53:00', 115, 82, 36.4, 66, 'WARN', 22),
+('2026-08-31 08:43:00', 142, 91, 37.1, 94, 'HIGH', 22),
+('2026-08-24 15:23:00', 139, 80, 36.9, 96, 'HIGH', 23),
+('2026-08-24 14:31:00', 111, 92, 36.6, 74, 'HIGH', 23),
+('2026-08-24 09:03:00', 133, 87, 36.9, 94, 'HIGH', 23),
+('2026-08-31 14:25:00', 143, 71, 36.8, 67, 'HIGH', 23),
+('2026-08-26 15:20:00', 144, 60, 36.2, 73, 'HIGH', 24),
+('2026-08-27 08:20:00', 123, 76, 36.5, 76, 'NORMAL', 24),
+('2026-08-30 14:30:00', 139, 81, 36.7, 91, 'HIGH', 24),
+('2026-08-27 09:26:00', 144, 83, 36.7, 85, 'HIGH', 24);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-28 15:11:00', 136, 68, 37.6, 74, 'WARN', 24),
+('2026-08-24 08:46:00', 117, 75, 37.0, 84, 'WARN', 24),
+('2026-08-30 09:51:00', 147, 69, 36.9, 60, 'HIGH', 24),
+('2026-08-30 15:31:00', 108, 93, 36.9, 80, 'HIGH', 24),
+('2026-08-24 15:19:00', 116, 95, 37.4, 63, 'HIGH', 24),
+('2026-08-31 09:03:00', 113, 76, 36.9, 66, 'NORMAL', 25),
+('2026-08-27 14:16:00', 123, 83, 37.0, 76, 'WARN', 25),
+('2026-08-28 08:26:00', 107, 82, 37.4, 98, 'HIGH', 25),
+('2026-08-30 09:49:00', 118, 82, 36.7, 92, 'HIGH', 25),
+('2026-08-27 15:56:00', 105, 84, 37.1, 89, 'WARN', 25),
+('2026-08-25 09:55:00', 110, 81, 36.8, 96, 'HIGH', 25),
+('2026-08-27 08:05:00', 110, 81, 36.5, 80, 'WARN', 25),
+('2026-08-28 14:38:00', 141, 85, 36.6, 88, 'HIGH', 26),
+('2026-08-24 14:47:00', 137, 93, 37.6, 86, 'HIGH', 26),
+('2026-08-30 09:54:00', 101, 68, 37.2, 76, 'NORMAL', 26),
+('2026-08-25 08:13:00', 110, 85, 36.3, 64, 'WARN', 26),
+('2026-08-27 08:01:00', 149, 85, 36.9, 65, 'HIGH', 26),
+('2026-08-31 14:39:00', 109, 65, 37.1, 84, 'WARN', 26),
+('2026-08-28 09:15:00', 147, 78, 36.8, 68, 'HIGH', 26),
+('2026-08-30 09:01:00', 102, 82, 37.4, 80, 'WARN', 26);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 15:29:00', 134, 77, 37.0, 68, 'WARN', 26),
+('2026-08-26 09:37:00', 138, 89, 37.1, 96, 'HIGH', 27),
+('2026-08-27 14:58:00', 122, 90, 37.0, 65, 'HIGH', 27),
+('2026-08-27 14:23:00', 126, 76, 36.4, 60, 'NORMAL', 27),
+('2026-08-31 09:22:00', 118, 90, 36.9, 91, 'HIGH', 27),
+('2026-08-24 15:19:00', 100, 87, 37.3, 98, 'HIGH', 27),
+('2026-08-30 08:35:00', 123, 72, 36.8, 95, 'HIGH', 27),
+('2026-08-27 15:15:00', 110, 84, 37.4, 74, 'WARN', 27),
+('2026-08-28 08:27:00', 140, 75, 36.9, 77, 'HIGH', 27),
+('2026-08-28 14:26:00', 112, 64, 36.5, 78, 'NORMAL', 27),
+('2026-08-25 15:39:00', 128, 77, 37.2, 91, 'HIGH', 28),
+('2026-08-30 14:01:00', 109, 63, 37.6, 61, 'NORMAL', 28),
+('2026-08-30 08:18:00', 117, 68, 37.2, 60, 'NORMAL', 28),
+('2026-08-30 08:09:00', 100, 91, 36.5, 86, 'HIGH', 28),
+('2026-08-24 15:23:00', 129, 62, 36.7, 69, 'NORMAL', 29),
+('2026-08-31 14:49:00', 125, 64, 37.0, 71, 'NORMAL', 29),
+('2026-08-30 14:52:00', 124, 60, 36.4, 75, 'NORMAL', 29),
+('2026-08-27 15:15:00', 147, 62, 36.5, 66, 'HIGH', 29),
+('2026-08-26 09:30:00', 124, 79, 37.5, 70, 'NORMAL', 29),
+('2026-08-25 08:47:00', 135, 93, 36.4, 90, 'HIGH', 29);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-28 09:23:00', 103, 73, 37.6, 75, 'NORMAL', 30),
+('2026-08-25 15:20:00', 100, 70, 37.3, 97, 'HIGH', 30),
+('2026-08-31 15:50:00', 115, 60, 37.6, 97, 'HIGH', 30),
+('2026-08-24 15:44:00', 138, 69, 36.7, 65, 'WARN', 30),
+('2026-08-30 09:31:00', 105, 81, 37.5, 63, 'WARN', 30),
+('2026-08-31 14:41:00', 109, 94, 37.3, 68, 'HIGH', 30),
+('2026-08-27 09:20:00', 135, 82, 37.3, 88, 'WARN', 30),
+('2026-08-25 09:01:00', 144, 84, 36.7, 68, 'HIGH', 30),
+('2026-08-28 08:31:00', 145, 88, 37.0, 94, 'HIGH', 30),
+('2026-08-27 09:36:00', 111, 94, 36.7, 89, 'HIGH', 31),
+('2026-08-28 09:04:00', 133, 69, 36.8, 76, 'WARN', 31),
+('2026-08-26 14:29:00', 100, 92, 36.7, 71, 'HIGH', 31),
+('2026-08-31 14:49:00', 139, 75, 36.6, 64, 'WARN', 31),
+('2026-08-25 15:12:00', 133, 91, 37.3, 69, 'HIGH', 31),
+('2026-08-26 14:20:00', 126, 80, 36.4, 93, 'HIGH', 31),
+('2026-08-25 08:02:00', 108, 71, 37.4, 72, 'NORMAL', 31),
+('2026-08-31 15:12:00', 106, 62, 37.0, 84, 'WARN', 31),
+('2026-08-25 15:33:00', 139, 76, 36.3, 74, 'WARN', 31),
+('2026-08-25 08:00:00', 113, 91, 37.5, 65, 'HIGH', 32),
+('2026-08-27 08:23:00', 135, 86, 37.4, 63, 'WARN', 32);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 14:33:00', 102, 64, 37.4, 64, 'NORMAL', 32),
+('2026-08-30 08:06:00', 146, 74, 36.9, 72, 'HIGH', 32),
+('2026-08-30 09:36:00', 140, 71, 37.0, 95, 'HIGH', 32),
+('2026-08-27 08:49:00', 140, 96, 36.7, 89, 'HIGH', 32),
+('2026-08-25 15:56:00', 106, 70, 37.3, 95, 'HIGH', 32),
+('2026-08-27 14:42:00', 110, 94, 37.6, 88, 'HIGH', 32),
+('2026-08-28 14:54:00', 123, 86, 37.3, 87, 'WARN', 33),
+('2026-08-24 14:38:00', 115, 96, 37.0, 84, 'HIGH', 33),
+('2026-08-24 14:23:00', 128, 88, 37.5, 60, 'WARN', 33),
+('2026-08-25 08:18:00', 138, 61, 36.9, 79, 'WARN', 33),
+('2026-08-31 14:14:00', 113, 80, 36.2, 77, 'WARN', 33),
+('2026-08-26 09:06:00', 102, 89, 36.7, 68, 'WARN', 33),
+('2026-08-28 09:14:00', 116, 79, 36.3, 85, 'WARN', 34),
+('2026-08-26 09:46:00', 104, 80, 37.3, 71, 'WARN', 34),
+('2026-08-27 08:38:00', 141, 79, 36.3, 96, 'HIGH', 34),
+('2026-08-27 08:49:00', 103, 81, 36.7, 87, 'WARN', 34),
+('2026-08-27 08:55:00', 149, 74, 37.2, 98, 'HIGH', 34),
+('2026-08-31 15:03:00', 119, 93, 36.3, 94, 'HIGH', 34),
+('2026-08-30 14:32:00', 144, 74, 36.4, 85, 'HIGH', 35),
+('2026-08-27 08:14:00', 127, 78, 37.3, 69, 'NORMAL', 35);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-30 14:05:00', 130, 96, 37.2, 95, 'HIGH', 35),
+('2026-08-27 14:05:00', 125, 92, 36.8, 68, 'HIGH', 35),
+('2026-08-24 09:30:00', 135, 72, 36.9, 96, 'HIGH', 35),
+('2026-08-30 09:15:00', 104, 77, 37.3, 80, 'WARN', 35),
+('2026-08-25 08:07:00', 142, 86, 36.8, 82, 'HIGH', 35),
+('2026-08-30 14:22:00', 138, 61, 37.3, 70, 'WARN', 35),
+('2026-08-26 15:39:00', 109, 88, 36.3, 74, 'WARN', 36),
+('2026-08-30 14:09:00', 148, 65, 36.4, 63, 'HIGH', 36),
+('2026-08-30 09:55:00', 118, 60, 36.7, 67, 'NORMAL', 36),
+('2026-08-28 15:30:00', 101, 81, 36.5, 94, 'HIGH', 36),
+('2026-08-30 09:34:00', 133, 76, 37.0, 69, 'WARN', 36),
+('2026-08-25 08:24:00', 137, 93, 36.3, 70, 'HIGH', 36),
+('2026-08-28 09:50:00', 144, 77, 36.3, 60, 'HIGH', 37),
+('2026-08-31 15:42:00', 117, 83, 37.4, 61, 'WARN', 37),
+('2026-08-28 15:14:00', 124, 92, 37.6, 66, 'HIGH', 37),
+('2026-08-28 15:55:00', 138, 94, 36.3, 72, 'HIGH', 37),
+('2026-08-27 08:02:00', 115, 93, 36.6, 91, 'HIGH', 38),
+('2026-08-27 09:01:00', 122, 82, 36.7, 79, 'WARN', 38),
+('2026-08-30 14:51:00', 103, 76, 37.4, 61, 'NORMAL', 38),
+('2026-08-26 14:14:00', 109, 81, 37.5, 68, 'WARN', 38);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-31 15:33:00', 143, 74, 36.8, 96, 'HIGH', 38),
+('2026-08-30 15:19:00', 138, 81, 36.8, 68, 'WARN', 38),
+('2026-08-30 09:37:00', 134, 72, 37.4, 79, 'WARN', 38),
+('2026-08-25 09:27:00', 149, 69, 37.1, 96, 'HIGH', 38),
+('2026-08-28 08:35:00', 134, 67, 36.5, 69, 'WARN', 39),
+('2026-08-25 08:48:00', 120, 86, 37.5, 79, 'WARN', 39),
+('2026-08-27 14:09:00', 149, 72, 36.3, 71, 'HIGH', 39),
+('2026-08-31 14:38:00', 136, 74, 37.0, 74, 'WARN', 39),
+('2026-08-25 08:22:00', 105, 90, 36.4, 98, 'HIGH', 39),
+('2026-08-25 14:11:00', 124, 91, 36.9, 70, 'HIGH', 40),
+('2026-08-30 09:02:00', 126, 60, 37.5, 86, 'WARN', 40),
+('2026-08-30 09:48:00', 113, 64, 36.4, 88, 'WARN', 40),
+('2026-08-24 15:44:00', 120, 89, 37.4, 87, 'WARN', 40),
+('2026-08-27 08:38:00', 147, 84, 37.2, 85, 'HIGH', 40),
+('2026-08-26 08:33:00', 106, 88, 36.8, 62, 'WARN', 40),
+('2026-08-30 15:47:00', 102, 95, 36.7, 63, 'HIGH', 40),
+('2026-08-28 15:25:00', 119, 78, 36.8, 87, 'WARN', 41),
+('2026-08-28 08:44:00', 133, 69, 36.8, 88, 'WARN', 41),
+('2026-08-31 08:11:00', 149, 94, 36.4, 86, 'HIGH', 41),
+('2026-08-28 15:01:00', 111, 89, 37.0, 72, 'WARN', 41);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-27 08:16:00', 120, 70, 37.2, 67, 'NORMAL', 41),
+('2026-08-31 15:40:00', 123, 65, 36.9, 84, 'WARN', 42),
+('2026-08-25 09:24:00', 135, 84, 36.3, 70, 'WARN', 42),
+('2026-08-28 09:10:00', 109, 71, 37.3, 63, 'NORMAL', 42),
+('2026-08-27 14:19:00', 146, 88, 36.6, 71, 'HIGH', 42),
+('2026-08-30 09:00:00', 139, 76, 36.2, 91, 'HIGH', 43),
+('2026-08-24 15:34:00', 100, 91, 36.5, 97, 'HIGH', 43),
+('2026-08-25 15:29:00', 126, 88, 36.3, 98, 'HIGH', 43),
+('2026-08-31 09:56:00', 135, 77, 37.1, 95, 'HIGH', 43),
+('2026-08-31 09:09:00', 103, 82, 36.3, 62, 'WARN', 44),
+('2026-08-25 14:21:00', 105, 63, 36.4, 71, 'NORMAL', 44),
+('2026-08-30 14:39:00', 142, 96, 37.3, 71, 'HIGH', 44),
+('2026-08-27 14:59:00', 102, 65, 37.3, 80, 'WARN', 44),
+('2026-08-28 15:52:00', 104, 87, 37.4, 64, 'WARN', 44),
+('2026-08-27 09:07:00', 144, 77, 36.7, 86, 'HIGH', 45),
+('2026-08-26 09:44:00', 113, 63, 36.4, 93, 'HIGH', 45),
+('2026-08-31 15:46:00', 144, 78, 36.8, 80, 'HIGH', 45),
+('2026-08-28 14:59:00', 108, 96, 36.9, 91, 'HIGH', 45),
+('2026-08-27 09:56:00', 139, 74, 37.2, 72, 'WARN', 45),
+('2026-08-31 08:01:00', 129, 67, 37.2, 73, 'NORMAL', 45);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-27 15:02:00', 121, 82, 37.0, 73, 'WARN', 46),
+('2026-08-31 09:44:00', 118, 76, 37.3, 79, 'NORMAL', 46),
+('2026-08-28 14:49:00', 100, 67, 37.2, 81, 'WARN', 46),
+('2026-08-27 08:53:00', 111, 72, 36.7, 81, 'WARN', 46),
+('2026-08-25 15:58:00', 130, 62, 37.1, 90, 'HIGH', 46),
+('2026-08-30 15:57:00', 134, 81, 36.8, 86, 'WARN', 46),
+('2026-08-25 08:53:00', 133, 79, 37.0, 80, 'WARN', 46),
+('2026-08-26 08:13:00', 136, 81, 37.3, 82, 'WARN', 46),
+('2026-08-30 14:53:00', 101, 81, 37.6, 94, 'HIGH', 47),
+('2026-08-24 09:36:00', 138, 84, 36.5, 67, 'WARN', 47),
+('2026-08-24 14:45:00', 120, 62, 36.6, 65, 'NORMAL', 47),
+('2026-08-27 09:23:00', 128, 79, 36.5, 79, 'NORMAL', 47),
+('2026-08-31 14:50:00', 102, 72, 37.5, 88, 'WARN', 48),
+('2026-08-26 08:51:00', 130, 92, 36.4, 81, 'HIGH', 48),
+('2026-08-27 14:49:00', 120, 69, 37.3, 66, 'NORMAL', 48),
+('2026-08-24 09:13:00', 146, 62, 36.8, 93, 'HIGH', 48),
+('2026-08-31 08:19:00', 102, 65, 36.7, 62, 'NORMAL', 48),
+('2026-08-26 14:01:00', 136, 79, 37.1, 73, 'WARN', 50),
+('2026-08-28 09:12:00', 118, 77, 36.9, 88, 'WARN', 50),
+('2026-08-25 08:17:00', 109, 70, 36.6, 60, 'NORMAL', 50);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-26 08:13:00', 134, 82, 37.0, 77, 'WARN', 50),
+('2026-08-25 14:36:00', 115, 70, 36.3, 81, 'WARN', 51),
+('2026-08-26 15:03:00', 108, 61, 36.9, 63, 'NORMAL', 51),
+('2026-08-31 15:03:00', 105, 87, 36.7, 98, 'HIGH', 51),
+('2026-08-26 15:39:00', 122, 79, 36.7, 72, 'NORMAL', 51),
+('2026-08-25 08:59:00', 148, 89, 37.0, 65, 'HIGH', 51),
+('2026-08-27 08:29:00', 119, 89, 36.9, 74, 'WARN', 52),
+('2026-08-30 14:58:00', 123, 85, 36.5, 81, 'WARN', 52),
+('2026-08-24 14:29:00', 131, 61, 36.3, 67, 'WARN', 52),
+('2026-08-28 15:29:00', 110, 78, 37.3, 98, 'HIGH', 52),
+('2026-08-26 09:32:00', 106, 85, 37.3, 66, 'WARN', 52),
+('2026-08-28 08:50:00', 119, 94, 36.8, 97, 'HIGH', 52),
+('2026-08-27 09:39:00', 115, 95, 36.4, 90, 'HIGH', 52),
+('2026-08-27 08:21:00', 113, 87, 37.3, 87, 'WARN', 52),
+('2026-08-26 14:34:00', 144, 75, 36.4, 64, 'HIGH', 52),
+('2026-08-25 15:07:00', 137, 89, 36.7, 66, 'WARN', 53),
+('2026-08-24 15:11:00', 119, 85, 36.3, 66, 'WARN', 53),
+('2026-08-25 15:20:00', 131, 63, 36.3, 68, 'WARN', 53),
+('2026-08-26 08:48:00', 109, 69, 36.8, 78, 'NORMAL', 53),
+('2026-08-27 15:12:00', 113, 80, 36.6, 79, 'WARN', 53);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-27 14:05:00', 137, 60, 37.1, 92, 'HIGH', 53),
+('2026-08-27 09:54:00', 118, 63, 36.7, 95, 'HIGH', 53),
+('2026-08-31 08:45:00', 135, 82, 36.4, 78, 'WARN', 53),
+('2026-08-24 08:15:00', 127, 85, 37.1, 84, 'WARN', 53),
+('2026-08-27 15:34:00', 113, 71, 36.9, 72, 'NORMAL', 54),
+('2026-08-26 15:53:00', 123, 86, 36.4, 68, 'WARN', 54),
+('2026-08-30 08:04:00', 141, 61, 36.4, 91, 'HIGH', 54),
+('2026-08-25 15:08:00', 105, 68, 37.1, 86, 'WARN', 54),
+('2026-08-24 15:57:00', 150, 87, 37.1, 89, 'HIGH', 54),
+('2026-08-26 15:35:00', 128, 84, 36.7, 71, 'WARN', 54),
+('2026-08-27 08:36:00', 131, 75, 37.2, 77, 'WARN', 54),
+('2026-08-26 14:02:00', 102, 96, 36.9, 83, 'HIGH', 55),
+('2026-08-31 15:44:00', 105, 69, 37.2, 93, 'HIGH', 55),
+('2026-08-24 14:29:00', 133, 65, 36.9, 65, 'WARN', 55),
+('2026-08-30 15:40:00', 147, 64, 37.2, 94, 'HIGH', 55),
+('2026-08-24 14:39:00', 103, 81, 36.9, 60, 'WARN', 55),
+('2026-08-27 15:32:00', 130, 96, 37.2, 86, 'HIGH', 55),
+('2026-08-28 14:18:00', 110, 62, 37.2, 98, 'HIGH', 55),
+('2026-08-28 14:03:00', 140, 90, 37.0, 96, 'HIGH', 56),
+('2026-08-31 14:51:00', 147, 61, 36.6, 65, 'HIGH', 56);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-30 08:54:00', 150, 77, 36.6, 77, 'HIGH', 56),
+('2026-08-28 14:00:00', 147, 67, 37.0, 97, 'HIGH', 56),
+('2026-08-25 09:42:00', 128, 83, 37.3, 76, 'WARN', 56),
+('2026-08-24 09:31:00', 111, 93, 37.4, 81, 'HIGH', 56),
+('2026-08-31 09:38:00', 109, 91, 37.3, 86, 'HIGH', 56),
+('2026-08-24 15:15:00', 142, 88, 37.2, 70, 'HIGH', 56),
+('2026-08-30 14:03:00', 141, 76, 37.3, 67, 'HIGH', 56),
+('2026-08-30 15:25:00', 130, 79, 36.9, 94, 'HIGH', 58),
+('2026-08-30 15:43:00', 145, 84, 36.9, 69, 'HIGH', 58),
+('2026-08-26 15:00:00', 118, 88, 36.7, 80, 'WARN', 58),
+('2026-08-26 08:06:00', 134, 82, 37.5, 87, 'WARN', 58),
+('2026-08-25 14:21:00', 117, 77, 37.3, 76, 'NORMAL', 59),
+('2026-08-25 15:29:00', 149, 75, 37.2, 97, 'HIGH', 59),
+('2026-08-24 09:33:00', 121, 71, 36.6, 60, 'NORMAL', 59),
+('2026-08-25 08:53:00', 104, 60, 36.8, 93, 'HIGH', 59),
+('2026-08-31 15:22:00', 114, 78, 36.6, 62, 'NORMAL', 59),
+('2026-08-31 08:03:00', 138, 73, 37.5, 67, 'WARN', 59),
+('2026-08-25 08:05:00', 138, 68, 36.7, 96, 'HIGH', 59),
+('2026-08-24 09:57:00', 107, 71, 36.6, 89, 'WARN', 59),
+('2026-08-31 15:59:00', 117, 87, 37.2, 80, 'WARN', 60);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-28 09:49:00', 104, 77, 37.3, 84, 'WARN', 60),
+('2026-08-27 14:03:00', 116, 76, 36.4, 64, 'NORMAL', 60),
+('2026-08-27 09:39:00', 125, 71, 37.1, 66, 'NORMAL', 60),
+('2026-08-30 15:13:00', 139, 66, 37.5, 76, 'WARN', 60),
+('2026-08-31 08:04:00', 104, 96, 37.2, 88, 'HIGH', 60),
+('2026-08-31 15:09:00', 141, 60, 37.5, 84, 'HIGH', 60),
+('2026-08-28 09:44:00', 121, 85, 37.0, 92, 'HIGH', 60),
+('2026-08-25 15:30:00', 127, 85, 37.4, 64, 'WARN', 60),
+('2026-08-30 08:24:00', 144, 90, 36.4, 94, 'HIGH', 61),
+('2026-08-28 14:43:00', 119, 85, 36.3, 65, 'WARN', 61),
+('2026-08-28 14:05:00', 129, 78, 37.1, 71, 'NORMAL', 61),
+('2026-08-26 08:24:00', 142, 72, 36.6, 84, 'HIGH', 61),
+('2026-08-31 14:31:00', 105, 88, 37.2, 68, 'WARN', 61),
+('2026-08-31 09:01:00', 146, 75, 36.9, 64, 'HIGH', 61),
+('2026-08-24 14:31:00', 134, 88, 37.6, 61, 'WARN', 61),
+('2026-08-31 14:03:00', 121, 62, 36.8, 73, 'NORMAL', 61),
+('2026-08-25 15:43:00', 134, 69, 37.2, 74, 'WARN', 62),
+('2026-08-31 08:47:00', 109, 91, 37.1, 90, 'HIGH', 62),
+('2026-08-26 08:15:00', 144, 68, 36.2, 63, 'HIGH', 62),
+('2026-08-28 08:29:00', 139, 70, 37.4, 64, 'WARN', 62);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 08:07:00', 131, 74, 36.3, 72, 'WARN', 62),
+('2026-08-27 14:51:00', 147, 85, 36.7, 96, 'HIGH', 62),
+('2026-08-26 09:20:00', 150, 73, 37.3, 97, 'HIGH', 62),
+('2026-08-30 14:04:00', 107, 77, 36.4, 86, 'WARN', 62),
+('2026-08-30 14:35:00', 110, 88, 36.5, 97, 'HIGH', 62),
+('2026-08-30 08:50:00', 140, 84, 37.3, 61, 'HIGH', 63),
+('2026-08-27 08:00:00', 100, 71, 37.5, 97, 'HIGH', 63),
+('2026-08-28 15:44:00', 150, 90, 37.2, 73, 'HIGH', 63),
+('2026-08-30 14:33:00', 128, 86, 36.5, 71, 'WARN', 63),
+('2026-08-25 08:38:00', 111, 91, 37.1, 65, 'HIGH', 64),
+('2026-08-25 14:22:00', 126, 60, 37.0, 72, 'NORMAL', 64),
+('2026-08-31 08:39:00', 123, 94, 36.9, 89, 'HIGH', 64),
+('2026-08-24 09:17:00', 103, 72, 36.4, 69, 'NORMAL', 64),
+('2026-08-25 15:31:00', 111, 70, 37.1, 62, 'NORMAL', 64),
+('2026-08-31 14:18:00', 113, 87, 36.6, 89, 'WARN', 64),
+('2026-08-31 08:47:00', 103, 94, 36.4, 61, 'HIGH', 64),
+('2026-08-27 08:04:00', 115, 88, 37.0, 80, 'WARN', 64),
+('2026-08-30 14:14:00', 149, 67, 36.7, 66, 'HIGH', 65),
+('2026-08-30 15:55:00', 112, 84, 37.4, 64, 'WARN', 65),
+('2026-08-27 15:03:00', 127, 69, 36.5, 89, 'WARN', 65);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-30 15:23:00', 108, 89, 37.2, 82, 'WARN', 65),
+('2026-08-28 09:21:00', 108, 62, 37.2, 63, 'NORMAL', 65),
+('2026-08-28 09:07:00', 129, 89, 36.8, 81, 'WARN', 65),
+('2026-08-30 14:38:00', 110, 70, 37.0, 95, 'HIGH', 65),
+('2026-08-31 15:54:00', 133, 91, 37.4, 73, 'HIGH', 66),
+('2026-08-26 15:53:00', 129, 77, 36.2, 87, 'WARN', 66),
+('2026-08-25 09:15:00', 120, 87, 37.0, 97, 'HIGH', 66),
+('2026-08-30 08:26:00', 102, 62, 37.6, 92, 'HIGH', 66),
+('2026-08-31 15:33:00', 125, 90, 37.3, 66, 'HIGH', 66),
+('2026-08-27 09:05:00', 135, 60, 37.2, 86, 'WARN', 67),
+('2026-08-30 09:22:00', 118, 75, 37.1, 65, 'NORMAL', 67),
+('2026-08-31 15:42:00', 119, 70, 37.2, 96, 'HIGH', 67),
+('2026-08-25 08:29:00', 129, 68, 37.4, 85, 'WARN', 67),
+('2026-08-30 14:40:00', 129, 60, 37.4, 64, 'NORMAL', 67),
+('2026-08-27 14:33:00', 102, 78, 36.8, 77, 'NORMAL', 67),
+('2026-08-25 09:50:00', 143, 65, 37.1, 81, 'HIGH', 67),
+('2026-08-31 14:56:00', 103, 67, 36.7, 89, 'WARN', 68),
+('2026-08-26 08:23:00', 123, 71, 37.1, 64, 'NORMAL', 68),
+('2026-08-26 09:08:00', 121, 75, 37.0, 90, 'HIGH', 68),
+('2026-08-25 09:48:00', 147, 74, 36.6, 77, 'HIGH', 68);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-26 15:17:00', 103, 64, 36.7, 88, 'WARN', 68),
+('2026-08-27 08:30:00', 145, 94, 37.1, 94, 'HIGH', 68),
+('2026-08-28 15:39:00', 123, 64, 36.5, 89, 'WARN', 68),
+('2026-08-31 08:25:00', 111, 78, 37.5, 64, 'NORMAL', 68),
+('2026-08-31 09:17:00', 107, 69, 36.9, 73, 'NORMAL', 68),
+('2026-08-25 08:18:00', 126, 94, 37.5, 90, 'HIGH', 69),
+('2026-08-28 15:28:00', 147, 61, 36.6, 64, 'HIGH', 69),
+('2026-08-31 09:53:00', 133, 81, 36.8, 81, 'WARN', 69),
+('2026-08-25 14:31:00', 137, 93, 37.4, 88, 'HIGH', 69),
+('2026-08-27 14:36:00', 108, 79, 36.4, 76, 'NORMAL', 69),
+('2026-08-30 15:23:00', 118, 63, 36.4, 78, 'NORMAL', 69),
+('2026-08-27 09:39:00', 110, 94, 36.6, 71, 'HIGH', 69),
+('2026-08-24 09:10:00', 115, 67, 36.3, 80, 'WARN', 69),
+('2026-08-30 15:16:00', 123, 71, 36.5, 62, 'NORMAL', 70),
+('2026-08-25 14:22:00', 109, 83, 36.8, 70, 'WARN', 70),
+('2026-08-26 14:07:00', 101, 85, 37.5, 69, 'WARN', 70),
+('2026-08-27 14:09:00', 100, 94, 37.6, 81, 'HIGH', 70),
+('2026-08-25 14:30:00', 118, 96, 37.1, 96, 'HIGH', 70),
+('2026-08-25 15:21:00', 144, 67, 37.2, 62, 'HIGH', 70),
+('2026-08-30 08:19:00', 101, 85, 37.1, 74, 'WARN', 70);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-27 14:05:00', 120, 63, 37.1, 72, 'NORMAL', 70),
+('2026-08-26 09:50:00', 149, 77, 36.5, 65, 'HIGH', 71),
+('2026-08-26 15:43:00', 142, 65, 37.6, 85, 'HIGH', 71),
+('2026-08-30 15:20:00', 138, 92, 37.5, 83, 'HIGH', 71),
+('2026-08-27 09:45:00', 127, 83, 36.7, 60, 'WARN', 71),
+('2026-08-28 14:22:00', 119, 88, 37.4, 65, 'WARN', 71),
+('2026-08-30 15:47:00', 126, 88, 36.6, 87, 'WARN', 71),
+('2026-08-25 15:08:00', 137, 65, 36.4, 79, 'WARN', 71),
+('2026-08-27 14:04:00', 137, 84, 36.3, 86, 'WARN', 71),
+('2026-08-28 15:11:00', 135, 89, 37.2, 68, 'WARN', 72),
+('2026-08-30 09:53:00', 124, 78, 37.0, 62, 'NORMAL', 72),
+('2026-08-24 14:53:00', 137, 79, 36.9, 89, 'WARN', 72),
+('2026-08-30 08:50:00', 100, 69, 36.6, 90, 'HIGH', 72),
+('2026-08-31 14:26:00', 111, 91, 37.5, 75, 'HIGH', 72),
+('2026-08-31 08:48:00', 117, 91, 37.6, 64, 'HIGH', 72),
+('2026-08-26 14:37:00', 130, 96, 36.8, 76, 'HIGH', 72),
+('2026-08-25 15:44:00', 107, 83, 36.9, 96, 'HIGH', 72),
+('2026-08-31 14:10:00', 137, 63, 36.4, 89, 'WARN', 72),
+('2026-08-30 14:10:00', 103, 77, 36.7, 82, 'WARN', 73),
+('2026-08-31 14:18:00', 133, 64, 36.9, 71, 'WARN', 73);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 08:38:00', 148, 70, 37.0, 80, 'HIGH', 73),
+('2026-08-24 14:17:00', 143, 83, 36.3, 97, 'HIGH', 73),
+('2026-08-28 09:00:00', 108, 93, 36.6, 91, 'HIGH', 73),
+('2026-08-27 14:58:00', 110, 66, 36.5, 92, 'HIGH', 73),
+('2026-08-30 09:50:00', 135, 93, 37.4, 95, 'HIGH', 73),
+('2026-08-25 08:26:00', 129, 64, 36.4, 68, 'NORMAL', 73),
+('2026-08-31 15:22:00', 119, 83, 36.4, 88, 'WARN', 73),
+('2026-08-26 14:11:00', 145, 79, 36.2, 67, 'HIGH', 74),
+('2026-08-30 09:54:00', 144, 69, 37.2, 79, 'HIGH', 74),
+('2026-08-30 09:08:00', 105, 87, 37.2, 67, 'WARN', 74),
+('2026-08-31 08:49:00', 130, 87, 36.3, 66, 'WARN', 74),
+('2026-08-31 08:30:00', 107, 76, 36.3, 79, 'NORMAL', 74),
+('2026-08-25 08:48:00', 106, 67, 37.5, 73, 'NORMAL', 74),
+('2026-08-26 09:11:00', 142, 82, 36.2, 69, 'HIGH', 74),
+('2026-08-24 14:37:00', 122, 82, 36.4, 92, 'HIGH', 74),
+('2026-08-26 09:32:00', 136, 64, 36.3, 97, 'HIGH', 75),
+('2026-08-24 08:33:00', 113, 72, 37.5, 70, 'NORMAL', 75),
+('2026-08-24 08:46:00', 106, 73, 37.5, 90, 'HIGH', 75),
+('2026-08-28 09:28:00', 143, 66, 36.5, 82, 'HIGH', 75),
+('2026-08-27 15:13:00', 132, 74, 36.8, 80, 'WARN', 75);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-31 15:07:00', 133, 68, 36.9, 83, 'WARN', 75),
+('2026-08-25 14:35:00', 146, 62, 36.3, 91, 'HIGH', 75),
+('2026-08-31 15:18:00', 129, 79, 37.2, 88, 'WARN', 75),
+('2026-08-30 15:18:00', 127, 72, 37.4, 90, 'HIGH', 75),
+('2026-08-28 09:00:00', 143, 91, 37.1, 85, 'HIGH', 76),
+('2026-08-27 08:07:00', 109, 85, 36.8, 97, 'HIGH', 76),
+('2026-08-31 09:04:00', 123, 72, 36.7, 98, 'HIGH', 76),
+('2026-08-24 15:07:00', 114, 87, 37.2, 77, 'WARN', 76),
+('2026-08-24 14:48:00', 150, 85, 36.7, 98, 'HIGH', 76),
+('2026-08-27 15:32:00', 117, 69, 37.3, 66, 'NORMAL', 76),
+('2026-08-31 14:31:00', 131, 74, 37.1, 68, 'WARN', 76),
+('2026-08-31 08:47:00', 103, 64, 36.9, 61, 'NORMAL', 76),
+('2026-08-30 15:38:00', 143, 80, 36.4, 66, 'HIGH', 76),
+('2026-08-25 15:50:00', 129, 72, 36.6, 91, 'HIGH', 77),
+('2026-08-27 14:34:00', 121, 94, 37.0, 62, 'HIGH', 77),
+('2026-08-27 08:24:00', 128, 80, 37.4, 88, 'WARN', 77),
+('2026-08-27 08:02:00', 111, 95, 37.1, 79, 'HIGH', 77),
+('2026-08-30 15:27:00', 108, 79, 37.2, 91, 'HIGH', 78),
+('2026-08-24 08:36:00', 143, 91, 37.1, 94, 'HIGH', 78),
+('2026-08-26 15:30:00', 135, 70, 36.9, 85, 'WARN', 78);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-28 15:37:00', 124, 82, 37.3, 78, 'WARN', 78),
+('2026-08-28 08:01:00', 137, 62, 36.4, 83, 'WARN', 78),
+('2026-08-28 08:48:00', 140, 81, 36.7, 87, 'HIGH', 78),
+('2026-08-28 14:26:00', 122, 63, 37.1, 75, 'NORMAL', 78),
+('2026-08-30 14:37:00', 105, 64, 37.4, 67, 'NORMAL', 78),
+('2026-08-28 09:01:00', 134, 80, 36.3, 87, 'WARN', 78),
+('2026-08-26 15:17:00', 101, 90, 37.0, 80, 'HIGH', 79),
+('2026-08-27 15:20:00', 136, 66, 37.3, 66, 'WARN', 79),
+('2026-08-25 09:21:00', 131, 92, 37.3, 81, 'HIGH', 79),
+('2026-08-30 14:23:00', 127, 72, 36.9, 64, 'NORMAL', 79),
+('2026-08-24 09:18:00', 116, 63, 36.6, 96, 'HIGH', 79),
+('2026-08-27 09:39:00', 147, 65, 37.2, 97, 'HIGH', 79),
+('2026-08-31 14:17:00', 104, 96, 37.3, 90, 'HIGH', 79),
+('2026-08-27 09:22:00', 150, 64, 37.1, 79, 'HIGH', 79),
+('2026-08-24 14:27:00', 142, 94, 36.6, 86, 'HIGH', 80),
+('2026-08-27 14:39:00', 132, 89, 37.1, 95, 'HIGH', 80),
+('2026-08-30 08:40:00', 145, 93, 37.4, 96, 'HIGH', 80),
+('2026-08-27 09:42:00', 147, 89, 36.6, 94, 'HIGH', 80),
+('2026-08-24 15:59:00', 136, 63, 36.9, 83, 'WARN', 80),
+('2026-08-27 09:15:00', 109, 79, 37.4, 86, 'WARN', 80);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-28 08:40:00', 113, 86, 36.6, 78, 'WARN', 80),
+('2026-08-25 09:16:00', 143, 75, 36.8, 67, 'HIGH', 80),
+('2026-08-30 08:15:00', 119, 89, 36.9, 87, 'WARN', 81),
+('2026-08-27 08:12:00', 110, 77, 36.4, 76, 'NORMAL', 81),
+('2026-08-24 14:42:00', 135, 71, 37.1, 62, 'WARN', 81),
+('2026-08-25 15:50:00', 101, 63, 37.4, 65, 'NORMAL', 81),
+('2026-08-28 14:55:00', 104, 86, 37.5, 65, 'WARN', 81),
+('2026-08-24 09:15:00', 107, 96, 37.2, 67, 'HIGH', 82),
+('2026-08-26 14:31:00', 105, 75, 37.0, 80, 'WARN', 82),
+('2026-08-28 15:51:00', 147, 75, 37.5, 73, 'HIGH', 82),
+('2026-08-30 08:11:00', 113, 77, 36.8, 76, 'NORMAL', 82),
+('2026-08-24 08:31:00', 134, 83, 37.2, 67, 'WARN', 82),
+('2026-08-28 15:30:00', 143, 75, 37.5, 69, 'HIGH', 82),
+('2026-08-28 15:45:00', 123, 79, 36.2, 98, 'HIGH', 82),
+('2026-08-24 08:44:00', 150, 75, 36.6, 84, 'HIGH', 83),
+('2026-08-28 14:57:00', 143, 67, 36.9, 75, 'HIGH', 83),
+('2026-08-24 15:24:00', 100, 85, 37.5, 76, 'WARN', 83),
+('2026-08-28 08:59:00', 148, 75, 36.6, 70, 'HIGH', 83),
+('2026-08-25 14:56:00', 149, 86, 37.3, 77, 'HIGH', 84),
+('2026-08-24 08:52:00', 149, 91, 36.9, 86, 'HIGH', 84);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 14:45:00', 127, 66, 37.4, 76, 'NORMAL', 84),
+('2026-08-26 08:22:00', 126, 95, 37.2, 89, 'HIGH', 84),
+('2026-08-25 08:48:00', 103, 71, 37.1, 68, 'NORMAL', 84),
+('2026-08-31 15:12:00', 140, 79, 36.6, 65, 'HIGH', 84),
+('2026-08-31 09:15:00', 133, 68, 37.4, 86, 'WARN', 84),
+('2026-08-27 15:55:00', 147, 68, 36.6, 97, 'HIGH', 85),
+('2026-08-24 14:51:00', 118, 72, 36.3, 83, 'WARN', 85),
+('2026-08-30 15:56:00', 124, 96, 36.5, 61, 'HIGH', 85),
+('2026-08-26 09:58:00', 105, 89, 36.5, 70, 'WARN', 85),
+('2026-08-31 15:39:00', 127, 76, 36.4, 83, 'WARN', 85),
+('2026-08-30 08:00:00', 145, 93, 36.8, 89, 'HIGH', 85),
+('2026-08-27 08:14:00', 145, 73, 36.5, 77, 'HIGH', 86),
+('2026-08-28 15:24:00', 108, 87, 37.4, 98, 'HIGH', 86),
+('2026-08-30 14:46:00', 143, 72, 36.8, 86, 'HIGH', 86),
+('2026-08-24 09:01:00', 118, 76, 36.5, 88, 'WARN', 86),
+('2026-08-30 14:37:00', 143, 89, 36.3, 90, 'HIGH', 86),
+('2026-08-30 14:44:00', 125, 73, 37.2, 87, 'WARN', 86),
+('2026-08-25 14:04:00', 106, 95, 36.3, 81, 'HIGH', 86),
+('2026-08-30 15:58:00', 122, 62, 36.2, 92, 'HIGH', 86),
+('2026-08-26 15:19:00', 125, 83, 36.4, 95, 'HIGH', 86);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-26 09:16:00', 110, 92, 36.9, 81, 'HIGH', 87),
+('2026-08-27 09:05:00', 120, 93, 36.8, 76, 'HIGH', 87),
+('2026-08-31 14:02:00', 108, 91, 37.4, 77, 'HIGH', 87),
+('2026-08-25 14:59:00', 127, 78, 37.5, 76, 'NORMAL', 87),
+('2026-08-24 14:33:00', 120, 87, 37.4, 80, 'WARN', 89),
+('2026-08-25 15:48:00', 109, 95, 37.4, 88, 'HIGH', 89),
+('2026-08-31 09:09:00', 103, 74, 36.5, 90, 'HIGH', 89),
+('2026-08-28 09:45:00', 129, 87, 36.4, 91, 'HIGH', 89),
+('2026-08-31 15:22:00', 145, 95, 36.9, 91, 'HIGH', 89),
+('2026-08-31 09:07:00', 122, 65, 36.5, 78, 'NORMAL', 89),
+('2026-08-30 09:47:00', 132, 77, 37.0, 97, 'HIGH', 89),
+('2026-08-30 08:33:00', 149, 96, 36.5, 64, 'HIGH', 89),
+('2026-08-24 15:43:00', 106, 81, 36.2, 67, 'WARN', 90),
+('2026-08-27 14:37:00', 106, 80, 36.4, 65, 'WARN', 90),
+('2026-08-27 15:29:00', 140, 77, 37.0, 60, 'HIGH', 90),
+('2026-08-28 08:41:00', 139, 88, 36.7, 96, 'HIGH', 90),
+('2026-08-30 09:55:00', 103, 78, 36.7, 63, 'NORMAL', 90),
+('2026-08-31 15:05:00', 125, 76, 36.4, 85, 'WARN', 91),
+('2026-08-31 08:54:00', 113, 70, 36.7, 85, 'WARN', 91),
+('2026-08-28 09:07:00', 119, 91, 37.3, 79, 'HIGH', 91);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-25 09:22:00', 142, 66, 37.4, 92, 'HIGH', 91),
+('2026-08-30 15:28:00', 124, 90, 36.6, 98, 'HIGH', 91),
+('2026-08-27 08:48:00', 127, 83, 37.1, 87, 'WARN', 91),
+('2026-08-25 15:05:00', 102, 92, 36.7, 89, 'HIGH', 91),
+('2026-08-25 09:41:00', 143, 69, 37.5, 93, 'HIGH', 91),
+('2026-08-25 08:18:00', 129, 87, 36.3, 90, 'HIGH', 91),
+('2026-08-30 09:43:00', 119, 75, 36.9, 78, 'NORMAL', 92),
+('2026-08-26 08:35:00', 104, 62, 36.9, 92, 'HIGH', 92),
+('2026-08-27 15:06:00', 129, 96, 37.3, 82, 'HIGH', 92),
+('2026-08-28 08:49:00', 132, 61, 36.4, 89, 'WARN', 92),
+('2026-08-30 09:53:00', 125, 62, 36.3, 79, 'NORMAL', 92),
+('2026-08-28 15:48:00', 142, 88, 37.1, 76, 'HIGH', 92),
+('2026-08-24 09:13:00', 111, 65, 37.2, 98, 'HIGH', 93),
+('2026-08-28 08:27:00', 134, 61, 36.2, 67, 'WARN', 93),
+('2026-08-31 09:41:00', 130, 89, 37.2, 98, 'HIGH', 93),
+('2026-08-25 15:19:00', 139, 83, 37.2, 85, 'WARN', 93),
+('2026-08-24 14:05:00', 108, 68, 36.2, 67, 'NORMAL', 93),
+('2026-08-24 08:44:00', 112, 61, 36.5, 69, 'NORMAL', 93),
+('2026-08-30 15:53:00', 140, 94, 36.5, 79, 'HIGH', 94),
+('2026-08-24 15:09:00', 130, 87, 36.2, 70, 'WARN', 94);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-30 15:31:00', 130, 61, 37.4, 97, 'HIGH', 94),
+('2026-08-30 09:18:00', 136, 85, 36.3, 60, 'WARN', 94),
+('2026-08-31 15:26:00', 131, 95, 37.6, 62, 'HIGH', 94),
+('2026-08-27 15:31:00', 132, 91, 36.5, 63, 'HIGH', 94),
+('2026-08-26 08:27:00', 136, 80, 37.0, 77, 'WARN', 94),
+('2026-08-25 15:56:00', 130, 67, 36.9, 82, 'WARN', 94),
+('2026-08-27 15:01:00', 110, 78, 37.2, 90, 'HIGH', 94),
+('2026-08-27 09:32:00', 114, 81, 37.5, 89, 'WARN', 95),
+('2026-08-30 14:46:00', 145, 84, 37.5, 83, 'HIGH', 95),
+('2026-08-24 15:51:00', 110, 73, 36.6, 65, 'NORMAL', 95),
+('2026-08-25 15:08:00', 111, 72, 36.4, 91, 'HIGH', 95),
+('2026-08-31 15:31:00', 119, 75, 36.5, 63, 'NORMAL', 95),
+('2026-08-31 14:56:00', 116, 82, 37.1, 71, 'WARN', 95),
+('2026-08-31 08:21:00', 127, 67, 37.1, 67, 'NORMAL', 96),
+('2026-08-26 09:31:00', 116, 81, 37.3, 62, 'WARN', 96),
+('2026-08-24 14:57:00', 109, 92, 37.0, 66, 'HIGH', 96),
+('2026-08-25 08:59:00', 128, 89, 37.5, 67, 'WARN', 96),
+('2026-08-31 08:52:00', 135, 62, 36.9, 70, 'WARN', 96),
+('2026-08-25 08:55:00', 113, 83, 36.4, 78, 'WARN', 96),
+('2026-08-25 15:48:00', 132, 91, 37.2, 66, 'HIGH', 96);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-30 14:21:00', 108, 67, 37.4, 88, 'WARN', 96),
+('2026-08-24 08:15:00', 130, 81, 36.6, 70, 'WARN', 97),
+('2026-08-31 14:23:00', 145, 86, 36.7, 75, 'HIGH', 97),
+('2026-08-30 15:50:00', 114, 68, 37.3, 86, 'WARN', 97),
+('2026-08-27 15:54:00', 133, 83, 37.5, 88, 'WARN', 97),
+('2026-08-30 08:45:00', 133, 64, 36.3, 80, 'WARN', 97),
+('2026-08-27 09:27:00', 103, 85, 37.3, 69, 'WARN', 97),
+('2026-08-26 08:40:00', 145, 93, 37.6, 86, 'HIGH', 97),
+('2026-08-25 14:46:00', 147, 80, 37.5, 60, 'HIGH', 98),
+('2026-08-24 14:57:00', 133, 69, 37.2, 88, 'WARN', 98),
+('2026-08-25 09:56:00', 134, 88, 37.2, 85, 'WARN', 98),
+('2026-08-24 09:56:00', 119, 65, 36.3, 81, 'WARN', 98),
+('2026-08-27 09:33:00', 134, 78, 36.5, 92, 'HIGH', 98),
+('2026-08-26 14:33:00', 121, 70, 36.2, 94, 'HIGH', 98),
+('2026-08-26 14:15:00', 149, 79, 37.2, 92, 'HIGH', 98),
+('2026-08-25 08:53:00', 123, 76, 37.1, 82, 'WARN', 99),
+('2026-08-31 08:48:00', 141, 67, 36.8, 96, 'HIGH', 99),
+('2026-08-25 08:29:00', 121, 75, 37.3, 97, 'HIGH', 99),
+('2026-08-26 09:22:00', 119, 78, 37.1, 96, 'HIGH', 99),
+('2026-08-30 15:33:00', 147, 75, 36.3, 93, 'HIGH', 100);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-26 09:52:00', 149, 83, 36.8, 69, 'HIGH', 100),
+('2026-08-25 15:53:00', 126, 65, 36.3, 87, 'WARN', 100),
+('2026-08-30 15:13:00', 128, 64, 36.7, 93, 'HIGH', 100),
+('2026-08-27 15:55:00', 116, 91, 37.1, 88, 'HIGH', 100),
+('2026-08-25 15:46:00', 126, 70, 36.4, 68, 'NORMAL', 100),
+('2026-08-27 15:08:00', 145, 92, 37.4, 67, 'HIGH', 100),
+('2026-08-25 09:29:00', 130, 62, 37.2, 95, 'HIGH', 100),
+('2026-08-28 08:38:00', 126, 67, 36.4, 96, 'HIGH', 100),
+('2026-08-31 09:07:00', 123, 79, 37.6, 79, 'NORMAL', 101),
+('2026-08-28 15:01:00', 150, 69, 36.4, 97, 'HIGH', 101),
+('2026-08-27 08:59:00', 119, 78, 36.5, 91, 'HIGH', 101),
+('2026-08-31 08:35:00', 122, 64, 37.4, 86, 'WARN', 101),
+('2026-08-27 14:36:00', 128, 81, 37.3, 90, 'HIGH', 101),
+('2026-08-24 09:48:00', 108, 92, 37.1, 88, 'HIGH', 101),
+('2026-08-27 09:55:00', 146, 80, 36.3, 86, 'HIGH', 102),
+('2026-08-27 09:57:00', 125, 81, 37.0, 88, 'WARN', 102),
+('2026-08-25 14:41:00', 105, 70, 37.2, 96, 'HIGH', 102),
+('2026-08-25 14:35:00', 141, 67, 37.1, 65, 'HIGH', 102),
+('2026-08-30 08:36:00', 133, 72, 37.3, 92, 'HIGH', 102),
+('2026-08-31 08:42:00', 134, 71, 37.5, 77, 'WARN', 102);
+INSERT INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
+VALUES
+('2026-08-24 09:15:00', 145, 88, 36.3, 94, 'HIGH', 102),
+('2026-08-26 14:25:00', 137, 62, 36.9, 61, 'WARN', 102),
+('2026-08-28 15:11:00', 126, 61, 37.4, 80, 'WARN', 102),
+('2026-08-28 08:07:00', 106, 94, 36.4, 69, 'HIGH', 103),
+('2026-08-30 14:49:00', 105, 69, 36.6, 86, 'WARN', 103),
+('2026-08-25 09:03:00', 139, 80, 36.5, 63, 'WARN', 103),
+('2026-08-28 15:06:00', 120, 69, 36.8, 80, 'WARN', 103),
+('2026-08-28 15:52:00', 107, 63, 36.5, 98, 'HIGH', 103),
+('2026-08-26 09:31:00', 132, 92, 36.7, 67, 'HIGH', 103),
+('2026-08-28 08:20:00', 129, 95, 36.8, 90, 'HIGH', 103);
+
+-- ------------------------------
+-- 8. checkups (2024~2026년, 전체 사원 대상)
+-- ------------------------------
+
+-- ------------------------------
+-- 9. checkup reminder settings
+-- ------------------------------
+INSERT INTO checkup_reminder_settings (type, message_template, cron_schedule, is_active)
 VALUES
 ('BEFORE_CHECKUP', '검진 7일 전입니다. 건강검진 일정을 확인해 주세요.', '0 0 9 * * 1', 1),
 ('MISSING_CHECKUP', '미검진 상태입니다. 빠른 시일 내에 검진을 예약해 주세요.', '0 0 9 * * 3', 1),
 ('AFTER_CHECKUP', '검진 결과를 확인해 주세요. 건강 관리에 참고하겠습니다.', '0 0 10 * * 5', 0);
 
 -- ------------------------------
--- 9. checkup reminders
+-- 10. checkup reminders (일부 checkup 건에 대한 알림 발송 기록)
 -- ------------------------------
-INSERT IGNORE INTO checkup_reminders (channel, content, sent_at, status, is_manual, checkup_id)
-VALUES
-('SMS', '검진 7일 전 안내 메시지입니다.', '2026-08-20 09:00:00', 'SUCCESS', 0, 1),
-('EMAIL', '미검진으로 인한 안내 메일입니다.', '2026-08-22 13:30:00', 'SUCCESS', 0, 3),
-('SMS', '검진 결과 확인 문자를 발송합니다.', '2026-08-25 10:00:00', 'SUCCESS', 1, 2);
 
 -- ------------------------------
--- 10. consultations
+-- 11. consultations
 -- ------------------------------
-INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
+INSERT INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
 VALUES
-(1, 2, '2026-09-10', 'T1', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-09-01 09:30:00'),
-(4, 2, '2026-08-29', 'T2', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'FINISHED', '2026-08-29 15:00:00', '2026-08-20 09:15:00'),
-(5, 2, '2026-09-12', 'T3', '휴식 및 회복 상담', '근무 중 피로감이 높아 상담 요청드립니다.', 'CANCELED', NULL, '2026-09-01 10:00:00');
+(69, 2, '2026-09-10', 'T1', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'FINISHED', '2026-09-10 14:00:00', '2026-09-01 00:00:00'),
+(100, 1, '2026-08-20', 'T2', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'FINISHED', '2026-08-20 16:00:00', '2026-08-05 00:00:00'),
+(42, 3, '2026-08-27', 'T1', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'FINISHED', '2026-08-27 15:00:00', '2026-08-11 00:00:00'),
+(93, 2, '2026-09-08', 'T4', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'RESERVED', NULL, '2026-08-20 00:00:00'),
+(100, 2, '2026-09-04', 'T2', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'CANCELED', NULL, '2026-08-20 00:00:00'),
+(16, 1, '2026-09-06', 'T1', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-25 00:00:00'),
+(64, 3, '2026-08-27', 'T2', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'CANCELED', NULL, '2026-08-09 00:00:00'),
+(41, 1, '2026-08-30', 'T2', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-21 00:00:00'),
+(101, 3, '2026-08-17', 'T3', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'CANCELED', NULL, '2026-08-11 00:00:00'),
+(93, 1, '2026-09-10', 'T4', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'RESERVED', NULL, '2026-09-06 00:00:00'),
+(16, 2, '2026-09-16', 'T2', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-28 00:00:00'),
+(90, 2, '2026-09-13', 'T2', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'CANCELED', NULL, '2026-08-29 00:00:00'),
+(35, 1, '2026-08-24', 'T2', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'FINISHED', '2026-08-24 15:00:00', '2026-08-16 00:00:00'),
+(90, 3, '2026-09-10', 'T1', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'FINISHED', '2026-09-10 16:00:00', '2026-08-26 00:00:00'),
+(39, 3, '2026-09-14', 'T3', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-09-08 00:00:00'),
+(14, 1, '2026-09-17', 'T2', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-30 00:00:00'),
+(39, 3, '2026-08-23', 'T2', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'FINISHED', '2026-08-23 16:00:00', '2026-08-07 00:00:00'),
+(42, 3, '2026-08-25', 'T1', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'RESERVED', NULL, '2026-08-05 00:00:00'),
+(27, 2, '2026-08-18', 'T4', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'CANCELED', NULL, '2026-07-30 00:00:00'),
+(68, 1, '2026-09-19', 'T1', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-09-13 00:00:00'),
+(27, 3, '2026-08-28', 'T1', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'FINISHED', '2026-08-28 15:00:00', '2026-08-22 00:00:00'),
+(9, 1, '2026-08-30', 'T2', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-19 00:00:00'),
+(103, 1, '2026-08-22', 'T1', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'FINISHED', '2026-08-22 15:00:00', '2026-08-02 00:00:00'),
+(25, 2, '2026-08-17', 'T2', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'RESERVED', NULL, '2026-07-29 00:00:00'),
+(41, 3, '2026-09-20', 'T4', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'CANCELED', NULL, '2026-09-02 00:00:00'),
+(95, 2, '2026-09-19', 'T3', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'CANCELED', NULL, '2026-08-31 00:00:00'),
+(30, 3, '2026-08-23', 'T1', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'RESERVED', NULL, '2026-08-14 00:00:00'),
+(22, 2, '2026-08-30', 'T2', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'CANCELED', NULL, '2026-08-21 00:00:00'),
+(81, 2, '2026-09-03', 'T2', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'CANCELED', NULL, '2026-08-18 00:00:00'),
+(13, 3, '2026-09-02', 'T3', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'CANCELED', NULL, '2026-08-25 00:00:00'),
+(56, 2, '2026-08-22', 'T3', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'FINISHED', '2026-08-22 16:00:00', '2026-08-15 00:00:00'),
+(74, 1, '2026-08-21', 'T3', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'CANCELED', NULL, '2026-08-12 00:00:00'),
+(98, 2, '2026-09-18', 'T2', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'RESERVED', NULL, '2026-09-05 00:00:00'),
+(61, 2, '2026-08-18', 'T2', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'FINISHED', '2026-08-18 14:00:00', '2026-07-29 00:00:00'),
+(18, 3, '2026-09-21', 'T4', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'FINISHED', '2026-09-21 16:00:00', '2026-09-16 00:00:00'),
+(51, 2, '2026-09-03', 'T2', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-23 00:00:00'),
+(5, 1, '2026-09-10', 'T2', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'RESERVED', NULL, '2026-09-04 00:00:00'),
+(26, 3, '2026-09-05', 'T4', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-22 00:00:00'),
+(96, 3, '2026-09-04', 'T3', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'RESERVED', NULL, '2026-08-31 00:00:00'),
+(25, 2, '2026-09-10', 'T2', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'CANCELED', NULL, '2026-08-21 00:00:00');
 
 -- ------------------------------
--- 11. notices
+-- 12. notices
 -- ------------------------------
-INSERT IGNORE INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
+INSERT INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
 VALUES
-('9월 건강검진 일정 안내', '9월 건강검진 예약 일정과 대상자를 안내드립니다. 관련 공지 확인 후 빠르게 예약해 주세요.', 'Y', '2026-09-01 08:00:00', '2026-09-01 08:00:00', 1, 42),
-('직장 건강관리 프로그램 운영 안내', '직장 내 건강관리 프로그램을 운영합니다. 참여를 희망하는 직원은 담당 부서로 신청해 주세요.', 'Y', '2026-09-02 09:30:00', '2026-09-02 09:30:00', 2, 18),
-('근무 시간 및 휴식 관리 기준 안내', '근무시간 준수와 적절한 휴식 시간을 확보할 수 있도록 기준을 안내합니다.', 'Y', '2026-09-03 13:00:00', '2026-09-03 13:00:00', 3, 27);
+('9월 건강검진 일정 안내', '9월 건강검진 예약 일정과 대상자를 안내드립니다. 관련 공지 확인 후 빠르게 예약해 주세요.', 'Y', '2025-09-01 09:00:00', '2026-09-01 09:00:00', 1, 42),
+('직장 건강관리 프로그램 운영 안내', '직장 내 건강관리 프로그램을 운영합니다. 참여를 희망하는 직원은 담당 부서로 신청해 주세요.', 'Y', '2025-09-29 09:00:00', '2026-08-29 09:00:00', 2, 18),
+('근무 시간 및 휴식 관리 기준 안내', '근무시간 준수와 적절한 휴식 시간을 확보할 수 있도록 기준을 안내합니다.', 'Y', '2025-08-26 09:00:00', '2026-08-26 09:00:00', 3, 27),
+('10월 정기 건강검진 일정 안내', '10월 정기 건강검진 예약 일정과 대상자를 안내드립니다.', 'Y', '2025-09-23 09:00:00', '2026-08-23 09:00:00', 3, 51),
+('독감 예방접종 신청 안내', '겨울철 독감 예방접종을 희망하는 직원은 신청해 주세요.', 'Y', '2025-10-20 09:00:00', '2026-08-20 09:00:00', 3, 21),
+('사내 헬스장 이용 안내', '사내 헬스장 이용 시간 및 유의사항을 안내드립니다.', 'Y', '2025-11-17 09:00:00', '2026-08-17 09:00:00', 3, 23),
+('금연 클리닉 운영 안내', '금연을 희망하는 직원을 위한 클리닉을 운영합니다.', 'Y', '2025-12-14 09:00:00', '2026-08-14 09:00:00', 2, 20),
+('스트레스 관리 프로그램 안내', '심리 상담 및 스트레스 관리 프로그램을 안내드립니다.', 'Y', '2025-12-21 09:00:00', '2026-08-11 09:00:00', 1, 8),
+('여름철 건강 관리 수칙 안내', '무더위 속 건강관리를 위한 수칙을 안내드립니다.', 'Y', '2026-06-08 09:00:00', '2026-08-08 09:00:00', 2, 41),
+('사내 식당 메뉴 개편 안내', '영양 균형을 고려한 사내 식당 메뉴 개편 안내입니다.', 'Y', '2026-07-05 09:00:00', '2026-08-05 09:00:00', 3, 58),
+('정기 소방/안전 교육 일정 안내', '전 직원 대상 소방 및 안전 교육 일정을 안내드립니다.', 'Y', '2026-07-08 09:00:00', '2026-08-02 09:00:00', 2, 14),
+('건강검진 결과 상담 신청 안내', '건강검진 결과에 대한 1:1 상담 신청 방법을 안내드립니다.', 'Y', '2026-08-07 09:00:00', '2026-07-27 09:00:00', 1, 32),
+('사내 금연구역 확대 안내', '사내 금연구역이 확대 운영됨을 안내드립니다.', 'Y', '2026-08-24 09:00:00', '2026-07-24 09:00:00', 1, 23),
+('신규 입사자 건강검진 안내', '신규 입사자 대상 필수 건강검진 절차를 안내드립니다.', 'Y', '2026-09-01 09:00:00', '2026-07-21 09:00:00', 3, 45),
+('명절 연휴 근무 안내', '다가오는 명절 연휴 기간 근무 및 당직 안내입니다.', 'Y', '2026-09-05 09:00:00', '2026-07-30 09:00:00', 1, 28),
+('안전주의 안내', '명절날 근무시간 조정으로 인한 주의사항을 안내드립니다.', 'Y', '2026-09-10 09:00:00', '2026-09-10 09:00:00', 3, 45);
 
 -- ------------------------------
--- 12. notice files
+-- 13. notice files
 -- ------------------------------
-INSERT IGNORE INTO notice_files (origin_name, saved_name, saved_path, extension, notice_id)
+INSERT INTO notice_files (origin_name, saved_name, saved_path, extension, notice_id)
 VALUES
-('9월-검진-안내.pdf', '9m-checkup-guide-01.pdf', '/uploads/notices/healthgate', 'pdf', 1),
-('직장-건강관리-프로그램.hwp', 'work-health-program-02.hwp', '/uploads/notices/healthgate', 'hwp', 2),
-('근무시간-기준안내.docx', 'working-hours-guide-03.docx', '/uploads/notices/healthgate', 'docx', 3);
-
--- ============================================
--- HealthGate 추가 더미데이터 (대량, 페이지네이션/필터 테스트용)
--- 기존 dummy.sql 실행 이후에 실행하세요.
--- ============================================
-
--- ------------------------------
--- 3-1. 추가 직원 (emp16 ~ emp35, 페이지네이션/검색 테스트용)
--- ------------------------------
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp16', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '최민서', '2019-04-08', 'emp16@healthgate.com', '010-3000-1016', 'EMPLOYEE', 'Y', 3, 6);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp17', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '송도현', '2024-07-02', 'emp17@healthgate.com', '010-3000-1017', 'EMPLOYEE', 'Y', 1, 1);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp18', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '안태윤', '2015-09-07', 'emp18@healthgate.com', '010-3000-1018', 'EMPLOYEE', 'Y', 7, 2);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp19', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장민서', '2017-12-14', 'emp19@healthgate.com', '010-3000-1019', 'EMPLOYEE', 'Y', 6, 3);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp20', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '한지우', '2016-07-04', 'emp20@healthgate.com', '010-3000-1020', 'EMPLOYEE', 'Y', 6, 7);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp21', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장서준', '2022-09-04', 'emp21@healthgate.com', '010-3000-1021', 'EMPLOYEE', 'Y', 7, 1);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp22', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '홍건우', '2024-04-23', 'emp22@healthgate.com', '010-3000-1022', 'EMPLOYEE', 'Y', 2, 1);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp23', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '임도현', '2018-02-13', 'emp23@healthgate.com', '010-3000-1023', 'EMPLOYEE', 'Y', 5, 4);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp24', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '오예준', '2020-06-07', 'emp24@healthgate.com', '010-3000-1024', 'EMPLOYEE', 'Y', 5, 6);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp25', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '박태윤', '2017-09-24', 'emp25@healthgate.com', '010-3000-1025', 'EMPLOYEE', 'Y', 4, 2);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp26', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장현우', '2018-11-11', 'emp26@healthgate.com', '010-3000-1026', 'EMPLOYEE', 'Y', 1, 2);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp27', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '한다은', '2019-02-07', 'emp27@healthgate.com', '010-3000-1027', 'EMPLOYEE', 'Y', 6, 2);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp28', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '서나은', '2017-05-05', 'emp28@healthgate.com', '010-3000-1028', 'EMPLOYEE', 'Y', 4, 6);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp29', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장예린', '2021-10-13', 'emp29@healthgate.com', '010-3000-1029', 'EMPLOYEE', 'Y', 6, 2);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp30', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정수빈', '2022-02-25', 'emp30@healthgate.com', '010-3000-1030', 'EMPLOYEE', 'Y', 1, 7);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp31', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '강우진', '2024-02-13', 'emp31@healthgate.com', '010-3000-1031', 'EMPLOYEE', 'Y', 7, 5);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp32', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '안채원', '2023-01-22', 'emp32@healthgate.com', '010-3000-1032', 'EMPLOYEE', 'Y', 2, 6);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp33', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장유진', '2016-05-14', 'emp33@healthgate.com', '010-3000-1033', 'EMPLOYEE', 'N', 3, 4);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp34', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '장수빈', '2017-09-04', 'emp34@healthgate.com', '010-3000-1034', 'EMPLOYEE', 'Y', 5, 7);
-INSERT IGNORE INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
-VALUES ('emp35', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '홍수아', '2017-06-25', 'emp35@healthgate.com', '010-3000-1035', 'EMPLOYEE', 'Y', 3, 5);
-
--- ------------------------------
--- 5-1. timecards 추가 (최근 14일치, 직원 1~35)
--- ------------------------------
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-09-01 08:38:00', 1),
-('LEAVE', '2026-08-31 08:07:00', 1),
-('ATTENDANCE', '2026-08-28 09:15:00', 1),
-('ATTENDANCE', '2026-08-27 08:05:00', 1),
-('ATTENDANCE', '2026-08-26 08:48:00', 1),
-('ATTENDANCE', '2026-08-25 08:08:00', 1),
-('ATTENDANCE', '2026-08-24 08:16:00', 1),
-('LEAVE', '2026-08-21 09:13:00', 1),
-('ATTENDANCE', '2026-08-20 08:45:00', 1),
-('LEAVE', '2026-08-19 09:28:00', 1),
-('ATTENDANCE', '2026-09-01 08:15:00', 2),
-('ATTENDANCE', '2026-08-31 09:01:00', 2),
-('ATTENDANCE', '2026-08-28 08:37:00', 2),
-('ATTENDANCE', '2026-08-27 08:45:00', 2),
-('LEAVE', '2026-08-26 08:04:00', 2),
-('ATTENDANCE', '2026-08-25 09:04:00', 2),
-('ATTENDANCE', '2026-08-24 09:42:00', 2),
-('LEAVE', '2026-08-21 08:46:00', 2),
-('ATTENDANCE', '2026-08-20 09:15:00', 2),
-('ATTENDANCE', '2026-09-01 08:06:00', 3);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-31 09:22:00', 3),
-('ATTENDANCE', '2026-08-28 09:55:00', 3),
-('ATTENDANCE', '2026-08-27 08:03:00', 3),
-('LEAVE', '2026-08-26 09:51:00', 3),
-('ATTENDANCE', '2026-08-25 08:12:00', 3),
-('ATTENDANCE', '2026-08-24 09:08:00', 3),
-('ATTENDANCE', '2026-08-21 09:29:00', 3),
-('ATTENDANCE', '2026-08-20 08:28:00', 3),
-('ATTENDANCE', '2026-09-01 08:03:00', 4),
-('LEAVE', '2026-08-31 08:05:00', 4),
-('ATTENDANCE', '2026-08-28 08:10:00', 4),
-('LEAVE', '2026-08-27 09:13:00', 4),
-('ATTENDANCE', '2026-08-26 08:10:00', 4),
-('LEAVE', '2026-08-25 09:16:00', 4),
-('ATTENDANCE', '2026-08-24 09:18:00', 4),
-('ATTENDANCE', '2026-08-21 09:09:00', 4),
-('ATTENDANCE', '2026-08-20 08:03:00', 4),
-('ATTENDANCE', '2026-08-19 08:47:00', 4),
-('LEAVE', '2026-09-01 09:32:00', 5),
-('LEAVE', '2026-08-31 08:03:00', 5);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-28 08:54:00', 5),
-('LEAVE', '2026-08-27 08:43:00', 5),
-('LEAVE', '2026-08-26 09:07:00', 5),
-('ATTENDANCE', '2026-08-25 08:37:00', 5),
-('ATTENDANCE', '2026-08-24 08:26:00', 5),
-('ATTENDANCE', '2026-09-01 09:59:00', 6),
-('ATTENDANCE', '2026-08-31 09:15:00', 6),
-('ATTENDANCE', '2026-08-28 08:42:00', 6),
-('LEAVE', '2026-08-27 09:20:00', 6),
-('ATTENDANCE', '2026-08-26 08:00:00', 6),
-('ATTENDANCE', '2026-08-25 08:04:00', 6),
-('LEAVE', '2026-08-24 09:08:00', 6),
-('ATTENDANCE', '2026-08-21 08:56:00', 6),
-('ATTENDANCE', '2026-08-20 09:10:00', 6),
-('LEAVE', '2026-08-19 09:39:00', 6),
-('ATTENDANCE', '2026-09-01 08:42:00', 7),
-('ATTENDANCE', '2026-08-31 09:59:00', 7),
-('ATTENDANCE', '2026-08-28 08:16:00', 7),
-('ATTENDANCE', '2026-08-27 08:47:00', 7),
-('ATTENDANCE', '2026-08-26 09:18:00', 7);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-25 09:13:00', 7),
-('ATTENDANCE', '2026-08-24 09:32:00', 7),
-('ATTENDANCE', '2026-08-21 08:05:00', 7),
-('ATTENDANCE', '2026-08-20 09:02:00', 7),
-('LEAVE', '2026-08-19 08:40:00', 7),
-('ATTENDANCE', '2026-09-01 09:35:00', 8),
-('ATTENDANCE', '2026-08-31 08:07:00', 8),
-('ATTENDANCE', '2026-08-28 08:34:00', 8),
-('ATTENDANCE', '2026-08-27 09:37:00', 8),
-('ATTENDANCE', '2026-08-26 09:08:00', 8),
-('LEAVE', '2026-08-25 09:57:00', 8),
-('ATTENDANCE', '2026-08-24 08:57:00', 8),
-('ATTENDANCE', '2026-09-01 08:22:00', 9),
-('ATTENDANCE', '2026-08-31 09:39:00', 9),
-('ATTENDANCE', '2026-08-28 08:55:00', 9),
-('ATTENDANCE', '2026-08-27 08:56:00', 9),
-('LEAVE', '2026-08-26 08:47:00', 9),
-('ATTENDANCE', '2026-08-25 09:51:00', 9),
-('ATTENDANCE', '2026-08-24 08:17:00', 9),
-('ATTENDANCE', '2026-09-01 09:55:00', 10);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-31 09:14:00', 10),
-('ATTENDANCE', '2026-08-28 09:22:00', 10),
-('ATTENDANCE', '2026-08-27 08:14:00', 10),
-('ATTENDANCE', '2026-08-26 08:25:00', 10),
-('ATTENDANCE', '2026-08-25 08:49:00', 10),
-('LEAVE', '2026-08-24 09:43:00', 10),
-('ATTENDANCE', '2026-09-01 09:01:00', 11),
-('ATTENDANCE', '2026-08-31 09:11:00', 11),
-('ATTENDANCE', '2026-08-28 09:02:00', 11),
-('ATTENDANCE', '2026-08-27 09:22:00', 11),
-('ATTENDANCE', '2026-08-26 09:27:00', 11),
-('LEAVE', '2026-08-25 08:24:00', 11),
-('ATTENDANCE', '2026-08-24 08:16:00', 11),
-('ATTENDANCE', '2026-08-21 09:00:00', 11),
-('ATTENDANCE', '2026-08-20 08:23:00', 11),
-('ATTENDANCE', '2026-08-19 09:39:00', 11),
-('ATTENDANCE', '2026-09-01 09:32:00', 12),
-('ATTENDANCE', '2026-08-31 09:20:00', 12),
-('ATTENDANCE', '2026-08-28 09:35:00', 12),
-('LEAVE', '2026-08-27 09:42:00', 12);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-26 08:39:00', 12),
-('ATTENDANCE', '2026-08-25 09:35:00', 12),
-('ATTENDANCE', '2026-08-24 09:18:00', 12),
-('ATTENDANCE', '2026-09-01 09:29:00', 13),
-('ATTENDANCE', '2026-08-31 08:32:00', 13),
-('ATTENDANCE', '2026-08-28 08:42:00', 13),
-('ATTENDANCE', '2026-08-27 09:05:00', 13),
-('ATTENDANCE', '2026-08-26 08:43:00', 13),
-('ATTENDANCE', '2026-08-25 08:09:00', 13),
-('ATTENDANCE', '2026-08-24 08:30:00', 13),
-('ATTENDANCE', '2026-08-21 08:29:00', 13),
-('ATTENDANCE', '2026-08-20 08:45:00', 13),
-('ATTENDANCE', '2026-08-19 09:25:00', 13),
-('ATTENDANCE', '2026-09-01 08:49:00', 14),
-('LEAVE', '2026-08-31 08:51:00', 14),
-('ATTENDANCE', '2026-08-28 09:03:00', 14),
-('ATTENDANCE', '2026-08-27 08:29:00', 14),
-('ATTENDANCE', '2026-08-26 09:42:00', 14),
-('LEAVE', '2026-08-25 09:48:00', 14),
-('LEAVE', '2026-08-24 09:53:00', 14);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('LEAVE', '2026-09-01 08:47:00', 16),
-('ATTENDANCE', '2026-08-31 09:16:00', 16),
-('ATTENDANCE', '2026-08-28 09:49:00', 16),
-('ATTENDANCE', '2026-08-27 09:40:00', 16),
-('ATTENDANCE', '2026-08-26 09:04:00', 16),
-('ATTENDANCE', '2026-08-25 08:17:00', 16),
-('ATTENDANCE', '2026-08-24 08:08:00', 16),
-('ATTENDANCE', '2026-08-21 09:44:00', 16),
-('ATTENDANCE', '2026-08-20 08:04:00', 16),
-('ATTENDANCE', '2026-09-01 09:26:00', 17),
-('LEAVE', '2026-08-31 09:24:00', 17),
-('LEAVE', '2026-08-28 08:54:00', 17),
-('ATTENDANCE', '2026-08-27 09:30:00', 17),
-('ATTENDANCE', '2026-08-26 09:19:00', 17),
-('ATTENDANCE', '2026-08-25 09:34:00', 17),
-('ATTENDANCE', '2026-08-24 08:31:00', 17),
-('ATTENDANCE', '2026-08-21 09:31:00', 17),
-('ATTENDANCE', '2026-09-01 09:46:00', 18),
-('ATTENDANCE', '2026-08-31 09:58:00', 18),
-('ATTENDANCE', '2026-08-28 08:58:00', 18);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-27 08:05:00', 18),
-('ATTENDANCE', '2026-08-26 08:55:00', 18),
-('ATTENDANCE', '2026-08-25 08:16:00', 18),
-('ATTENDANCE', '2026-08-24 08:29:00', 18),
-('ATTENDANCE', '2026-08-21 09:17:00', 18),
-('ATTENDANCE', '2026-09-01 09:53:00', 19),
-('ATTENDANCE', '2026-08-31 08:47:00', 19),
-('ATTENDANCE', '2026-08-28 09:14:00', 19),
-('ATTENDANCE', '2026-08-27 08:48:00', 19),
-('ATTENDANCE', '2026-08-26 08:12:00', 19),
-('ATTENDANCE', '2026-08-25 08:15:00', 19),
-('LEAVE', '2026-08-24 08:36:00', 19),
-('ATTENDANCE', '2026-08-21 09:44:00', 19),
-('ATTENDANCE', '2026-08-20 09:10:00', 19),
-('ATTENDANCE', '2026-09-01 08:19:00', 20),
-('ATTENDANCE', '2026-08-31 08:59:00', 20),
-('LEAVE', '2026-08-28 09:25:00', 20),
-('ATTENDANCE', '2026-08-27 08:04:00', 20),
-('ATTENDANCE', '2026-08-26 08:06:00', 20),
-('ATTENDANCE', '2026-08-25 09:54:00', 20);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('LEAVE', '2026-08-24 08:50:00', 20),
-('ATTENDANCE', '2026-09-01 09:34:00', 21),
-('ATTENDANCE', '2026-08-31 09:04:00', 21),
-('ATTENDANCE', '2026-08-28 09:00:00', 21),
-('ATTENDANCE', '2026-08-27 09:06:00', 21),
-('LEAVE', '2026-08-26 09:40:00', 21),
-('ATTENDANCE', '2026-08-25 09:45:00', 21),
-('ATTENDANCE', '2026-08-24 08:46:00', 21),
-('ATTENDANCE', '2026-09-01 09:29:00', 22),
-('LEAVE', '2026-08-31 09:20:00', 22),
-('LEAVE', '2026-08-28 08:17:00', 22),
-('ATTENDANCE', '2026-08-27 08:48:00', 22),
-('ATTENDANCE', '2026-08-26 09:21:00', 22),
-('ATTENDANCE', '2026-08-25 09:11:00', 22),
-('ATTENDANCE', '2026-08-24 09:51:00', 22),
-('ATTENDANCE', '2026-08-21 09:56:00', 22),
-('LEAVE', '2026-09-01 08:33:00', 23),
-('ATTENDANCE', '2026-08-31 08:15:00', 23),
-('ATTENDANCE', '2026-08-28 09:35:00', 23),
-('ATTENDANCE', '2026-08-27 09:41:00', 23);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-26 09:50:00', 23),
-('ATTENDANCE', '2026-08-25 09:14:00', 23),
-('ATTENDANCE', '2026-08-24 08:19:00', 23),
-('ATTENDANCE', '2026-08-21 09:30:00', 23),
-('ATTENDANCE', '2026-09-01 09:47:00', 24),
-('ATTENDANCE', '2026-08-31 09:44:00', 24),
-('ATTENDANCE', '2026-08-28 09:16:00', 24),
-('ATTENDANCE', '2026-08-27 08:20:00', 24),
-('ATTENDANCE', '2026-08-26 08:12:00', 24),
-('ATTENDANCE', '2026-08-25 09:17:00', 24),
-('ATTENDANCE', '2026-08-24 09:06:00', 24),
-('ATTENDANCE', '2026-08-21 09:14:00', 24),
-('ATTENDANCE', '2026-09-01 08:45:00', 25),
-('LEAVE', '2026-08-31 09:02:00', 25),
-('LEAVE', '2026-08-28 09:44:00', 25),
-('LEAVE', '2026-08-27 09:06:00', 25),
-('ATTENDANCE', '2026-08-26 09:30:00', 25),
-('LEAVE', '2026-08-25 09:11:00', 25),
-('ATTENDANCE', '2026-08-24 09:55:00', 25),
-('ATTENDANCE', '2026-08-21 08:25:00', 25);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-09-01 08:09:00', 26),
-('LEAVE', '2026-08-31 09:05:00', 26),
-('ATTENDANCE', '2026-08-28 08:35:00', 26),
-('ATTENDANCE', '2026-08-27 08:49:00', 26),
-('ATTENDANCE', '2026-08-26 09:58:00', 26),
-('ATTENDANCE', '2026-08-25 09:19:00', 26),
-('LEAVE', '2026-08-24 08:39:00', 26),
-('ATTENDANCE', '2026-08-21 08:48:00', 26),
-('ATTENDANCE', '2026-08-20 08:16:00', 26),
-('ATTENDANCE', '2026-08-19 08:15:00', 26),
-('ATTENDANCE', '2026-09-01 08:00:00', 27),
-('ATTENDANCE', '2026-08-31 09:18:00', 27),
-('ATTENDANCE', '2026-08-28 09:45:00', 27),
-('ATTENDANCE', '2026-08-27 09:04:00', 27),
-('ATTENDANCE', '2026-08-26 09:50:00', 27),
-('ATTENDANCE', '2026-08-25 08:27:00', 27),
-('ATTENDANCE', '2026-08-24 08:41:00', 27),
-('ATTENDANCE', '2026-09-01 08:04:00', 28),
-('ATTENDANCE', '2026-08-31 09:38:00', 28),
-('ATTENDANCE', '2026-08-28 09:28:00', 28);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-27 09:44:00', 28),
-('ATTENDANCE', '2026-08-26 09:32:00', 28),
-('ATTENDANCE', '2026-08-25 09:05:00', 28),
-('ATTENDANCE', '2026-08-24 09:47:00', 28),
-('ATTENDANCE', '2026-08-21 09:01:00', 28),
-('ATTENDANCE', '2026-09-01 08:48:00', 29),
-('ATTENDANCE', '2026-08-31 09:36:00', 29),
-('ATTENDANCE', '2026-08-28 08:30:00', 29),
-('ATTENDANCE', '2026-08-27 09:58:00', 29),
-('ATTENDANCE', '2026-08-26 09:40:00', 29),
-('ATTENDANCE', '2026-08-25 08:30:00', 29),
-('ATTENDANCE', '2026-08-24 09:20:00', 29),
-('ATTENDANCE', '2026-08-21 08:21:00', 29),
-('ATTENDANCE', '2026-08-20 09:18:00', 29),
-('ATTENDANCE', '2026-08-19 09:52:00', 29),
-('ATTENDANCE', '2026-09-01 09:05:00', 30),
-('LEAVE', '2026-08-31 09:07:00', 30),
-('ATTENDANCE', '2026-08-28 09:55:00', 30),
-('LEAVE', '2026-08-27 08:42:00', 30),
-('ATTENDANCE', '2026-08-26 09:26:00', 30);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-25 09:39:00', 30),
-('ATTENDANCE', '2026-08-24 09:48:00', 30),
-('ATTENDANCE', '2026-09-01 08:59:00', 31),
-('ATTENDANCE', '2026-08-31 09:07:00', 31),
-('ATTENDANCE', '2026-08-28 08:45:00', 31),
-('ATTENDANCE', '2026-08-27 08:35:00', 31),
-('LEAVE', '2026-08-26 08:53:00', 31),
-('ATTENDANCE', '2026-08-25 09:07:00', 31),
-('LEAVE', '2026-08-24 08:31:00', 31),
-('ATTENDANCE', '2026-08-21 09:32:00', 31),
-('ATTENDANCE', '2026-09-01 09:30:00', 32),
-('ATTENDANCE', '2026-08-31 08:24:00', 32),
-('ATTENDANCE', '2026-08-28 08:55:00', 32),
-('LEAVE', '2026-08-27 09:21:00', 32),
-('ATTENDANCE', '2026-08-26 09:52:00', 32),
-('ATTENDANCE', '2026-08-25 09:53:00', 32),
-('ATTENDANCE', '2026-08-24 09:55:00', 32),
-('ATTENDANCE', '2026-08-21 09:22:00', 32),
-('LEAVE', '2026-08-20 09:29:00', 32),
-('ATTENDANCE', '2026-09-01 08:36:00', 33);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-31 09:02:00', 33),
-('LEAVE', '2026-08-28 09:45:00', 33),
-('LEAVE', '2026-08-27 09:24:00', 33),
-('LEAVE', '2026-08-26 08:31:00', 33),
-('LEAVE', '2026-08-25 08:32:00', 33),
-('ATTENDANCE', '2026-08-24 09:55:00', 33),
-('LEAVE', '2026-09-01 08:33:00', 34),
-('ATTENDANCE', '2026-08-31 08:46:00', 34),
-('ATTENDANCE', '2026-08-28 08:04:00', 34),
-('ATTENDANCE', '2026-08-27 09:21:00', 34),
-('ATTENDANCE', '2026-08-26 09:41:00', 34),
-('ATTENDANCE', '2026-08-25 09:54:00', 34),
-('ATTENDANCE', '2026-08-24 09:20:00', 34),
-('ATTENDANCE', '2026-08-21 09:55:00', 34),
-('ATTENDANCE', '2026-08-20 08:15:00', 34),
-('ATTENDANCE', '2026-09-01 08:47:00', 35),
-('ATTENDANCE', '2026-08-31 08:48:00', 35),
-('ATTENDANCE', '2026-08-28 08:28:00', 35),
-('ATTENDANCE', '2026-08-27 09:57:00', 35),
-('ATTENDANCE', '2026-08-26 09:50:00', 35);
-INSERT IGNORE INTO timecards (status, clock_in_at, employee_id)
-VALUES
-('ATTENDANCE', '2026-08-25 09:23:00', 35),
-('ATTENDANCE', '2026-08-24 08:33:00', 35),
-('ATTENDANCE', '2026-08-21 08:10:00', 35);
-
--- ------------------------------
--- 6-1. biometrics 추가 (최근 10일치, 직원 1~35)
--- ------------------------------
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-09-01 09:31:00', 142, 74, 36.5, 76, 'HIGH', 1),
-('2026-09-01 15:16:00', 147, 65, 37.5, 89, 'HIGH', 1),
-('2026-08-31 09:04:00', 133, 87, 37.6, 79, 'WARN', 1),
-('2026-08-31 15:44:00', 121, 94, 37.4, 72, 'HIGH', 1),
-('2026-08-28 15:06:00', 120, 89, 37.0, 96, 'HIGH', 1),
-('2026-08-28 14:44:00', 123, 66, 37.6, 85, 'WARN', 1),
-('2026-08-27 08:36:00', 148, 68, 37.5, 91, 'HIGH', 1),
-('2026-08-27 14:49:00', 119, 87, 36.5, 72, 'WARN', 1),
-('2026-08-26 09:40:00', 111, 67, 36.6, 88, 'WARN', 1),
-('2026-08-26 08:37:00', 128, 73, 36.3, 78, 'NORMAL', 1),
-('2026-08-25 15:11:00', 117, 73, 37.3, 83, 'WARN', 1),
-('2026-08-25 14:53:00', 115, 81, 37.5, 90, 'HIGH', 1),
-('2026-08-24 14:51:00', 112, 94, 37.5, 69, 'HIGH', 1),
-('2026-08-24 09:55:00', 148, 90, 37.6, 95, 'HIGH', 1),
-('2026-09-01 15:00:00', 121, 72, 36.8, 76, 'NORMAL', 2),
-('2026-08-31 14:06:00', 148, 79, 36.9, 95, 'HIGH', 2),
-('2026-08-31 14:58:00', 144, 79, 37.1, 89, 'HIGH', 2),
-('2026-08-28 15:07:00', 113, 67, 37.5, 79, 'NORMAL', 2),
-('2026-08-28 15:07:00', 111, 80, 37.4, 68, 'WARN', 2),
-('2026-08-27 15:23:00', 147, 91, 37.0, 69, 'HIGH', 2);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-27 15:41:00', 111, 96, 37.1, 77, 'HIGH', 2),
-('2026-08-26 14:13:00', 133, 93, 37.5, 83, 'HIGH', 2),
-('2026-08-25 14:34:00', 146, 87, 36.3, 77, 'HIGH', 2),
-('2026-09-01 15:05:00', 147, 78, 37.1, 98, 'HIGH', 3),
-('2026-08-31 08:50:00', 126, 80, 37.6, 96, 'HIGH', 3),
-('2026-08-28 08:53:00', 140, 78, 37.0, 74, 'HIGH', 3),
-('2026-08-27 09:50:00', 143, 65, 36.6, 69, 'HIGH', 3),
-('2026-08-27 09:34:00', 121, 76, 36.4, 61, 'NORMAL', 3),
-('2026-08-26 08:22:00', 120, 85, 36.2, 76, 'WARN', 3),
-('2026-09-01 15:33:00', 112, 69, 36.9, 83, 'WARN', 4),
-('2026-08-31 15:32:00', 119, 67, 37.2, 93, 'HIGH', 4),
-('2026-08-28 15:41:00', 106, 68, 37.6, 85, 'WARN', 4),
-('2026-08-28 15:43:00', 111, 96, 37.2, 88, 'HIGH', 4),
-('2026-08-27 08:20:00', 143, 74, 36.3, 77, 'HIGH', 4),
-('2026-09-01 15:38:00', 138, 83, 36.8, 98, 'HIGH', 5),
-('2026-09-01 15:06:00', 149, 72, 37.4, 95, 'HIGH', 5),
-('2026-08-31 15:28:00', 119, 91, 36.7, 89, 'HIGH', 5),
-('2026-08-28 15:46:00', 111, 85, 36.8, 76, 'WARN', 5),
-('2026-08-28 14:09:00', 148, 95, 36.3, 65, 'HIGH', 5),
-('2026-08-27 15:06:00', 128, 73, 37.0, 97, 'HIGH', 5);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-26 08:26:00', 127, 92, 37.4, 63, 'HIGH', 5),
-('2026-08-26 14:38:00', 124, 87, 36.3, 92, 'HIGH', 5),
-('2026-08-25 09:42:00', 135, 79, 37.4, 82, 'WARN', 5),
-('2026-08-24 08:48:00', 122, 79, 37.3, 95, 'HIGH', 5),
-('2026-08-24 08:38:00', 147, 82, 36.2, 77, 'HIGH', 5),
-('2026-09-01 14:00:00', 116, 74, 37.0, 85, 'WARN', 6),
-('2026-09-01 08:09:00', 145, 66, 36.3, 93, 'HIGH', 6),
-('2026-08-31 15:26:00', 134, 86, 36.4, 79, 'WARN', 6),
-('2026-08-28 08:56:00', 108, 74, 36.4, 63, 'NORMAL', 6),
-('2026-08-28 08:17:00', 133, 92, 36.9, 88, 'HIGH', 6),
-('2026-08-27 14:13:00', 137, 72, 36.7, 67, 'WARN', 6),
-('2026-08-27 14:43:00', 148, 96, 36.9, 79, 'HIGH', 6),
-('2026-08-26 09:25:00', 143, 68, 36.2, 79, 'HIGH', 6),
-('2026-08-25 09:48:00', 121, 83, 36.7, 60, 'WARN', 6),
-('2026-09-01 09:08:00', 129, 79, 36.9, 82, 'WARN', 7),
-('2026-09-01 08:25:00', 107, 92, 36.2, 64, 'HIGH', 7),
-('2026-08-31 15:36:00', 130, 91, 36.6, 85, 'HIGH', 7),
-('2026-08-31 08:20:00', 115, 94, 37.4, 83, 'HIGH', 7),
-('2026-08-28 15:54:00', 111, 80, 36.8, 85, 'WARN', 7),
-('2026-08-27 15:55:00', 124, 86, 36.5, 70, 'WARN', 7);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-26 08:33:00', 137, 77, 37.5, 82, 'WARN', 7),
-('2026-08-25 09:15:00', 111, 74, 36.6, 71, 'NORMAL', 7),
-('2026-08-25 09:48:00', 146, 69, 36.4, 91, 'HIGH', 7),
-('2026-08-24 15:43:00', 141, 85, 37.4, 80, 'HIGH', 7),
-('2026-08-24 09:28:00', 109, 95, 36.8, 79, 'HIGH', 7),
-('2026-09-01 14:32:00', 109, 84, 36.8, 62, 'WARN', 8),
-('2026-08-31 14:53:00', 123, 69, 37.1, 65, 'NORMAL', 8),
-('2026-08-28 15:37:00', 140, 67, 36.8, 96, 'HIGH', 8),
-('2026-08-28 09:20:00', 143, 95, 36.9, 63, 'HIGH', 8),
-('2026-08-27 08:51:00', 126, 70, 36.9, 71, 'NORMAL', 8),
-('2026-08-27 08:15:00', 150, 93, 37.6, 93, 'HIGH', 8),
-('2026-08-26 14:23:00', 123, 89, 36.8, 81, 'WARN', 8),
-('2026-08-25 14:04:00', 126, 71, 37.0, 84, 'WARN', 8),
-('2026-09-01 09:21:00', 110, 74, 37.5, 79, 'NORMAL', 9),
-('2026-09-01 15:08:00', 143, 70, 36.6, 84, 'HIGH', 9),
-('2026-08-31 09:42:00', 149, 70, 37.1, 87, 'HIGH', 9),
-('2026-08-31 14:01:00', 128, 84, 36.5, 73, 'WARN', 9),
-('2026-08-28 15:12:00', 119, 73, 36.4, 78, 'NORMAL', 9),
-('2026-08-28 08:32:00', 139, 67, 37.1, 68, 'WARN', 9),
-('2026-08-27 09:10:00', 116, 75, 37.2, 62, 'NORMAL', 9);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-27 15:23:00', 148, 80, 37.6, 78, 'HIGH', 9),
-('2026-08-26 09:34:00', 120, 84, 37.6, 90, 'HIGH', 9),
-('2026-08-26 09:23:00', 148, 93, 36.8, 78, 'HIGH', 9),
-('2026-08-25 15:10:00', 117, 73, 37.4, 63, 'NORMAL', 9),
-('2026-08-25 15:55:00', 128, 71, 37.2, 93, 'HIGH', 9),
-('2026-09-01 08:48:00', 115, 82, 36.8, 92, 'HIGH', 10),
-('2026-09-01 09:53:00', 132, 70, 37.5, 74, 'WARN', 10),
-('2026-08-31 14:59:00', 106, 91, 36.3, 92, 'HIGH', 10),
-('2026-08-31 14:15:00', 129, 70, 36.7, 61, 'NORMAL', 10),
-('2026-08-28 08:53:00', 150, 86, 37.3, 68, 'HIGH', 10),
-('2026-08-28 08:18:00', 135, 73, 37.3, 90, 'HIGH', 10),
-('2026-08-27 08:57:00', 110, 66, 36.6, 69, 'NORMAL', 10),
-('2026-08-27 15:07:00', 123, 80, 36.6, 63, 'WARN', 10),
-('2026-09-01 15:04:00', 112, 96, 37.0, 61, 'HIGH', 11),
-('2026-09-01 09:45:00', 114, 83, 36.8, 82, 'WARN', 11),
-('2026-08-31 15:11:00', 147, 70, 36.9, 83, 'HIGH', 11),
-('2026-08-28 08:24:00', 135, 67, 37.1, 83, 'WARN', 11),
-('2026-08-27 08:22:00', 109, 87, 36.5, 66, 'WARN', 11),
-('2026-08-27 14:08:00', 107, 87, 37.0, 71, 'WARN', 11),
-('2026-08-26 15:40:00', 116, 73, 36.3, 89, 'WARN', 11);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-26 08:18:00', 117, 67, 37.3, 62, 'NORMAL', 11),
-('2026-09-01 15:52:00', 139, 95, 36.6, 72, 'HIGH', 12),
-('2026-09-01 14:22:00', 108, 86, 36.6, 83, 'WARN', 12),
-('2026-08-31 15:47:00', 133, 89, 36.7, 71, 'WARN', 12),
-('2026-08-31 15:44:00', 136, 88, 37.5, 93, 'HIGH', 12),
-('2026-08-28 08:46:00', 132, 70, 36.8, 71, 'WARN', 12),
-('2026-08-28 14:20:00', 111, 70, 36.7, 78, 'NORMAL', 12),
-('2026-08-27 15:38:00', 150, 92, 36.4, 88, 'HIGH', 12),
-('2026-08-27 14:28:00', 107, 87, 37.1, 87, 'WARN', 12),
-('2026-08-26 08:04:00', 147, 90, 36.7, 70, 'HIGH', 12),
-('2026-08-26 08:09:00', 143, 93, 36.2, 64, 'HIGH', 12),
-('2026-08-25 14:23:00', 129, 67, 37.0, 88, 'WARN', 12),
-('2026-09-01 15:48:00', 109, 73, 36.9, 85, 'WARN', 13),
-('2026-09-01 14:41:00', 122, 80, 37.5, 61, 'WARN', 13),
-('2026-08-31 15:33:00', 129, 72, 36.6, 76, 'NORMAL', 13),
-('2026-08-28 09:39:00', 123, 96, 36.5, 68, 'HIGH', 13),
-('2026-08-28 08:28:00', 116, 93, 37.6, 80, 'HIGH', 13),
-('2026-08-27 08:35:00', 139, 83, 37.4, 70, 'WARN', 13),
-('2026-08-27 09:50:00', 128, 79, 36.4, 72, 'NORMAL', 13),
-('2026-08-26 09:50:00', 136, 66, 36.7, 96, 'HIGH', 13);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-25 15:51:00', 140, 73, 37.1, 65, 'HIGH', 13),
-('2026-08-25 08:19:00', 130, 95, 36.9, 86, 'HIGH', 13),
-('2026-09-01 09:20:00', 146, 69, 36.8, 93, 'HIGH', 14),
-('2026-08-31 09:56:00', 140, 76, 37.3, 68, 'HIGH', 14),
-('2026-08-31 15:32:00', 108, 72, 36.9, 79, 'NORMAL', 14),
-('2026-08-28 09:20:00', 150, 79, 36.7, 93, 'HIGH', 14),
-('2026-08-27 08:16:00', 117, 82, 36.4, 79, 'WARN', 14),
-('2026-08-27 08:32:00', 146, 75, 37.0, 97, 'HIGH', 14),
-('2026-08-26 09:42:00', 144, 86, 37.4, 96, 'HIGH', 14),
-('2026-08-25 08:05:00', 107, 81, 37.1, 96, 'HIGH', 14),
-('2026-08-24 08:31:00', 145, 83, 37.1, 79, 'HIGH', 14),
-('2026-08-24 15:15:00', 148, 90, 36.6, 64, 'HIGH', 14),
-('2026-09-01 15:26:00', 135, 94, 36.5, 98, 'HIGH', 16),
-('2026-08-31 14:55:00', 150, 85, 37.2, 82, 'HIGH', 16),
-('2026-08-28 09:48:00', 128, 71, 36.6, 89, 'WARN', 16),
-('2026-08-28 08:17:00', 133, 80, 36.4, 63, 'WARN', 16),
-('2026-08-27 15:55:00', 144, 91, 36.5, 70, 'HIGH', 16),
-('2026-08-27 14:59:00', 141, 85, 36.5, 70, 'HIGH', 16),
-('2026-09-01 15:56:00', 124, 96, 36.2, 85, 'HIGH', 17),
-('2026-09-01 15:15:00', 118, 87, 36.3, 78, 'WARN', 17);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-31 15:18:00', 139, 65, 37.4, 87, 'WARN', 17),
-('2026-08-31 09:56:00', 121, 88, 37.3, 83, 'WARN', 17),
-('2026-08-28 15:03:00', 141, 77, 36.7, 78, 'HIGH', 17),
-('2026-08-27 15:32:00', 133, 82, 37.4, 67, 'WARN', 17),
-('2026-08-26 08:25:00', 128, 86, 37.0, 83, 'WARN', 17),
-('2026-08-25 09:38:00', 137, 90, 36.9, 62, 'HIGH', 17),
-('2026-08-24 09:45:00', 126, 95, 36.9, 69, 'HIGH', 17),
-('2026-09-01 14:59:00', 144, 85, 36.4, 79, 'HIGH', 18),
-('2026-08-31 15:45:00', 141, 84, 36.9, 61, 'HIGH', 18),
-('2026-08-31 14:21:00', 148, 72, 37.6, 97, 'HIGH', 18),
-('2026-08-28 08:38:00', 135, 81, 37.6, 97, 'HIGH', 18),
-('2026-08-28 09:46:00', 108, 95, 36.4, 84, 'HIGH', 18),
-('2026-08-27 09:02:00', 141, 72, 36.5, 88, 'HIGH', 18),
-('2026-08-26 15:09:00', 131, 78, 36.8, 90, 'HIGH', 18),
-('2026-08-26 08:45:00', 113, 78, 37.0, 90, 'HIGH', 18),
-('2026-08-25 14:11:00', 134, 86, 37.0, 76, 'WARN', 18),
-('2026-08-25 15:12:00', 120, 82, 37.0, 74, 'WARN', 18),
-('2026-08-24 14:45:00', 118, 96, 36.6, 82, 'HIGH', 18),
-('2026-08-24 14:18:00', 112, 89, 37.5, 85, 'WARN', 18),
-('2026-09-01 14:02:00', 123, 70, 36.7, 88, 'WARN', 19);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-31 15:13:00', 117, 82, 37.5, 77, 'WARN', 19),
-('2026-08-31 09:06:00', 144, 80, 36.5, 93, 'HIGH', 19),
-('2026-08-28 09:03:00', 111, 91, 36.7, 90, 'HIGH', 19),
-('2026-08-27 09:00:00', 140, 75, 36.8, 90, 'HIGH', 19),
-('2026-08-26 09:48:00', 123, 85, 36.6, 63, 'WARN', 19),
-('2026-08-26 08:41:00', 141, 79, 36.9, 62, 'HIGH', 19),
-('2026-08-25 15:56:00', 116, 67, 37.6, 85, 'WARN', 19),
-('2026-09-01 14:56:00', 107, 65, 36.6, 98, 'HIGH', 20),
-('2026-08-31 14:18:00', 134, 96, 37.4, 68, 'HIGH', 20),
-('2026-08-28 14:12:00', 112, 86, 36.4, 89, 'WARN', 20),
-('2026-08-28 14:45:00', 116, 65, 37.2, 78, 'NORMAL', 20),
-('2026-08-27 09:39:00', 145, 90, 37.4, 92, 'HIGH', 20),
-('2026-08-26 08:25:00', 147, 71, 36.5, 68, 'HIGH', 20),
-('2026-08-26 15:20:00', 120, 65, 36.6, 75, 'NORMAL', 20),
-('2026-08-25 14:21:00', 124, 65, 36.6, 83, 'WARN', 20),
-('2026-08-25 09:03:00', 147, 72, 36.9, 70, 'HIGH', 20),
-('2026-08-24 14:44:00', 112, 83, 36.7, 74, 'WARN', 20),
-('2026-08-24 09:08:00', 135, 74, 36.8, 98, 'HIGH', 20),
-('2026-09-01 15:48:00', 139, 78, 37.3, 98, 'HIGH', 21),
-('2026-09-01 08:33:00', 133, 88, 36.3, 96, 'HIGH', 21);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-31 08:53:00', 140, 77, 37.0, 69, 'HIGH', 21),
-('2026-08-28 14:54:00', 138, 93, 36.4, 73, 'HIGH', 21),
-('2026-08-27 08:57:00', 137, 93, 37.3, 89, 'HIGH', 21),
-('2026-08-27 09:32:00', 131, 94, 37.0, 95, 'HIGH', 21),
-('2026-08-26 14:46:00', 106, 90, 36.6, 60, 'HIGH', 21),
-('2026-08-26 09:37:00', 109, 67, 36.8, 64, 'NORMAL', 21),
-('2026-08-25 08:59:00', 135, 67, 36.6, 71, 'WARN', 21),
-('2026-09-01 14:57:00', 129, 93, 37.4, 84, 'HIGH', 22),
-('2026-09-01 15:05:00', 148, 73, 37.1, 82, 'HIGH', 22),
-('2026-08-31 09:34:00', 130, 73, 37.2, 74, 'WARN', 22),
-('2026-08-28 08:19:00', 134, 92, 36.9, 74, 'HIGH', 22),
-('2026-08-27 15:22:00', 114, 82, 36.5, 67, 'WARN', 22),
-('2026-08-26 15:39:00', 106, 80, 36.5, 66, 'WARN', 22),
-('2026-09-01 15:38:00', 148, 68, 36.5, 62, 'HIGH', 23),
-('2026-08-31 15:14:00', 139, 78, 37.3, 63, 'WARN', 23),
-('2026-08-31 09:32:00', 123, 79, 37.3, 96, 'HIGH', 23),
-('2026-08-28 14:15:00', 124, 74, 37.6, 93, 'HIGH', 23),
-('2026-08-28 09:26:00', 124, 82, 36.3, 97, 'HIGH', 23),
-('2026-08-27 15:35:00', 136, 68, 37.6, 84, 'WARN', 23),
-('2026-08-26 15:26:00', 114, 84, 36.7, 94, 'HIGH', 23);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-26 15:15:00', 119, 84, 37.4, 69, 'WARN', 23),
-('2026-08-25 08:35:00', 131, 91, 37.0, 68, 'HIGH', 23),
-('2026-08-25 15:15:00', 121, 78, 36.7, 65, 'NORMAL', 23),
-('2026-08-24 14:05:00', 139, 77, 36.3, 84, 'WARN', 23),
-('2026-08-24 08:55:00', 109, 77, 37.3, 97, 'HIGH', 23),
-('2026-09-01 15:13:00', 126, 84, 37.5, 60, 'WARN', 24),
-('2026-08-31 09:47:00', 112, 95, 37.5, 98, 'HIGH', 24),
-('2026-08-28 15:58:00', 120, 85, 37.3, 84, 'WARN', 24),
-('2026-08-27 14:19:00', 121, 88, 36.9, 91, 'HIGH', 24),
-('2026-08-27 15:06:00', 135, 85, 37.5, 83, 'WARN', 24),
-('2026-08-26 15:02:00', 141, 79, 37.2, 61, 'HIGH', 24),
-('2026-08-26 14:35:00', 142, 91, 36.6, 72, 'HIGH', 24),
-('2026-08-25 09:24:00', 141, 80, 36.9, 81, 'HIGH', 24),
-('2026-08-25 14:48:00', 136, 96, 36.8, 82, 'HIGH', 24),
-('2026-08-24 09:46:00', 139, 96, 36.5, 94, 'HIGH', 24),
-('2026-09-01 08:52:00', 147, 68, 37.3, 86, 'HIGH', 25),
-('2026-08-31 09:04:00', 150, 74, 36.2, 92, 'HIGH', 25),
-('2026-08-28 14:03:00', 144, 95, 37.1, 61, 'HIGH', 25),
-('2026-08-28 08:34:00', 140, 91, 36.2, 93, 'HIGH', 25),
-('2026-08-27 14:01:00', 137, 92, 37.3, 71, 'HIGH', 25);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-27 08:58:00', 111, 74, 36.5, 93, 'HIGH', 25),
-('2026-09-01 14:50:00', 130, 70, 36.7, 85, 'WARN', 26),
-('2026-09-01 15:36:00', 120, 79, 36.6, 65, 'NORMAL', 26),
-('2026-08-31 08:25:00', 129, 89, 37.0, 63, 'WARN', 26),
-('2026-08-28 09:05:00', 136, 92, 37.1, 81, 'HIGH', 26),
-('2026-08-27 08:14:00', 118, 95, 36.6, 64, 'HIGH', 26),
-('2026-08-26 08:11:00', 125, 66, 37.5, 97, 'HIGH', 26),
-('2026-08-26 09:48:00', 150, 90, 37.5, 79, 'HIGH', 26),
-('2026-08-25 09:36:00', 129, 86, 36.7, 68, 'WARN', 26),
-('2026-09-01 08:06:00', 132, 79, 37.4, 81, 'WARN', 27),
-('2026-09-01 15:49:00', 125, 66, 37.1, 88, 'WARN', 27),
-('2026-08-31 09:22:00', 140, 89, 36.8, 97, 'HIGH', 27),
-('2026-08-31 15:05:00', 144, 83, 37.3, 64, 'HIGH', 27),
-('2026-08-28 14:09:00', 129, 74, 37.2, 80, 'WARN', 27),
-('2026-08-27 08:05:00', 105, 84, 36.8, 77, 'WARN', 27),
-('2026-08-27 08:08:00', 110, 76, 36.8, 95, 'HIGH', 27),
-('2026-09-01 08:01:00', 110, 87, 37.0, 98, 'HIGH', 28),
-('2026-09-01 14:55:00', 129, 65, 36.6, 84, 'WARN', 28),
-('2026-08-31 09:36:00', 138, 75, 37.2, 70, 'WARN', 28),
-('2026-08-28 14:19:00', 122, 96, 36.4, 70, 'HIGH', 28);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-27 14:26:00', 124, 95, 37.3, 83, 'HIGH', 28),
-('2026-08-27 14:15:00', 145, 96, 37.0, 72, 'HIGH', 28),
-('2026-08-26 08:08:00', 124, 65, 37.5, 81, 'WARN', 28),
-('2026-08-26 15:51:00', 126, 93, 36.7, 98, 'HIGH', 28),
-('2026-08-25 14:20:00', 143, 77, 36.9, 71, 'HIGH', 28),
-('2026-08-24 14:18:00', 149, 96, 37.6, 75, 'HIGH', 28),
-('2026-08-24 14:24:00', 122, 90, 36.7, 96, 'HIGH', 28),
-('2026-09-01 08:46:00', 134, 78, 36.8, 78, 'WARN', 29),
-('2026-08-31 15:43:00', 136, 73, 37.1, 75, 'WARN', 29),
-('2026-08-28 09:45:00', 132, 89, 36.3, 98, 'HIGH', 29),
-('2026-08-28 15:37:00', 130, 91, 37.0, 83, 'HIGH', 29),
-('2026-08-27 08:49:00', 120, 87, 36.4, 62, 'WARN', 29),
-('2026-08-26 14:50:00', 132, 71, 36.2, 76, 'WARN', 29),
-('2026-08-26 09:32:00', 138, 79, 36.8, 85, 'WARN', 29),
-('2026-09-01 14:01:00', 135, 71, 36.6, 65, 'WARN', 30),
-('2026-08-31 09:22:00', 124, 86, 36.8, 73, 'WARN', 30),
-('2026-08-28 14:30:00', 111, 93, 37.2, 88, 'HIGH', 30),
-('2026-08-28 14:04:00', 124, 67, 37.3, 67, 'NORMAL', 30),
-('2026-08-27 14:41:00', 111, 75, 37.5, 75, 'NORMAL', 30),
-('2026-08-26 09:21:00', 140, 92, 37.5, 74, 'HIGH', 30);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-25 09:11:00', 145, 92, 36.8, 72, 'HIGH', 30),
-('2026-08-25 15:37:00', 132, 89, 36.2, 73, 'WARN', 30),
-('2026-08-24 14:48:00', 150, 69, 37.0, 94, 'HIGH', 30),
-('2026-09-01 14:12:00', 134, 72, 36.6, 91, 'HIGH', 31),
-('2026-09-01 14:38:00', 129, 90, 37.0, 82, 'HIGH', 31),
-('2026-08-31 15:39:00', 116, 84, 37.5, 97, 'HIGH', 31),
-('2026-08-31 08:43:00', 113, 85, 36.4, 79, 'WARN', 31),
-('2026-08-28 09:23:00', 149, 74, 36.9, 86, 'HIGH', 31),
-('2026-08-27 15:27:00', 116, 96, 37.1, 71, 'HIGH', 31),
-('2026-08-26 15:18:00', 113, 76, 36.6, 88, 'WARN', 31),
-('2026-09-01 14:00:00', 136, 73, 36.5, 84, 'WARN', 32),
-('2026-08-31 15:43:00', 136, 91, 37.2, 88, 'HIGH', 32),
-('2026-08-31 15:10:00', 110, 66, 37.3, 74, 'NORMAL', 32),
-('2026-08-28 08:17:00', 119, 83, 36.4, 89, 'WARN', 32),
-('2026-08-28 15:35:00', 137, 72, 37.0, 77, 'WARN', 32),
-('2026-08-27 08:48:00', 133, 78, 37.6, 66, 'WARN', 32),
-('2026-08-27 09:19:00', 107, 93, 36.6, 65, 'HIGH', 32),
-('2026-08-26 08:49:00', 120, 78, 37.3, 97, 'HIGH', 32),
-('2026-08-26 14:55:00', 150, 92, 36.4, 68, 'HIGH', 32),
-('2026-08-25 09:51:00', 108, 87, 36.9, 98, 'HIGH', 32);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-24 14:45:00', 123, 83, 37.0, 92, 'HIGH', 32),
-('2026-09-01 15:58:00', 108, 82, 37.4, 68, 'WARN', 33),
-('2026-08-31 09:09:00', 150, 85, 37.4, 85, 'HIGH', 33),
-('2026-08-28 09:36:00', 145, 82, 37.1, 84, 'HIGH', 33),
-('2026-08-28 15:04:00', 145, 70, 36.8, 77, 'HIGH', 33),
-('2026-08-27 15:31:00', 125, 65, 37.4, 65, 'NORMAL', 33),
-('2026-08-27 15:40:00', 147, 87, 37.4, 94, 'HIGH', 33),
-('2026-09-01 15:52:00', 118, 96, 36.6, 78, 'HIGH', 34),
-('2026-08-31 09:36:00', 136, 86, 37.5, 63, 'WARN', 34),
-('2026-08-31 08:06:00', 145, 94, 36.2, 70, 'HIGH', 34),
-('2026-08-28 15:00:00', 132, 77, 37.6, 68, 'WARN', 34),
-('2026-08-28 14:10:00', 122, 70, 37.1, 76, 'NORMAL', 34),
-('2026-08-27 14:42:00', 146, 75, 36.3, 79, 'HIGH', 34),
-('2026-08-26 15:41:00', 110, 71, 36.2, 90, 'HIGH', 34),
-('2026-08-25 09:37:00', 119, 93, 36.2, 81, 'HIGH', 34),
-('2026-08-24 15:44:00', 113, 95, 36.3, 84, 'HIGH', 34),
-('2026-09-01 08:20:00', 128, 84, 36.4, 68, 'WARN', 35),
-('2026-08-31 08:33:00', 141, 65, 37.1, 70, 'HIGH', 35),
-('2026-08-28 14:46:00', 118, 74, 37.5, 88, 'WARN', 35),
-('2026-08-28 09:05:00', 111, 73, 37.3, 97, 'HIGH', 35);
-INSERT IGNORE INTO biometrics (measured_at, systolic_bp, diastolic_bp, temperature, heart_rate, risk_level, employee_id)
-VALUES
-('2026-08-27 14:27:00', 125, 73, 36.5, 65, 'NORMAL', 35),
-('2026-08-27 09:35:00', 143, 83, 37.3, 61, 'HIGH', 35);
-
--- ------------------------------
--- 7-1. checkups 추가 (2024~2026년, 직원 1~35)
--- ------------------------------
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
-VALUES
-(2024, '2024-11-10', '간 수치 약간 상승, 재검 권고', '2024-11-11 09:00:00', 1),
-(2025, '2025-09-07', '혈당 경계 수치, 추적 관찰 필요', '2025-09-08 09:00:00', 1),
-(2026, '2026-01-26', '간 수치 약간 상승, 재검 권고', '2026-01-27 09:00:00', 1),
-(2024, '2024-02-08', '요통 관련 소견, 자세 교정 권고', '2024-02-09 09:00:00', 2),
-(2025, '2025-02-17', '혈압 정상, 특이 소견 없음', '2025-02-18 09:00:00', 2),
-(2026, '2026-06-05', '혈당 경계 수치, 추적 관찰 필요', '2026-06-06 09:00:00', 2),
-(2024, '2024-10-14', '전반적 양호, 다음 검진 시기 안내', '2024-10-15 09:00:00', 3),
-(2025, '2025-03-25', '요통 관련 소견, 자세 교정 권고', '2025-03-26 09:00:00', 3),
-(2026, '2026-02-01', '콜레스테롤 수치 경계, 식습관 개선 권고', '2026-02-02 09:00:00', 3),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 4),
-(2025, '2025-01-26', '혈당 경계 수치, 추적 관찰 필요', '2025-01-27 09:00:00', 4),
-(2026, '2026-11-23', '혈당 경계 수치, 추적 관찰 필요', '2026-11-24 09:00:00', 4),
-(2024, '2024-07-03', '체중 증가 추세, 운동 권장', '2024-07-04 09:00:00', 5),
-(2025, '2025-05-03', '간 수치 약간 상승, 재검 권고', '2025-05-04 09:00:00', 5),
-(2026, '2026-03-18', '전반적 양호, 다음 검진 시기 안내', '2026-03-19 09:00:00', 5),
-(2024, '2024-11-25', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-11-26 09:00:00', 6),
-(2025, '2025-07-24', '간 수치 약간 상승, 재검 권고', '2025-07-25 09:00:00', 6),
-(2026, NULL, '검진 미실시 상태', '2026-08-10 11:00:00', 6),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 7),
-(2025, '2025-08-20', '혈압 정상, 특이 소견 없음', '2025-08-21 09:00:00', 7);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
-VALUES
-(2026, '2026-11-24', '체중 증가 추세, 운동 권장', '2026-11-25 09:00:00', 7),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 8),
-(2025, '2025-01-06', '요통 관련 소견, 자세 교정 권고', '2025-01-07 09:00:00', 8),
-(2026, '2026-09-17', '시력 저하 소견, 안과 진료 권장', '2026-09-18 09:00:00', 8),
-(2024, '2024-03-24', '시력 저하 소견, 안과 진료 권장', '2024-03-25 09:00:00', 9),
-(2025, '2025-02-25', '혈압 정상, 특이 소견 없음', '2025-02-26 09:00:00', 9),
-(2026, '2026-07-09', '콜레스테롤 수치 경계, 식습관 개선 권고', '2026-07-10 09:00:00', 9),
-(2024, '2024-10-21', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-10-22 09:00:00', 10),
-(2025, '2025-09-12', '혈압 정상, 특이 소견 없음', '2025-09-13 09:00:00', 10),
-(2026, '2026-10-06', '전반적 양호, 다음 검진 시기 안내', '2026-10-07 09:00:00', 10),
-(2024, '2024-02-19', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-02-20 09:00:00', 11),
-(2025, '2025-09-01', '혈압 정상, 특이 소견 없음', '2025-09-02 09:00:00', 11),
-(2026, '2026-01-08', '혈압 정상, 특이 소견 없음', '2026-01-09 09:00:00', 11),
-(2024, '2024-07-05', '체중 증가 추세, 운동 권장', '2024-07-06 09:00:00', 12),
-(2025, '2025-01-18', '혈당 경계 수치, 추적 관찰 필요', '2025-01-19 09:00:00', 12),
-(2026, '2026-04-14', '전반적 양호, 다음 검진 시기 안내', '2026-04-15 09:00:00', 12),
-(2024, '2024-02-19', '전반적 양호, 다음 검진 시기 안내', '2024-02-20 09:00:00', 13),
-(2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 13),
-(2026, '2026-01-06', '간 수치 약간 상승, 재검 권고', '2026-01-07 09:00:00', 13),
-(2024, '2024-01-13', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-01-14 09:00:00', 14);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
-VALUES
-(2025, '2025-05-25', '시력 저하 소견, 안과 진료 권장', '2025-05-26 09:00:00', 14),
-(2026, '2026-09-15', '혈압 정상, 특이 소견 없음', '2026-09-16 09:00:00', 14),
-(2024, '2024-05-19', '시력 저하 소견, 안과 진료 권장', '2024-05-20 09:00:00', 16),
-(2025, '2025-04-15', '전반적 양호, 다음 검진 시기 안내', '2025-04-16 09:00:00', 16),
-(2026, '2026-08-25', '간 수치 약간 상승, 재검 권고', '2026-08-26 09:00:00', 16),
-(2024, '2024-09-25', '간 수치 약간 상승, 재검 권고', '2024-09-26 09:00:00', 17),
-(2025, '2025-07-01', '간 수치 약간 상승, 재검 권고', '2025-07-02 09:00:00', 17),
-(2026, '2026-11-27', '혈압 정상, 특이 소견 없음', '2026-11-28 09:00:00', 17),
-(2024, '2024-01-25', '혈당 경계 수치, 추적 관찰 필요', '2024-01-26 09:00:00', 18),
-(2025, '2025-05-04', '간 수치 약간 상승, 재검 권고', '2025-05-05 09:00:00', 18),
-(2026, '2026-04-14', '요통 관련 소견, 자세 교정 권고', '2026-04-15 09:00:00', 18),
-(2024, '2024-03-23', '시력 저하 소견, 안과 진료 권장', '2024-03-24 09:00:00', 19),
-(2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 19),
-(2026, '2026-09-14', '전반적 양호, 다음 검진 시기 안내', '2026-09-15 09:00:00', 19),
-(2024, '2024-02-19', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-02-20 09:00:00', 20),
-(2025, '2025-11-27', '혈당 경계 수치, 추적 관찰 필요', '2025-11-28 09:00:00', 20),
-(2026, NULL, '검진 미실시 상태', '2026-08-10 11:00:00', 20),
-(2024, '2024-07-22', '체중 증가 추세, 운동 권장', '2024-07-23 09:00:00', 21),
-(2025, '2025-05-28', '전반적 양호, 다음 검진 시기 안내', '2025-05-28 09:00:00', 21),
-(2026, '2026-07-23', '전반적 양호, 다음 검진 시기 안내', '2026-07-24 09:00:00', 21);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
-VALUES
-(2024, '2024-05-08', '콜레스테롤 수치 경계, 식습관 개선 권고', '2024-05-09 09:00:00', 22),
-(2025, '2025-03-25', '콜레스테롤 수치 경계, 식습관 개선 권고', '2025-03-26 09:00:00', 22),
-(2026, '2026-03-15', '요통 관련 소견, 자세 교정 권고', '2026-03-16 09:00:00', 22),
-(2024, '2024-02-18', '전반적 양호, 다음 검진 시기 안내', '2024-02-19 09:00:00', 23),
-(2025, '2025-04-15', '시력 저하 소견, 안과 진료 권장', '2025-04-16 09:00:00', 23),
-(2026, '2026-02-03', '체중 증가 추세, 운동 권장', '2026-02-04 09:00:00', 23),
-(2024, '2024-05-27', '혈압 정상, 특이 소견 없음', '2024-05-28 09:00:00', 24),
-(2025, '2025-06-05', '콜레스테롤 수치 경계, 식습관 개선 권고', '2025-06-06 09:00:00', 24),
-(2026, '2026-06-13', '혈압 정상, 특이 소견 없음', '2026-06-14 09:00:00', 24),
-(2024, '2024-05-27', '체중 증가 추세, 운동 권장', '2024-05-28 09:00:00', 25),
-(2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 25),
-(2026, '2026-08-18', '간 수치 약간 상승, 재검 권고', '2026-08-19 09:00:00', 25),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 26),
-(2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 26),
-(2026, '2026-02-01', '혈압 정상, 특이 소견 없음', '2026-02-02 09:00:00', 26),
-(2024, '2024-04-05', '간 수치 약간 상승, 재검 권고', '2024-04-06 09:00:00', 27),
-(2025, '2025-06-22', '콜레스테롤 수치 경계, 식습관 개선 권고', '2025-06-23 09:00:00', 27),
-(2026, '2026-05-27', '콜레스테롤 수치 경계, 식습관 개선 권고', '2026-05-28 09:00:00', 27),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 28),
-(2025, NULL, '검진 미실시 상태', '2025-08-10 11:00:00', 28);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
-VALUES
-(2026, '2026-08-26', '체중 증가 추세, 운동 권장', '2026-08-27 09:00:00', 28),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 29),
-(2025, '2025-06-04', '혈압 정상, 특이 소견 없음', '2025-06-05 09:00:00', 29),
-(2026, '2026-01-06', '혈당 경계 수치, 추적 관찰 필요', '2026-01-07 09:00:00', 29),
-(2024, '2024-07-16', '혈압 정상, 특이 소견 없음', '2024-07-17 09:00:00', 30),
-(2025, '2025-07-06', '전반적 양호, 다음 검진 시기 안내', '2025-07-07 09:00:00', 30),
-(2026, '2026-03-09', '시력 저하 소견, 안과 진료 권장', '2026-03-10 09:00:00', 30),
-(2024, '2024-03-02', '간 수치 약간 상승, 재검 권고', '2024-03-03 09:00:00', 31),
-(2025, '2025-08-14', '요통 관련 소견, 자세 교정 권고', '2025-08-15 09:00:00', 31),
-(2026, NULL, '검진 미실시 상태', '2026-08-10 11:00:00', 31),
-(2024, '2024-03-14', '간 수치 약간 상승, 재검 권고', '2024-03-15 09:00:00', 32),
-(2025, '2025-09-08', '혈압 정상, 특이 소견 없음', '2025-09-09 09:00:00', 32),
-(2026, '2026-06-16', '요통 관련 소견, 자세 교정 권고', '2026-06-17 09:00:00', 32),
-(2024, '2024-10-17', '전반적 양호, 다음 검진 시기 안내', '2024-10-18 09:00:00', 33),
-(2025, '2025-03-01', '전반적 양호, 다음 검진 시기 안내', '2025-03-02 09:00:00', 33),
-(2026, '2026-01-26', '시력 저하 소견, 안과 진료 권장', '2026-01-27 09:00:00', 33),
-(2024, NULL, '검진 미실시 상태', '2024-08-10 11:00:00', 34),
-(2025, '2025-09-12', '간 수치 약간 상승, 재검 권고', '2025-09-13 09:00:00', 34),
-(2026, '2026-02-08', '간 수치 약간 상승, 재검 권고', '2026-02-09 09:00:00', 34),
-(2024, '2024-01-25', '간 수치 약간 상승, 재검 권고', '2024-01-26 09:00:00', 35);
-INSERT IGNORE INTO checkups (checkup_year, checkup_date, summary, created_at, employee_id)
-VALUES
-(2025, '2025-07-12', '체중 증가 추세, 운동 권장', '2025-07-13 09:00:00', 35),
-(2026, '2026-10-11', '전반적 양호, 다음 검진 시기 안내', '2026-10-12 09:00:00', 35);
-
--- ------------------------------
--- 10-1. consultations 추가
--- ------------------------------
-INSERT IGNORE INTO consultations (employee_id, manager_id, scheduled_date, scheduled_turn, reason, content, status, consulted_at, created_at)
-VALUES
-(2, 3, '2026-09-17', 'T2', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'RESERVED', NULL, '2026-08-16 00:00:00'),
-(21, 2, '2026-09-12', 'T1', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-24 00:00:00'),
-(16, 2, '2026-09-14', 'T4', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'FINISHED', '2026-09-14 16:00:00', '2026-08-25 00:00:00'),
-(9, 3, '2026-08-23', 'T3', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-27 00:00:00'),
-(10, 2, '2026-09-14', 'T3', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'FINISHED', '2026-09-14 16:00:00', '2026-08-10 00:00:00'),
-(27, 2, '2026-09-02', 'T3', '체중 관리 상담', '체중 증가로 인한 건강 관리 방안을 상담하고 싶습니다.', 'RESERVED', NULL, '2026-08-26 00:00:00'),
-(29, 3, '2026-09-01', 'T2', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'CANCELED', NULL, '2026-08-09 00:00:00'),
-(24, 2, '2026-09-18', 'T2', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'FINISHED', '2026-09-18 16:00:00', '2026-08-09 00:00:00'),
-(20, 2, '2026-08-23', 'T1', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'CANCELED', NULL, '2026-08-19 00:00:00'),
-(3, 2, '2026-09-19', 'T3', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-24 00:00:00'),
-(7, 3, '2026-08-21', 'T3', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'RESERVED', NULL, '2026-08-24 00:00:00'),
-(24, 3, '2026-08-22', 'T1', '심리 상담', '업무 관련 정서적 어려움에 대한 상담을 원합니다.', 'CANCELED', NULL, '2026-08-10 00:00:00'),
-(23, 3, '2026-08-12', 'T3', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'RESERVED', NULL, '2026-08-09 00:00:00'),
-(5, 3, '2026-08-28', 'T1', '수면 장애 상담', '불규칙한 수면 패턴으로 인한 피로 누적 상담입니다.', 'RESERVED', NULL, '2026-08-30 00:00:00'),
-(26, 3, '2026-09-07', 'T2', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'FINISHED', '2026-09-07 15:00:00', '2026-08-20 00:00:00'),
-(26, 2, '2026-09-11', 'T2', '혈압 관리 상담', '최근 혈압이 높아져 생활습관 점검이 필요합니다.', 'FINISHED', '2026-09-11 14:00:00', '2026-08-30 00:00:00'),
-(20, 2, '2026-09-01', 'T3', '스트레스 관리 상담', '업무 스트레스와 수면 패턴에 대한 상담을 원합니다.', 'RESERVED', NULL, '2026-08-21 00:00:00'),
-(11, 3, '2026-08-22', 'T1', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'RESERVED', NULL, '2026-08-21 00:00:00'),
-(32, 2, '2026-09-08', 'T2', '허리 통증 상담', '장시간 근무로 인한 허리 통증 관리 방법을 알고 싶습니다.', 'FINISHED', '2026-09-08 14:00:00', '2026-08-30 00:00:00'),
-(7, 3, '2026-08-25', 'T2', '금연 상담', '금연 프로그램 참여 관련 상담을 요청합니다.', 'CANCELED', NULL, '2026-08-14 00:00:00');
-
--- ------------------------------
--- 11-1. notices 추가 (페이지네이션 테스트용)
--- ------------------------------
-INSERT IGNORE INTO notices (title, content, status, created_at, updated_at, author_id, view_count)
-VALUES
-('10월 정기 건강검진 일정 안내', '10월 정기 건강검진 예약 일정과 대상자를 안내드립니다.', 'Y', '2026-09-01 00:00:00', '2026-09-01 00:00:00', 3, 51),
-('독감 예방접종 신청 안내', '겨울철 독감 예방접종을 희망하는 직원은 신청해 주세요.', 'Y', '2026-08-29 00:00:00', '2026-08-29 00:00:00', 3, 21),
-('사내 헬스장 이용 안내', '사내 헬스장 이용 시간 및 유의사항을 안내드립니다.', 'Y', '2026-08-26 00:00:00', '2026-08-26 00:00:00', 3, 23),
-('금연 클리닉 운영 안내', '금연을 희망하는 직원을 위한 클리닉을 운영합니다.', 'Y', '2026-08-23 00:00:00', '2026-08-23 00:00:00', 2, 20),
-('스트레스 관리 프로그램 안내', '심리 상담 및 스트레스 관리 프로그램을 안내드립니다.', 'Y', '2026-08-20 00:00:00', '2026-08-20 00:00:00', 1, 8),
-('여름철 건강 관리 수칙 안내', '무더위 속 건강관리를 위한 수칙을 안내드립니다.', 'Y', '2026-08-17 00:00:00', '2026-08-17 00:00:00', 2, 41),
-('사내 식당 메뉴 개편 안내', '영양 균형을 고려한 사내 식당 메뉴 개편 안내입니다.', 'Y', '2026-08-14 00:00:00', '2026-08-14 00:00:00', 3, 58),
-('정기 소방/안전 교육 일정 안내', '전 직원 대상 소방 및 안전 교육 일정을 안내드립니다.', 'Y', '2026-08-11 00:00:00', '2026-08-11 00:00:00', 2, 14),
-('명절 연휴 근무 안내', '다가오는 명절 연휴 기간 근무 및 당직 안내입니다.', 'Y', '2026-08-08 00:00:00', '2026-08-08 00:00:00', 1, 28),
-('건강검진 결과 상담 신청 안내', '건강검진 결과에 대한 1:1 상담 신청 방법을 안내드립니다.', 'Y', '2026-08-05 00:00:00', '2026-08-05 00:00:00', 1, 32),
-('사내 금연구역 확대 안내', '사내 금연구역이 확대 운영됨을 안내드립니다.', 'Y', '2026-08-02 00:00:00', '2026-08-02 00:00:00', 1, 23),
-('신규 입사자 건강검진 안내', '신규 입사자 대상 필수 건강검진 절차를 안내드립니다.', 'Y', '2026-07-30 00:00:00', '2026-07-30 00:00:00', 3, 45);
+('9월 건강검진 일정 안내.pdf', '2025090109000034324.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 1),
+('직장 건강관리 프로그램 운영 안내.pdf', '2025092909000023554.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 2),
+('근무 시간 및 휴식 관리 기준 안내.docx', '2025082609000033432.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 3),
+('10월 정기 건강검진 일정 안내.pdf', '2025092309000034534.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 4),
+('사내 헬스장 이용 안내.docx', '2025111709000050000.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 6),
+('스트레스 관리 프로그램.pdf', '2025122109000045732.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 8),
+('여름철 건강 관리 수칙 안내.pdf', '2026060809000089566.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 9),
+('정기 소방/안전 교육 일정 안내.docx', '2026070809000016466.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 11),
+('건강검진 결과 상담 신청 안내.pdf', '2026080709000034346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 12),
+('신규 입사자 건강검진 안내.pdf', '2026090109000072346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 14),
+('명절 연휴 근무 안내.pdf', '2026090509000012346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 15),
+('안전주의 안내.docx', '2026091009000012345.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 16);
