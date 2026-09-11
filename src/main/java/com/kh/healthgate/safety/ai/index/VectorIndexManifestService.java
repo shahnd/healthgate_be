@@ -157,17 +157,17 @@ public class VectorIndexManifestService {
     }
 
     private VectorIndexStatus resolveStatus(VectorIndexManifest manifest) {
-        if (manifest.getStatus() == VectorIndexStatus.INDEXING) {
-            boolean updated = repository.failHangingIndexing(
-                    manifest.getFingerprint(),
-                    "인덱싱 heartbeat가 만료되었습니다.",
-                    heartbeatDeadline());
-            return updated ? VectorIndexStatus.FAILED : manifest.getStatus();
+        if (manifest.getStatus() == VectorIndexStatus.INDEXING
+                && repository.failHangingIndexing(
+                        manifest.getFingerprint(),
+                        "인덱싱 heartbeat가 만료되었습니다.",
+                        heartbeatDeadline())) {
+            return VectorIndexStatus.FAILED;
         }
 
-        if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED) {
-            boolean updated = repository.completeCancellation(manifest.getFingerprint());
-            return updated ? VectorIndexStatus.CANCELLED : manifest.getStatus();
+        if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED
+                && repository.completeCancellation(manifest.getFingerprint())) {
+            return VectorIndexStatus.CANCELLED;
         }
 
         return manifest.getStatus();
