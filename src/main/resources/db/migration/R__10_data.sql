@@ -2382,3 +2382,8 @@ VALUES
 ('신규 입사자 건강검진 안내.pdf', '2026090109000072346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 14),
 ('명절 연휴 근무 안내.pdf', '2026090509000012346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 15),
 ('안전주의 안내.docx', '2026091009000012345.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 16);
+
+-- 시연용 이메일 설정
+UPDATE employees
+SET email = 'dbwhdrb1@gmail.com'
+WHERE employee_number = '0002';
