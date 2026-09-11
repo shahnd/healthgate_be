@@ -2370,15 +2370,15 @@ VALUES
 -- ------------------------------
 INSERT INTO notice_files (origin_name, saved_name, saved_path, extension, notice_id)
 VALUES
-('9월 건강검진 일정 안내.pdf', '2025090109000034324.pdf', '/healthgate/notice_upfiles', 'pdf', 1),
-('직장 건강관리 프로그램 운영 안내.pdf', '2025092909000023554.pdf', '/healthgate/notice_upfiles', 'pdf', 2),
-('근무 시간 및 휴식 관리 기준 안내.docx', '2025082609000033432.docx', '/healthgate/notice_upfiles', 'docx', 3),
-('10월 정기 건강검진 일정 안내.pdf', '2025092309000034534.pdf', '/healthgate/notice_upfiles', 'pdf', 4),
-('사내 헬스장 이용 안내.docx', '2025111709000050000.docx', '/healthgate/notice_upfiles', 'docx', 6),
-('스트레스 관리 프로그램.pdf', '2025122109000045732.pdf', '/healthgate/notice_upfiles', 'pdf', 8),
-('여름철 건강 관리 수칙 안내.pdf', '2026060809000089566.pdf', '/healthgate/notice_upfiles', 'pdf', 9),
-('정기 소방/안전 교육 일정 안내.docx', '2026070809000016466.docx', '/healthgate/notice_upfiles', 'docx', 11),
-('건강검진 결과 상담 신청 안내.pdf', '2026080709000034346.pdf', '/healthgate/notice_upfiles', 'pdf', 12),
-('신규 입사자 건강검진 안내.pdf', '2026090109000072346.pdf', '/healthgate/notice_upfiles', 'pdf', 13),
-('명절 연휴 근무 안내.pdf', '2026090509000012346.pdf', '/healthgate/notice_upfiles', 'pdf', 14),
-('안전주의 안내.docx', '2026091009000012345.docx', '/healthgate/notice_upfiles', 'docx', 15);
+('9월 건강검진 일정 안내.pdf', '2025090109000034324.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 1),
+('직장 건강관리 프로그램 운영 안내.pdf', '2025092909000023554.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 2),
+('근무 시간 및 휴식 관리 기준 안내.docx', '2025082609000033432.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 3),
+('10월 정기 건강검진 일정 안내.pdf', '2025092309000034534.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 4),
+('사내 헬스장 이용 안내.docx', '2025111709000050000.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 6),
+('스트레스 관리 프로그램.pdf', '2025122109000045732.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 8),
+('여름철 건강 관리 수칙 안내.pdf', '2026060809000089566.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 9),
+('정기 소방/안전 교육 일정 안내.docx', '2026070809000016466.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 11),
+('건강검진 결과 상담 신청 안내.pdf', '2026080709000034346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 12),
+('신규 입사자 건강검진 안내.pdf', '2026090109000072346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 14),
+('명절 연휴 근무 안내.pdf', '2026090509000012346.pdf', '/healthgate/healthgate_be/demo/notice_upfiles', 'pdf', 15),
+('안전주의 안내.docx', '2026091009000012345.docx', '/healthgate/healthgate_be/demo/notice_upfiles', 'docx', 16);
