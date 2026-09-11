@@ -99,7 +99,7 @@ public class VectorIndexManifestService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void heartbeat(String fingerprint) {
-        if (!repository.updateHeartbeat(fingerprint)) {
+        if (repository.updateHeartbeat(fingerprint) != 1) {
             throwIfCancellationRequested(fingerprint);
             throw new IllegalStateException("인덱싱 작업이 실행 상태가 아닙니다.");
         }
