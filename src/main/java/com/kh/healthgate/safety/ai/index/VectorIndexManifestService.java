@@ -18,7 +18,9 @@ import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VectorIndexManifestService {
@@ -99,7 +101,7 @@ public class VectorIndexManifestService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void heartbeat(String fingerprint) {
-        if (repository.updateHeartbeat(fingerprint) != 1) {
+        if (!repository.updateHeartbeat(fingerprint)) {
             throwIfCancellationRequested(fingerprint);
             throw new IllegalStateException("인덱싱 작업이 실행 상태가 아닙니다.");
         }
@@ -157,17 +159,24 @@ public class VectorIndexManifestService {
     }
 
     private VectorIndexStatus resolveStatus(VectorIndexManifest manifest) {
-        if (manifest.getStatus() == VectorIndexStatus.INDEXING) {
-            boolean updated = repository.failHangingIndexing(
+        LocalDateTime heartbeatDeadline = heartbeatDeadline();
+        if (manifest.getStatus() == VectorIndexStatus.INDEXING
+                && repository.failHangingIndexing(
+                        manifest.getFingerprint(),
+                        "인덱싱 heartbeat가 만료되었습니다.",
+                        heartbeatDeadline)) {
+
+            log.warn("인덱싱 heartbeat가 만료되었습니다: {}, {} < {}",
                     manifest.getFingerprint(),
-                    "인덱싱 heartbeat가 만료되었습니다.",
-                    heartbeatDeadline());
-            return updated ? VectorIndexStatus.FAILED : manifest.getStatus();
+                    manifest.getUpdatedAt(),
+                    heartbeatDeadline);
+            return VectorIndexStatus.FAILED;
         }
 
-        if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED) {
-            boolean updated = repository.completeCancellation(manifest.getFingerprint());
-            return updated ? VectorIndexStatus.CANCELLED : manifest.getStatus();
+        if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED
+                && repository.completeCancellation(manifest.getFingerprint())) {
+            log.info("인덱싱이 중단되었습니다: {}", manifest.getFingerprint());
+            return VectorIndexStatus.CANCELLED;
         }
 
         return manifest.getStatus();
