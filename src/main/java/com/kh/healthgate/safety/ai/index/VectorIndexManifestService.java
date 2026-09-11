@@ -156,16 +156,13 @@ public class VectorIndexManifestService {
         return message.substring(0, 1000);
     }
 
-    private boolean isHanging(VectorIndexManifest manifest) {
-        return (manifest
-                .getStatus() == VectorIndexStatus.INDEXING
-                || manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED)
-                && manifest.getUpdatedAt().isBefore(heartbeatDeadline());
-    }
-
     private VectorIndexStatus resolveStatus(VectorIndexManifest manifest) {
-        if (!isHanging(manifest)) {
-            return manifest.getStatus();
+        if (manifest.getStatus() == VectorIndexStatus.INDEXING) {
+            boolean updated = repository.failHangingIndexing(
+                    manifest.getFingerprint(),
+                    "인덱싱 heartbeat가 만료되었습니다.",
+                    heartbeatDeadline());
+            return updated ? VectorIndexStatus.FAILED : manifest.getStatus();
         }
 
         if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED) {
@@ -173,10 +170,7 @@ public class VectorIndexManifestService {
             return updated ? VectorIndexStatus.CANCELLED : manifest.getStatus();
         }
 
-        boolean updated = repository.failIndexing(
-                manifest.getFingerprint(),
-                "인덱싱 heartbeat가 만료되었습니다.");
-        return updated ? VectorIndexStatus.FAILED : manifest.getStatus();
+        return manifest.getStatus();
     }
 
     private LocalDateTime heartbeatDeadline() {

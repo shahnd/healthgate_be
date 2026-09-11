@@ -52,6 +52,11 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
                 fingerprint, failureMessage, VectorIndexStatus.INDEXING, VectorIndexStatus.FAILED) == 1;
     }
 
+    default boolean failHangingIndexing(String fingerprint, String failureMessage, LocalDateTime deadline) {
+        return failHangingIndexing(
+                fingerprint, failureMessage, deadline, VectorIndexStatus.INDEXING, VectorIndexStatus.FAILED) == 1;
+    }
+
     @Modifying(flushAutomatically = true)
     @Query("""
             update VectorIndexManifest manifest
@@ -143,6 +148,24 @@ public interface VectorIndexManifestRepository extends JpaRepository<VectorIndex
     int failIndexing(
             @Param("fingerprint") String fingerprint,
             @Param("failureMessage") String failureMessage,
+            @Param("indexing") VectorIndexStatus indexing,
+            @Param("failed") VectorIndexStatus failed);
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update VectorIndexManifest manifest
+               set manifest.status = :failed,
+                   manifest.failureMessage = :failureMessage,
+                   manifest.chunkCount = null,
+                   manifest.updatedAt = CURRENT_TIMESTAMP
+             where manifest.fingerprint = :fingerprint
+               and manifest.status = :indexing
+               and manifest.updatedAt < :deadline
+            """)
+    int failHangingIndexing(
+            @Param("fingerprint") String fingerprint,
+            @Param("failureMessage") String failureMessage,
+            @Param("deadline") LocalDateTime deadline,
             @Param("indexing") VectorIndexStatus indexing,
             @Param("failed") VectorIndexStatus failed);
 }
