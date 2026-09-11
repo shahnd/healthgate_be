@@ -18,7 +18,9 @@ import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VectorIndexManifestService {
@@ -157,16 +159,23 @@ public class VectorIndexManifestService {
     }
 
     private VectorIndexStatus resolveStatus(VectorIndexManifest manifest) {
+        LocalDateTime heartbeatDeadline = heartbeatDeadline();
         if (manifest.getStatus() == VectorIndexStatus.INDEXING
                 && repository.failHangingIndexing(
                         manifest.getFingerprint(),
                         "인덱싱 heartbeat가 만료되었습니다.",
-                        heartbeatDeadline())) {
+                        heartbeatDeadline)) {
+
+            log.warn("인덱싱 heartbeat가 만료되었습니다: {}, {} < {}",
+                    manifest.getFingerprint(),
+                    manifest.getUpdatedAt(),
+                    heartbeatDeadline);
             return VectorIndexStatus.FAILED;
         }
 
         if (manifest.getStatus() == VectorIndexStatus.CANCEL_REQUESTED
                 && repository.completeCancellation(manifest.getFingerprint())) {
+            log.info("인덱싱이 중단되었습니다: {}", manifest.getFingerprint());
             return VectorIndexStatus.CANCELLED;
         }
 
