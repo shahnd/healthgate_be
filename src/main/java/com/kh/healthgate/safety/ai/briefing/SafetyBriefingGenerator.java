@@ -8,6 +8,7 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.Query;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SafetyBriefingGenerator {
     private final ChatClient chatClient;
     private final ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+            .promptTemplate(new PromptTemplate(SafetyBriefingPrompts.DOCUMENT_CONTEXT))
             .allowEmptyContext(true)
             .build();
     private final Advisor simpleLoggerAdvisor;
