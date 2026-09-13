@@ -28,12 +28,14 @@ class SafetyBriefingContextTest {
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 List.of(morning, afternoon),
-                List.of("fingerprint-b", "fingerprint-a"));
+                List.of("fingerprint-b", "fingerprint-a"),
+                List.of());
         SafetyBriefingContext reversed = SafetyBriefingContext.of(
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 List.of(afternoon, morning),
-                List.of("fingerprint-a", "fingerprint-b"));
+                List.of("fingerprint-a", "fingerprint-b"),
+                List.of());
 
         // then
         assertThat(reversed.weatherContext()).isEqualTo(ordered.weatherContext());
@@ -53,12 +55,14 @@ class SafetyBriefingContextTest {
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 forecasts,
-                List.of("fingerprint-a"));
+                List.of("fingerprint-a"),
+                List.of());
         SafetyBriefingContext second = SafetyBriefingContext.of(
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 forecasts,
-                List.of("fingerprint-a", "fingerprint-b"));
+                List.of("fingerprint-a", "fingerprint-b"),
+                List.of());
 
         // then
         assertThat(second.fingerprint()).isNotEqualTo(first.fingerprint());

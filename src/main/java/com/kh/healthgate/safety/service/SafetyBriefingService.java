@@ -12,7 +12,9 @@ import com.kh.healthgate.opendata.weather.domain.WeatherForecast;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingDocumentRetriever;
-import com.kh.healthgate.safety.ai.briefing.SafetyBriefingPrompts;
+import com.kh.healthgate.safety.ai.briefing.SafetyBriefingQueryGenerator;
+import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.exception.SafetyBriefingGenerationException;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
@@ -27,6 +29,8 @@ public class SafetyBriefingService {
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final SafetyBriefingGenerator generator;
+    private final SafetyBriefingQueryGenerator queryGenerator;
+    private final VectorIndexFingerprintFactory fingerprintFactory;
     private final SafetyBriefingDocumentRetriever documentRetriever;
     private final SearchableSafetyDocumentService searchableSafetyDocumentService;
     private final WeatherService weatherService;
@@ -37,26 +41,31 @@ public class SafetyBriefingService {
         WeatherForecastLocation location = WeatherForecastLocation.YEOKSAM1;
         List<WeatherForecast> forecasts = weatherService
                 .findBusinessHoursForecasts(briefingDate, location);
-        List<String> documentFingerprints = searchableSafetyDocumentService.findFingerprints();
+        List<SafetyDocument> searchableDocuments = searchableSafetyDocumentService.findDocuments();
+        List<String> documentFingerprints = searchableDocuments.stream()
+                .map(document -> fingerprintFactory.create(document.getContentChecksum()))
+                .toList();
         SafetyBriefingContext context = SafetyBriefingContext.of(
                 briefingDate,
                 location,
                 forecasts,
-                documentFingerprints);
+                documentFingerprints,
+                searchableDocuments);
         String contextFingerprint = context.fingerprint();
 
         return safetyBriefingRepository
                 .findByBriefingDateAndContextFingerprint(briefingDate, contextFingerprint)
                 .map(SafetyBriefingResponse::from)
-                .orElseGet(() -> createBriefing(context, contextFingerprint));
+                .orElseGet(() -> createBriefing(context, contextFingerprint, searchableDocuments));
     }
 
     private SafetyBriefingResponse createBriefing(
             SafetyBriefingContext context,
-            String contextFingerprint) {
+            String contextFingerprint,
+            List<SafetyDocument> searchableDocuments) {
         String content;
         try {
-            String retrievalQuery = SafetyBriefingPrompts.weatherRequest(context.weatherContext());
+            String retrievalQuery = queryGenerator.generate(context.weatherContext(), searchableDocuments);
             List<Document> documents = documentRetriever.retrieve(retrievalQuery, context.documentFingerprints());
             content = generator.generateSafetyBriefing(
                     context.weatherContext(),

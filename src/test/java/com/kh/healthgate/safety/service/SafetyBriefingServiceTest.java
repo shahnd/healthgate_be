@@ -29,7 +29,9 @@ import com.kh.healthgate.opendata.weather.domain.WeatherForecastPrecipitationTyp
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastSkyCondition;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingDocumentRetriever;
-import com.kh.healthgate.safety.ai.briefing.SafetyBriefingPrompts;
+import com.kh.healthgate.safety.ai.briefing.SafetyBriefingQueryGenerator;
+import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
 import com.kh.healthgate.safety.domain.SafetyBriefing;
@@ -40,6 +42,10 @@ class SafetyBriefingServiceTest {
 
     @Mock
     private SafetyBriefingGenerator generator;
+    @Mock
+    private SafetyBriefingQueryGenerator queryGenerator;
+    @Mock
+    private VectorIndexFingerprintFactory fingerprintFactory;
     @Mock
     private SafetyBriefingDocumentRetriever documentRetriever;
     @Mock
@@ -58,16 +64,20 @@ class SafetyBriefingServiceTest {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<WeatherForecast> forecasts = List.of(forecastAt(today.atTime(9, 0)));
         List<String> documentFingerprints = List.of("fingerprint-a");
+        List<SafetyDocument> searchableDocuments = List.of(new SafetyDocument(
+                "안전수칙", null, "safety.pdf", "storage-key", "application/pdf", 1L, "checksum-a", null));
         SafetyBriefingContext context = SafetyBriefingContext.of(
                 today,
                 WeatherForecastLocation.YEOKSAM1,
                 forecasts,
-                documentFingerprints);
+                documentFingerprints,
+                searchableDocuments);
         SafetyBriefing cached = new SafetyBriefing(today, context.fingerprint(), "캐시된 브리핑");
 
         when(weatherService.findBusinessHoursForecasts(today, WeatherForecastLocation.YEOKSAM1))
                 .thenReturn(forecasts);
-        when(searchableSafetyDocumentService.findFingerprints()).thenReturn(documentFingerprints);
+        when(searchableSafetyDocumentService.findDocuments()).thenReturn(searchableDocuments);
+        when(fingerprintFactory.create("checksum-a")).thenReturn("fingerprint-a");
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.of(cached));
 
@@ -77,7 +87,7 @@ class SafetyBriefingServiceTest {
         // then
         assertThat(response.briefingDate()).isEqualTo(today);
         assertThat(response.content()).isEqualTo("캐시된 브리핑");
-        verifyNoInteractions(generator, documentRetriever);
+        verifyNoInteractions(queryGenerator, generator, documentRetriever);
         verify(safetyBriefingRepository, never()).save(any());
     }
 
@@ -87,20 +97,26 @@ class SafetyBriefingServiceTest {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<WeatherForecast> forecasts = List.of(forecastAt(today.atTime(9, 0)));
         List<String> documentFingerprints = List.of("fingerprint-a");
+        List<SafetyDocument> searchableDocuments = List.of(new SafetyDocument(
+                "안전수칙", null, "safety.pdf", "storage-key", "application/pdf", 1L, "checksum-a", null));
         SafetyBriefingContext context = SafetyBriefingContext.of(
                 today,
                 WeatherForecastLocation.YEOKSAM1,
                 forecasts,
-                documentFingerprints);
+                documentFingerprints,
+                searchableDocuments);
 
         when(weatherService.findBusinessHoursForecasts(today, WeatherForecastLocation.YEOKSAM1))
                 .thenReturn(forecasts);
-        when(searchableSafetyDocumentService.findFingerprints()).thenReturn(documentFingerprints);
+        when(searchableSafetyDocumentService.findDocuments()).thenReturn(searchableDocuments);
+        when(fingerprintFactory.create("checksum-a")).thenReturn("fingerprint-a");
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.empty());
         List<Document> documents = List.of(new Document("안전수칙"));
+        when(queryGenerator.generate(context.weatherContext(), searchableDocuments))
+                .thenReturn("생성된 검색 쿼리");
         when(documentRetriever.retrieve(
-                SafetyBriefingPrompts.weatherRequest(context.weatherContext()), documentFingerprints))
+                "생성된 검색 쿼리", documentFingerprints))
                 .thenReturn(documents);
         when(generator.generateSafetyBriefing(
                 context.weatherContext(),
