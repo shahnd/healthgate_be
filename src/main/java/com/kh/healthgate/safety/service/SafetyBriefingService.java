@@ -118,7 +118,6 @@ public class SafetyBriefingService {
             List<Document> documents = documentRetriever.retrieve(retrievalQuery, context.documentFingerprints());
             content = generator.generateSafetyBriefing(
                     context.weatherContext(),
-                    retrievalQuery,
                     documents);
         } catch (RuntimeException exception) {
             throw new SafetyBriefingGenerationException(exception);

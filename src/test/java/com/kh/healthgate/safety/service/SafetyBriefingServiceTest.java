@@ -127,7 +127,6 @@ class SafetyBriefingServiceTest {
                 .thenReturn(documents);
         when(generator.generateSafetyBriefing(
                 context.weatherContext(),
-                "생성된 검색 쿼리",
                 documents)).thenReturn("새 브리핑");
         when(safetyBriefingRepository.save(any(SafetyBriefing.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -144,7 +143,6 @@ class SafetyBriefingServiceTest {
         assertThat(briefingCaptor.getValue().getContextFingerprint()).isEqualTo(context.fingerprint());
         verify(generator).generateSafetyBriefing(
                 context.weatherContext(),
-                "생성된 검색 쿼리",
                 documents);
     }
 
@@ -164,7 +162,7 @@ class SafetyBriefingServiceTest {
             assertThat(releaseGeneration.await(5, TimeUnit.SECONDS)).isTrue();
             return "검색 쿼리";
         });
-        when(generator.generateSafetyBriefing(any(), any(), any())).thenReturn("공유 브리핑");
+        when(generator.generateSafetyBriefing(any(), any())).thenReturn("공유 브리핑");
         when(safetyBriefingRepository.save(any(SafetyBriefing.class))).thenAnswer(invocation -> {
             SafetyBriefing briefing = invocation.getArgument(0);
             cached.set(briefing);
@@ -182,7 +180,7 @@ class SafetyBriefingServiceTest {
             assertThat(first.get(5, TimeUnit.SECONDS).content()).isEqualTo("공유 브리핑");
             assertThat(second.get(5, TimeUnit.SECONDS)).isEqualTo(first.get());
             verify(queryGenerator).generate(any(), any());
-            verify(generator).generateSafetyBriefing(any(), any(), any());
+            verify(generator).generateSafetyBriefing(any(), any());
             verify(safetyBriefingRepository).save(any(SafetyBriefing.class));
         } finally {
             releaseGeneration.countDown();
@@ -195,7 +193,7 @@ class SafetyBriefingServiceTest {
         when(queryGenerator.generate(any(), any()))
                 .thenThrow(new IllegalStateException("일시적 오류"))
                 .thenReturn("검색 쿼리");
-        when(generator.generateSafetyBriefing(any(), any(), any())).thenReturn("재시도 브리핑");
+        when(generator.generateSafetyBriefing(any(), any())).thenReturn("재시도 브리핑");
         when(safetyBriefingRepository.save(any(SafetyBriefing.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
