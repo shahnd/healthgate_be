@@ -1,37 +1,7 @@
 package com.kh.healthgate.safety.ai.briefing;
 
-import java.util.Map;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.ai.document.Document;
-
 public final class SafetyBriefingPrompts {
     private SafetyBriefingPrompts() {
-    }
-
-    public static String briefingRequest(String weatherContext) {
-        return new PromptTemplate(BRIEFING_REQUEST)
-                .render(Map.of("weather-forecast", weatherContext));
-    }
-
-    static String documentContext(List<Document> documents) {
-        return IntStream.range(0, documents.size()).mapToObj(index -> {
-            Document document = documents.get(index);
-            return """
-                    [문서 %d]
-                    제목: %s
-                    페이지: %s
-                    본문:
-                    %s
-                    [문서 %d 끝]
-                    """.formatted(index + 1,
-                    document.getMetadata().getOrDefault("title", "제목 미확인"),
-                    document.getMetadata().getOrDefault("page_number", "페이지 미확인"),
-                    document.getText(), index + 1);
-        }).collect(Collectors.joining("\n"));
     }
 
     static final String QUERY_INSTRUCTIONS = """
@@ -109,6 +79,15 @@ public final class SafetyBriefingPrompts {
             '오늘의 안전 브리핑'이라는 제목으로 시작하고, 날씨 요약과 기본 주의사항을 읽기 쉽게 구성하세요.
             항목 수는 고정하지 않되 상식적인 안내를 억지로 늘리거나 반복하지 마세요.
             각 안전수칙은 행동이 명확한 짧은 문장으로 작성하고 '~하세요'로 끝내세요.
+            """;
+
+    static final String DOCUMENT_ENTRY = """
+            [문서 %d]
+            제목: %s
+            페이지: %s
+            본문:
+            %s
+            [문서 %d 끝]
             """;
 
     static final String DOCUMENT_CONTEXT = """

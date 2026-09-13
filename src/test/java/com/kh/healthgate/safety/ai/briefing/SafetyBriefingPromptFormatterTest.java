@@ -11,17 +11,17 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 
-class SafetyBriefingPromptsTest {
+class SafetyBriefingPromptFormatterTest {
     @Test
     void includesSourceBoundariesBeforeWeatherAndFinalRequest() {
         var augmenter = ContextualQueryAugmenter.builder()
                 .promptTemplate(new PromptTemplate(SafetyBriefingPrompts.DOCUMENT_CONTEXT))
-                .documentFormatter(documents -> SafetyBriefingPrompts.documentContext(documents)).build();
+                .documentFormatter(documents -> SafetyBriefingPromptFormatter.documentContext(documents)).build();
         var documents = List.of(
                 new Document("본문 A\n다음 줄", Map.of("title", "화재 예방", "page_number", 1)),
                 new Document("본문 B", Map.of("title", "지게차", "page_number", 2)));
 
-        String prompt = augmenter.augment(new Query(SafetyBriefingPrompts.briefingRequest("24°C")), documents).text();
+        String prompt = augmenter.augment(new Query(SafetyBriefingPromptFormatter.briefingRequest("24°C")), documents).text();
 
         assertThat(prompt).contains("[문서 1]\n제목: 화재 예방\n페이지: 1", "본문 A\n다음 줄",
                 "[문서 1 끝]", "[문서 2]\n제목: 지게차\n페이지: 2");

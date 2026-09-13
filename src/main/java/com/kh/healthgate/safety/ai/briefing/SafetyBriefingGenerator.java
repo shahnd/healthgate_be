@@ -20,7 +20,7 @@ public class SafetyBriefingGenerator {
     private final ChatClient chatClient;
     private final ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
             .promptTemplate(new PromptTemplate(SafetyBriefingPrompts.DOCUMENT_CONTEXT))
-            .documentFormatter(documents -> SafetyBriefingPrompts.documentContext(documents))
+            .documentFormatter(documents -> SafetyBriefingPromptFormatter.documentContext(documents))
             .allowEmptyContext(true)
             .build();
     private final Advisor simpleLoggerAdvisor;
@@ -35,7 +35,7 @@ public class SafetyBriefingGenerator {
     public String generateSafetyBriefing(
             String weatherContext,
             List<Document> documents) {
-        Query generationQuery = new Query(SafetyBriefingPrompts.briefingRequest(weatherContext));
+        Query generationQuery = new Query(SafetyBriefingPromptFormatter.briefingRequest(weatherContext));
         Query augmentedQuery = documents.isEmpty()
                 ? generationQuery
                 : queryAugmenter.augment(generationQuery, documents);
