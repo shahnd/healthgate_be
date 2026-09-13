@@ -26,7 +26,7 @@ import com.kh.healthgate.opendata.weather.domain.WeatherForecast;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastPrecipitationType;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastSkyCondition;
-import com.kh.healthgate.safety.ai.briefing.ActiveIndexedSafetyDocuments;
+import com.kh.healthgate.safety.ai.briefing.SearchableSafetyDocumentService;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
@@ -39,7 +39,7 @@ class SafetyBriefingServiceTest {
     @Mock
     private SafetyBriefingGenerator generator;
     @Mock
-    private ActiveIndexedSafetyDocuments activeIndexedSafetyDocuments;
+    private SearchableSafetyDocumentService searchableSafetyDocumentService;
     @Mock
     private WeatherService weatherService;
     @Mock
@@ -63,7 +63,7 @@ class SafetyBriefingServiceTest {
 
         when(weatherService.findBusinessHoursForecasts(today, WeatherForecastLocation.YEOKSAM1))
                 .thenReturn(forecasts);
-        when(activeIndexedSafetyDocuments.getFingerprints()).thenReturn(documentFingerprints);
+        when(searchableSafetyDocumentService.findFingerprints()).thenReturn(documentFingerprints);
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.of(cached));
 
@@ -91,7 +91,7 @@ class SafetyBriefingServiceTest {
 
         when(weatherService.findBusinessHoursForecasts(today, WeatherForecastLocation.YEOKSAM1))
                 .thenReturn(forecasts);
-        when(activeIndexedSafetyDocuments.getFingerprints()).thenReturn(documentFingerprints);
+        when(searchableSafetyDocumentService.findFingerprints()).thenReturn(documentFingerprints);
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.empty());
         when(generator.generateSafetyBriefing(
