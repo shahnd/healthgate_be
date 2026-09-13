@@ -3,6 +3,10 @@ package com.kh.healthgate.safety.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.stereotype.Service;
 import org.springframework.ai.document.Document;
@@ -35,6 +39,7 @@ public class SafetyBriefingService {
     private final SearchableSafetyDocumentService searchableSafetyDocumentService;
     private final WeatherService weatherService;
     private final SafetyBriefingRepository safetyBriefingRepository;
+    private final ConcurrentMap<BriefingKey, CompletableFuture<SafetyBriefingResponse>> inFlight = new ConcurrentHashMap<>();
 
     public SafetyBriefingResponse getTodayBriefing() {
         LocalDate briefingDate = LocalDate.now(SEOUL);
@@ -56,7 +61,51 @@ public class SafetyBriefingService {
         return safetyBriefingRepository
                 .findByBriefingDateAndContextFingerprint(briefingDate, contextFingerprint)
                 .map(SafetyBriefingResponse::from)
-                .orElseGet(() -> createBriefing(context, contextFingerprint, searchableDocuments));
+                .orElseGet(() -> getOrCreateBriefing(context, contextFingerprint, searchableDocuments));
+    }
+
+    private SafetyBriefingResponse getOrCreateBriefing(
+            SafetyBriefingContext context,
+            String contextFingerprint,
+            List<SafetyDocument> searchableDocuments) {
+        BriefingKey key = new BriefingKey(context.briefingDate(), contextFingerprint);
+        CompletableFuture<SafetyBriefingResponse> pending = new CompletableFuture<>();
+        CompletableFuture<SafetyBriefingResponse> existing = inFlight.putIfAbsent(key, pending);
+        if (existing != null) {
+            return awaitBriefing(existing);
+        }
+
+        try {
+            // 최초 조회 이후 다른 요청이 생성을 완료했을 수 있으므로 다시 확인한다.
+            SafetyBriefingResponse response = safetyBriefingRepository
+                    .findByBriefingDateAndContextFingerprint(key.briefingDate(), key.contextFingerprint())
+                    .map(briefing -> SafetyBriefingResponse.from(briefing))
+                    .orElseGet(() -> createBriefing(context, contextFingerprint, searchableDocuments));
+            pending.complete(response);
+            return response;
+        } catch (RuntimeException | Error exception) {
+            pending.completeExceptionally(exception);
+            throw exception;
+        } finally {
+            inFlight.remove(key, pending);
+        }
+    }
+
+    private SafetyBriefingResponse awaitBriefing(CompletableFuture<SafetyBriefingResponse> pending) {
+        try {
+            return pending.join();
+        } catch (CompletionException exception) {
+            if (exception.getCause() instanceof RuntimeException cause) {
+                throw cause;
+            }
+            if (exception.getCause() instanceof Error cause) {
+                throw cause;
+            }
+            throw exception;
+        }
+    }
+
+    private record BriefingKey(LocalDate briefingDate, String contextFingerprint) {
     }
 
     private SafetyBriefingResponse createBriefing(

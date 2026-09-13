@@ -1,8 +1,10 @@
 package com.kh.healthgate.safety.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -13,6 +15,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
@@ -36,6 +42,7 @@ import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
 import com.kh.healthgate.safety.domain.SafetyBriefing;
 import com.kh.healthgate.safety.domain.SafetyBriefingContext;
+import com.kh.healthgate.safety.exception.SafetyBriefingGenerationException;
 
 @ExtendWith(MockitoExtension.class)
 class SafetyBriefingServiceTest {
@@ -137,6 +144,64 @@ class SafetyBriefingServiceTest {
         verify(generator).generateSafetyBriefing(
                 context.weatherContext(),
                 documents);
+    }
+
+    @Test
+    void concurrentRequestsGenerateAndSaveOnlyOnce() throws Exception {
+        CountDownLatch generationStarted = new CountDownLatch(1);
+        CountDownLatch releaseGeneration = new CountDownLatch(1);
+        CountDownLatch cacheLookups = new CountDownLatch(3);
+        AtomicReference<SafetyBriefing> cached = new AtomicReference<>();
+        when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(any(), any()))
+                .thenAnswer(invocation -> {
+                    cacheLookups.countDown();
+                    return Optional.ofNullable(cached.get());
+                });
+        when(queryGenerator.generate(any(), any())).thenAnswer(invocation -> {
+            generationStarted.countDown();
+            assertThat(releaseGeneration.await(5, TimeUnit.SECONDS)).isTrue();
+            return "검색 쿼리";
+        });
+        when(generator.generateSafetyBriefing(any(), any())).thenReturn("공유 브리핑");
+        when(safetyBriefingRepository.save(any(SafetyBriefing.class))).thenAnswer(invocation -> {
+            SafetyBriefing briefing = invocation.getArgument(0);
+            cached.set(briefing);
+            return briefing;
+        });
+
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var first = executor.submit(() -> safetyBriefingService.getTodayBriefing());
+            assertThat(generationStarted.await(5, TimeUnit.SECONDS)).isTrue();
+            var second = executor.submit(() -> safetyBriefingService.getTodayBriefing());
+            assertThat(cacheLookups.await(5, TimeUnit.SECONDS)).isTrue();
+            releaseGeneration.countDown();
+
+            assertThat(first.get(5, TimeUnit.SECONDS).content()).isEqualTo("공유 브리핑");
+            assertThat(second.get(5, TimeUnit.SECONDS)).isEqualTo(first.get());
+            verify(queryGenerator).generate(any(), any());
+            verify(generator).generateSafetyBriefing(any(), any());
+            verify(safetyBriefingRepository).save(any(SafetyBriefing.class));
+        } finally {
+            releaseGeneration.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void failedGenerationCanBeRetried() {
+        when(queryGenerator.generate(any(), any()))
+                .thenThrow(new IllegalStateException("일시적 오류"))
+                .thenReturn("검색 쿼리");
+        when(generator.generateSafetyBriefing(any(), any())).thenReturn("재시도 브리핑");
+        when(safetyBriefingRepository.save(any(SafetyBriefing.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThatThrownBy(() -> safetyBriefingService.getTodayBriefing())
+                .isInstanceOf(SafetyBriefingGenerationException.class);
+        assertThat(safetyBriefingService.getTodayBriefing().content()).isEqualTo("재시도 브리핑");
+        verify(queryGenerator, times(2)).generate(any(), any());
+        verify(safetyBriefingRepository).save(any(SafetyBriefing.class));
     }
 
     private WeatherForecast forecastAt(LocalDateTime forecastAt) {
