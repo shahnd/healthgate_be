@@ -20,6 +20,7 @@ public class SafetyBriefingGenerator {
     private final ChatClient chatClient;
     private final ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
             .promptTemplate(new PromptTemplate(SafetyBriefingPrompts.DOCUMENT_CONTEXT))
+            .documentFormatter(documents -> SafetyBriefingPrompts.documentContext(documents))
             .allowEmptyContext(true)
             .build();
     private final Advisor simpleLoggerAdvisor;

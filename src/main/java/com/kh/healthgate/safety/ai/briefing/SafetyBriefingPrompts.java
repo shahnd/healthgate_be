@@ -1,8 +1,12 @@
 package com.kh.healthgate.safety.ai.briefing;
 
 import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.document.Document;
 
 public final class SafetyBriefingPrompts {
     private SafetyBriefingPrompts() {
@@ -11,6 +15,23 @@ public final class SafetyBriefingPrompts {
     public static String briefingRequest(String weatherContext) {
         return new PromptTemplate(BRIEFING_REQUEST)
                 .render(Map.of("weather-forecast", weatherContext));
+    }
+
+    static String documentContext(List<Document> documents) {
+        return IntStream.range(0, documents.size()).mapToObj(index -> {
+            Document document = documents.get(index);
+            return """
+                    [문서 %d]
+                    제목: %s
+                    페이지: %s
+                    본문:
+                    %s
+                    [문서 %d 끝]
+                    """.formatted(index + 1,
+                    document.getMetadata().getOrDefault("title", "제목 미확인"),
+                    document.getMetadata().getOrDefault("page_number", "페이지 미확인"),
+                    document.getText(), index + 1);
+        }).collect(Collectors.joining("\n"));
     }
 
     static final String QUERY_INSTRUCTIONS = """
@@ -91,12 +112,12 @@ public final class SafetyBriefingPrompts {
             """;
 
     static final String DOCUMENT_CONTEXT = """
-            {query}
-
             검색된 안전문서 (참고 자료):
             ---------------------
             {context}
             ---------------------
+
+            {query}
             """;
 
     static final String BRIEFING_REQUEST = """
