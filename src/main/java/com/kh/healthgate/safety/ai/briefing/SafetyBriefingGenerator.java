@@ -33,11 +33,16 @@ public class SafetyBriefingGenerator {
             String weatherContext,
             List<Document> documents) {
         Query generationQuery = new Query(SafetyBriefingPrompts.weatherRequest(weatherContext));
-        Query augmentedQuery = queryAugmenter.augment(generationQuery, documents);
+        Query augmentedQuery = documents.isEmpty()
+                ? generationQuery
+                : queryAugmenter.augment(generationQuery, documents);
+        String instructions = documents.isEmpty()
+                ? SafetyBriefingPrompts.BASIC_BRIEFING_INSTRUCTIONS
+                : SafetyBriefingPrompts.BRIEFING_INSTRUCTIONS;
         String answer = chatClient
                 .prompt()
                 .advisors(simpleLoggerAdvisor)
-                .system(SafetyBriefingPrompts.BRIEFING_INSTRUCTIONS)
+                .system(instructions)
                 .user(augmentedQuery.text())
                 .call()
                 .content();
