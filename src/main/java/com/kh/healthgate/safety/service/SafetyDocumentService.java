@@ -32,6 +32,7 @@ import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.event.SafetyDocumentDeletedEvent;
 import com.kh.healthgate.safety.event.VectorIndexRequestedEvent;
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -196,9 +197,12 @@ public class SafetyDocumentService {
         VectorIndexStatus indexStatus = manifestService.acceptIndexingRequest(
                 fingerprint,
                 document.getContentChecksum());
-        eventPublisher.publishEvent(new VectorIndexRequestedEvent(
+        eventPublisher.publishEvent(new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
                 document.getStorageKey(),
-                document.getContentChecksum()));
+                document.getTitle(),
+                document.getOriginalFilename(),
+                document.getContentChecksum(),
+                fingerprint)));
         return SafetyDocumentResponse.from(document, indexStatus);
     }
 

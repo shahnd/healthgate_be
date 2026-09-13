@@ -1,6 +1,6 @@
 package com.kh.healthgate.safety.event;
 
-public record VectorIndexRequestedEvent(
-        String storageKey,
-        String contentChecksum) {
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
+
+public record VectorIndexRequestedEvent(SafetyDocumentIndexingRequest request) {
 }

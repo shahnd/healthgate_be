@@ -7,7 +7,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.safety.ai.index.PdfVectorIndexingPipeline;
-import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
 import com.kh.healthgate.safety.exception.VectorIndexingCancelledException;
 import com.kh.healthgate.safety.service.VectorIndexManifestService;
 
@@ -19,14 +18,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class VectorIndexRequestedEventListener {
     private final FileStorage fileStorage;
-    private final VectorIndexFingerprintFactory fingerprintFactory;
     private final VectorIndexManifestService manifestService;
     private final PdfVectorIndexingPipeline indexingPipeline;
 
     @Async("safetyIndexExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void index(VectorIndexRequestedEvent event) {
-        String fingerprint = fingerprintFactory.create(event.contentChecksum());
+        var request = event.request();
+        String fingerprint = request.fingerprint();
         if (!manifestService.startIndexing(fingerprint)) {
             log.info("실행 가능한 인덱싱 요청이 아닙니다. fingerprint={}", fingerprint);
             return;
@@ -34,8 +33,8 @@ public class VectorIndexRequestedEventListener {
 
         try {
             int chunkCount = indexingPipeline.index(
-                    fileStorage.load(event.storageKey()),
-                    fingerprint);
+                    fileStorage.load(request.storageKey()),
+                    request);
             manifestService.completeIndexing(fingerprint, chunkCount);
         } catch (VectorIndexingCancelledException exception) {
             manifestService.completeCancellation(fingerprint);

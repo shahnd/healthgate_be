@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.genai.errors.ClientException;
 import com.kh.healthgate.safety.service.VectorIndexManifestService;
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,8 @@ public class PdfVectorIndexingPipeline {
     private final VectorStore vectorStore;
     private final VectorIndexManifestService manifestService;
 
-    public int index(Resource resource, String fingerprint) {
+    public int index(Resource resource, SafetyDocumentIndexingRequest request) {
+        String fingerprint = request.fingerprint();
         log.info("try indexing: {}", resource.getFilename());
         manifestService.heartbeat(fingerprint);
         vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());

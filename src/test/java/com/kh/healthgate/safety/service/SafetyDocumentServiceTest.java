@@ -51,6 +51,7 @@ import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.event.SafetyDocumentDeletedEvent;
 import com.kh.healthgate.safety.event.VectorIndexRequestedEvent;
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -148,8 +149,10 @@ class SafetyDocumentServiceTest {
 
         // then
         assertSame(VectorIndexStatus.PENDING, result.indexStatus());
+        document.updateMetadata("요청 후 변경된 제목", "변경된 설명", employee);
         verify(eventPublisher).publishEvent(
-                new VectorIndexRequestedEvent("documents/manual.pdf", "checksum"));
+                new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
+                        "documents/manual.pdf", "안전수칙", "manual.pdf", "checksum", "fingerprint")));
     }
 
     @Test

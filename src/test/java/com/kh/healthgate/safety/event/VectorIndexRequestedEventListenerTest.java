@@ -17,7 +17,7 @@ import org.springframework.core.io.Resource;
 
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.safety.ai.index.PdfVectorIndexingPipeline;
-import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
 import com.kh.healthgate.safety.exception.VectorIndexingCancelledException;
 import com.kh.healthgate.safety.service.VectorIndexManifestService;
 
@@ -25,9 +25,6 @@ import com.kh.healthgate.safety.service.VectorIndexManifestService;
 class VectorIndexRequestedEventListenerTest {
     @Mock
     private FileStorage fileStorage;
-
-    @Mock
-    private VectorIndexFingerprintFactory fingerprintFactory;
 
     @Mock
     private VectorIndexManifestService manifestService;
@@ -41,7 +38,6 @@ class VectorIndexRequestedEventListenerTest {
     void setUp() {
         listener = new VectorIndexRequestedEventListener(
                 fileStorage,
-                fingerprintFactory,
                 manifestService,
                 indexingPipeline);
     }
@@ -49,8 +45,8 @@ class VectorIndexRequestedEventListenerTest {
     @Test
     void ignoresIndexingRequestThatCannotStart() {
         // given
-        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
-        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
+        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
+                "documents/manual.pdf", "안전수칙", "manual.pdf", "checksum", "fingerprint"));
         when(manifestService.startIndexing("fingerprint")).thenReturn(false);
 
         // when
@@ -64,12 +60,12 @@ class VectorIndexRequestedEventListenerTest {
     @Test
     void indexesFileAndCompletesManifest() {
         // given
-        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
+        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
+                "documents/manual.pdf", "안전수칙", "manual.pdf", "checksum", "fingerprint"));
         Resource resource = new ByteArrayResource("pdf".getBytes());
-        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
         when(manifestService.startIndexing("fingerprint")).thenReturn(true);
         when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
-        when(indexingPipeline.index(resource, "fingerprint")).thenReturn(3);
+        when(indexingPipeline.index(resource, event.request())).thenReturn(3);
 
         // when
         listener.index(event);
@@ -77,18 +73,19 @@ class VectorIndexRequestedEventListenerTest {
         // then
         verify(manifestService).startIndexing("fingerprint");
         verify(manifestService).completeIndexing("fingerprint", 3);
+        verify(indexingPipeline).index(resource, event.request());
     }
 
     @Test
     void recordsFailedManifestWhenIndexingFails() {
         // given
-        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
+        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
+                "documents/manual.pdf", "안전수칙", "manual.pdf", "checksum", "fingerprint"));
         Resource resource = new ByteArrayResource("invalid-pdf".getBytes());
         IllegalStateException failure = new IllegalStateException("PDF 파싱 실패");
-        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
         when(manifestService.startIndexing("fingerprint")).thenReturn(true);
         when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
-        when(indexingPipeline.index(resource, "fingerprint")).thenThrow(failure);
+        when(indexingPipeline.index(resource, event.request())).thenThrow(failure);
 
         // when
         listener.index(event);
@@ -101,12 +98,12 @@ class VectorIndexRequestedEventListenerTest {
     @Test
     void completesCancellationWhenWorkerDetectsCancellationRequest() {
         // given
-        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent("documents/manual.pdf", "checksum");
+        VectorIndexRequestedEvent event = new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
+                "documents/manual.pdf", "안전수칙", "manual.pdf", "checksum", "fingerprint"));
         Resource resource = new ByteArrayResource("pdf".getBytes());
-        when(fingerprintFactory.create("checksum")).thenReturn("fingerprint");
         when(manifestService.startIndexing("fingerprint")).thenReturn(true);
         when(fileStorage.load("documents/manual.pdf")).thenReturn(resource);
-        when(indexingPipeline.index(resource, "fingerprint"))
+        when(indexingPipeline.index(resource, event.request()))
                 .thenThrow(new VectorIndexingCancelledException());
 
         // when
