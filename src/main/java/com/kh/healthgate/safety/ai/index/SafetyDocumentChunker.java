@@ -24,6 +24,14 @@ public class SafetyDocumentChunker {
         metadata.put("title", request.title());
         metadata.put("original_filename", request.originalFilename());
         metadata.put("chunk_index", chunkIndex);
-        return new Document(page.getId(), page.getText().strip(), metadata);
+        return new Document(page.getId(), normalizeText(page.getText()), metadata);
+    }
+
+    private String normalizeText(String text) {
+        return text.replaceAll("\\R", "\n")
+                .replaceAll("[\\p{Cc}&&[^\\n\\t]]", "")
+                .replaceAll("\\h+", " ")
+                .replaceAll("(?m)^ +| +$", "")
+                .strip();
     }
 }

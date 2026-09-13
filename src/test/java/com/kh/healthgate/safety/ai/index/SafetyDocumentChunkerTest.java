@@ -21,7 +21,7 @@ class SafetyDocumentChunkerTest {
         var chunks = new SafetyDocumentChunker().chunk(List.of(first, second), request);
 
         assertThat(chunks).hasSize(2);
-        assertThat(chunks.getFirst().getText()).isEqualTo("적용 조건\n  - 첫 번째 수칙\n  - 두 번째 수칙");
+        assertThat(chunks.getFirst().getText()).isEqualTo("적용 조건\n- 첫 번째 수칙\n- 두 번째 수칙");
         assertThat(chunks.getFirst().getId()).isEqualTo("page-1");
         assertThat(chunks.getFirst().getMetadata()).containsAllEntriesOf(Map.of(
                 "page_number", 2, "title", "안전수칙", "original_filename", "manual.pdf",
@@ -29,5 +29,18 @@ class SafetyDocumentChunkerTest {
         assertThat(chunks.get(1).getMetadata()).containsEntry("page_number", 4).containsEntry("chunk_index", 1);
         assertThat(first.getMetadata()).containsOnlyKeys("page_number");
         assertThat(first.getText()).startsWith("  적용 조건");
+    }
+
+    @Test
+    void removesLayoutPaddingAndControlCharactersWhilePreservingParagraphsAndValues() {
+        var page = new Document("  체감온도\t\t35℃ 이상\u00a0  \r\n"
+                + "\r\n  - 매시간\u0000  15분 휴식\u0007   \r"
+                + "  - 14~17시\u3000\u3000옥외작업  \u2028끝  ");
+        var request = new SafetyDocumentIndexingRequest("storage", "안전수칙", "manual.pdf", "checksum", "fingerprint");
+
+        var chunks = new SafetyDocumentChunker().chunk(List.of(page), request);
+
+        assertThat(chunks.getFirst().getText()).isEqualTo(
+                "체감온도 35℃ 이상\n\n- 매시간 15분 휴식\n- 14~17시 옥외작업\n끝");
     }
 }
