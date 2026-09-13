@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.index;
+package com.kh.healthgate.safety.event;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,6 +16,10 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 import com.kh.healthgate.file.storage.FileStorage;
+import com.kh.healthgate.safety.ai.index.PdfVectorIndexingPipeline;
+import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.exception.VectorIndexingCancelledException;
+import com.kh.healthgate.safety.service.VectorIndexManifestService;
 
 @ExtendWith(MockitoExtension.class)
 class VectorIndexRequestedEventListenerTest {

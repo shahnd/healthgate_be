@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.index;
+package com.kh.healthgate.safety.domain;
 
 public enum VectorIndexStatus {
     PENDING,

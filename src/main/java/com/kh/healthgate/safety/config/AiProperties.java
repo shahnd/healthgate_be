@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.config;
+package com.kh.healthgate.safety.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

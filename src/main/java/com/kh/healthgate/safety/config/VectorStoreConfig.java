@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.config;
+package com.kh.healthgate.safety.config;
 
 import java.io.File;
 import java.util.List;

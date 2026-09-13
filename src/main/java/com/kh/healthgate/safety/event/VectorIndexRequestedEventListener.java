@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.index;
+package com.kh.healthgate.safety.event;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -6,6 +6,10 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.kh.healthgate.file.storage.FileStorage;
+import com.kh.healthgate.safety.ai.index.PdfVectorIndexingPipeline;
+import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
+import com.kh.healthgate.safety.exception.VectorIndexingCancelledException;
+import com.kh.healthgate.safety.service.VectorIndexManifestService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

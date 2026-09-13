@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.briefing;
+package com.kh.healthgate.safety.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
-import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
 import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;

@@ -26,7 +26,6 @@ import com.kh.healthgate.opendata.weather.domain.WeatherForecast;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastPrecipitationType;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastSkyCondition;
-import com.kh.healthgate.safety.ai.briefing.SearchableSafetyDocumentService;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.kh.healthgate.opendata.weather.service.WeatherService;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecast;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
-import com.kh.healthgate.safety.ai.briefing.SearchableSafetyDocumentService;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
 import com.kh.healthgate.safety.exception.SafetyBriefingGenerationException;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;

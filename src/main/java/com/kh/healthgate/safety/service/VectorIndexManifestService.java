@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.index;
+package com.kh.healthgate.safety.service;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -14,8 +14,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import com.kh.healthgate.safety.domain.VectorIndexManifest;
+import com.kh.healthgate.safety.domain.VectorIndexStatus;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
+import com.kh.healthgate.safety.exception.VectorIndexingCancelledException;
+import com.kh.healthgate.safety.repository.VectorIndexManifestRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

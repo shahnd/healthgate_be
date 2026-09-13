@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.briefing;
+package com.kh.healthgate.safety.service;
 
 import java.util.List;
 import java.util.Set;
@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
-import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
 import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;

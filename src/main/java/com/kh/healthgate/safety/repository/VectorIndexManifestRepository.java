@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.index;
+package com.kh.healthgate.safety.repository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import com.kh.healthgate.safety.domain.VectorIndexManifest;
+import com.kh.healthgate.safety.domain.VectorIndexStatus;
 
 public interface VectorIndexManifestRepository extends JpaRepository<VectorIndexManifest, String> {
 

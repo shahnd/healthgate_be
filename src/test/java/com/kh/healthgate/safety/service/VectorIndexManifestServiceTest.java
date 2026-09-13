@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.index;
+package com.kh.healthgate.safety.service;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,8 +22,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
+import com.kh.healthgate.safety.domain.VectorIndexManifest;
+import com.kh.healthgate.safety.domain.VectorIndexStatus;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
+import com.kh.healthgate.safety.repository.VectorIndexManifestRepository;
 
 @ExtendWith(MockitoExtension.class)
 class VectorIndexManifestServiceTest {
