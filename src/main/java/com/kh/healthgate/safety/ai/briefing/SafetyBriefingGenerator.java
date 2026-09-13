@@ -31,8 +31,9 @@ public class SafetyBriefingGenerator {
 
     public String generateSafetyBriefing(
             String weatherContext,
+            String retrievalQuery,
             List<Document> documents) {
-        Query generationQuery = new Query(SafetyBriefingPrompts.weatherRequest(weatherContext));
+        Query generationQuery = new Query(SafetyBriefingPrompts.briefingRequest(weatherContext, retrievalQuery));
         Query augmentedQuery = documents.isEmpty()
                 ? generationQuery
                 : queryAugmenter.augment(generationQuery, documents);
