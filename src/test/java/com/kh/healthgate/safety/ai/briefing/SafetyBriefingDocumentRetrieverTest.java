@@ -10,9 +10,9 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 
-class SafetyBriefingRetrievalAdvisorFactoryTest {
-    private final SafetyBriefingRetrievalAdvisorFactory advisorFactory =
-            new SafetyBriefingRetrievalAdvisorFactory(mock(VectorStore.class));
+class SafetyBriefingDocumentRetrieverTest {
+    private final SafetyBriefingDocumentRetriever documentRetriever =
+            new SafetyBriefingDocumentRetriever(mock(VectorStore.class));
 
     @Test
     void createsFilterForDocumentFingerprints() {
@@ -20,7 +20,7 @@ class SafetyBriefingRetrievalAdvisorFactoryTest {
         List<String> fingerprints = List.of("fingerprint-1", "fingerprint-2");
 
         // when
-        Filter.Expression result = advisorFactory.createFilter(fingerprints);
+        Filter.Expression result = documentRetriever.createFilter(fingerprints);
 
         // then
         Filter.Expression expected = new FilterExpressionBuilder()
@@ -35,7 +35,7 @@ class SafetyBriefingRetrievalAdvisorFactoryTest {
         List<String> fingerprints = List.of();
 
         // when
-        Filter.Expression result = advisorFactory.createFilter(fingerprints);
+        Filter.Expression result = documentRetriever.createFilter(fingerprints);
 
         // then
         Filter.Expression expected = new FilterExpressionBuilder()

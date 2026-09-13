@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.document.Document;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -27,6 +28,8 @@ import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastPrecipitationType;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastSkyCondition;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
+import com.kh.healthgate.safety.ai.briefing.SafetyBriefingDocumentRetriever;
+import com.kh.healthgate.safety.ai.briefing.SafetyBriefingPrompts;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
 import com.kh.healthgate.safety.domain.SafetyBriefing;
@@ -37,6 +40,8 @@ class SafetyBriefingServiceTest {
 
     @Mock
     private SafetyBriefingGenerator generator;
+    @Mock
+    private SafetyBriefingDocumentRetriever documentRetriever;
     @Mock
     private SearchableSafetyDocumentService searchableSafetyDocumentService;
     @Mock
@@ -72,7 +77,7 @@ class SafetyBriefingServiceTest {
         // then
         assertThat(response.briefingDate()).isEqualTo(today);
         assertThat(response.content()).isEqualTo("캐시된 브리핑");
-        verifyNoInteractions(generator);
+        verifyNoInteractions(generator, documentRetriever);
         verify(safetyBriefingRepository, never()).save(any());
     }
 
@@ -93,9 +98,13 @@ class SafetyBriefingServiceTest {
         when(searchableSafetyDocumentService.findFingerprints()).thenReturn(documentFingerprints);
         when(safetyBriefingRepository.findByBriefingDateAndContextFingerprint(today, context.fingerprint()))
                 .thenReturn(Optional.empty());
+        List<Document> documents = List.of(new Document("안전수칙"));
+        when(documentRetriever.retrieve(
+                SafetyBriefingPrompts.weatherRequest(context.weatherContext()), documentFingerprints))
+                .thenReturn(documents);
         when(generator.generateSafetyBriefing(
                 context.weatherContext(),
-                documentFingerprints)).thenReturn("새 브리핑");
+                documents)).thenReturn("새 브리핑");
         when(safetyBriefingRepository.save(any(SafetyBriefing.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -111,7 +120,7 @@ class SafetyBriefingServiceTest {
         assertThat(briefingCaptor.getValue().getContextFingerprint()).isEqualTo(context.fingerprint());
         verify(generator).generateSafetyBriefing(
                 context.weatherContext(),
-                documentFingerprints);
+                documents);
     }
 
     private WeatherForecast forecastAt(LocalDateTime forecastAt) {

@@ -5,11 +5,14 @@ import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.ai.document.Document;
 
 import com.kh.healthgate.opendata.weather.service.WeatherService;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecast;
 import com.kh.healthgate.opendata.weather.domain.WeatherForecastLocation;
 import com.kh.healthgate.safety.ai.briefing.SafetyBriefingGenerator;
+import com.kh.healthgate.safety.ai.briefing.SafetyBriefingDocumentRetriever;
+import com.kh.healthgate.safety.ai.briefing.SafetyBriefingPrompts;
 import com.kh.healthgate.safety.exception.SafetyBriefingGenerationException;
 import com.kh.healthgate.safety.repository.SafetyBriefingRepository;
 import com.kh.healthgate.safety.dto.SafetyBriefingResponse;
@@ -24,6 +27,7 @@ public class SafetyBriefingService {
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final SafetyBriefingGenerator generator;
+    private final SafetyBriefingDocumentRetriever documentRetriever;
     private final SearchableSafetyDocumentService searchableSafetyDocumentService;
     private final WeatherService weatherService;
     private final SafetyBriefingRepository safetyBriefingRepository;
@@ -52,9 +56,11 @@ public class SafetyBriefingService {
             String contextFingerprint) {
         String content;
         try {
+            String retrievalQuery = SafetyBriefingPrompts.weatherRequest(context.weatherContext());
+            List<Document> documents = documentRetriever.retrieve(retrievalQuery, context.documentFingerprints());
             content = generator.generateSafetyBriefing(
                     context.weatherContext(),
-                    context.documentFingerprints());
+                    documents);
         } catch (RuntimeException exception) {
             throw new SafetyBriefingGenerationException(exception);
         }

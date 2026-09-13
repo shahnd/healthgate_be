@@ -1,7 +1,16 @@
 package com.kh.healthgate.safety.ai.briefing;
 
-final class SafetyBriefingPrompts {
+import java.util.Map;
+
+import org.springframework.ai.chat.prompt.PromptTemplate;
+
+public final class SafetyBriefingPrompts {
     private SafetyBriefingPrompts() {
+    }
+
+    public static String weatherRequest(String weatherContext) {
+        return new PromptTemplate(WEATHER_REQUEST)
+                .render(Map.of("weather-forecast", weatherContext));
     }
 
     static final String QUERY_INSTRUCTIONS = """
