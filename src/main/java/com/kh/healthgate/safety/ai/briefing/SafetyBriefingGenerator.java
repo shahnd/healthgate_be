@@ -47,6 +47,9 @@ public class SafetyBriefingGenerator {
                 .user(augmentedQuery.text())
                 .call()
                 .content();
+        if (answer == null || answer.isBlank()) {
+            throw new IllegalStateException("안전 브리핑 응답이 비어 있습니다.");
+        }
         return answer;
     }
 
