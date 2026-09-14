@@ -26,6 +26,6 @@ class SafetyBriefingPromptFormatterTest {
         assertThat(prompt).contains("[문서 1]\n제목: 화재 예방\n페이지: 1", "본문 A\n다음 줄",
                 "[문서 1 끝]", "[문서 2]\n제목: 지게차\n페이지: 2");
         assertThat(prompt.indexOf("[문서 2 끝]")).isLessThan(prompt.indexOf("근무시간 기상예보:"));
-        assertThat(prompt.strip()).endsWith("금일 우리 회사 근로자들이 사용할 안전 브리핑을 생성해 줘.");
+        assertThat(prompt.strip()).endsWith("금일 우리 회사 근로자들이 읽고 실천할 안전 브리핑을 생성해 줘.");
     }
 }
