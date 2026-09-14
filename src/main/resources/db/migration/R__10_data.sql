@@ -86,7 +86,7 @@ INSERT INTO employees (id, employee_number, password, name, hire_date, email, ph
 INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
 VALUES
 ('0001', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤민환', '2018-04-08', 'emp0001@healthgate.com', '010-4001-1001', 'EMPLOYEE', 'Y', 2, 3),
-('0002', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차도솔', '2020-01-01', 'dbwhdrb1@gmail.com', '010-4002-1002', 'EMPLOYEE', 'Y', 4, 2),
+('0002', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차도솔', '2020-01-01', 'emp0002@healthgate.com', '010-4002-1002', 'EMPLOYEE', 'Y', 4, 2),
 ('0003', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '이소율', '2025-11-23', 'emp0003@healthgate.com', '010-4003-1003', 'EMPLOYEE', 'Y', 4, 2),
 ('0004', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '송경완', '2014-03-23', 'emp0004@healthgate.com', '010-4004-1004', 'EMPLOYEE', 'Y', 5, 1),
 ('0005', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '고지윤', '2020-02-12', 'emp0005@healthgate.com', '010-4005-1005', 'EMPLOYEE', 'Y', 5, 4),
@@ -99,7 +99,7 @@ INSERT INTO employees (employee_number, password, name, hire_date, email, phone,
 VALUES
 ('0011', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '정시별', '2023-12-11', 'emp0011@healthgate.com', '010-4011-1011', 'EMPLOYEE', 'Y', 8, 2),
 ('0012', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심현진', '2016-04-24', 'emp0012@healthgate.com', '010-4012-1012', 'EMPLOYEE', 'Y', 5, 4),
-('0013', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '허라솔', '2020-06-08', 'dbwhdrb1@gmail.com', '010-4013-1013', 'EMPLOYEE', 'Y', 3, 2),
+('0013', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '허라솔', '2020-06-08', 'emp0013@healthgate.com', '010-4013-1013', 'EMPLOYEE', 'Y', 3, 2),
 ('0014', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '강규우', '2015-03-21', 'emp0014@healthgate.com', '010-4014-1014', 'EMPLOYEE', 'Y', 7, 3),
 ('0015', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '손아나', '2021-09-09', 'emp0015@healthgate.com', '010-4015-1015', 'EMPLOYEE', 'Y', 1, 3),
 ('0016', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '윤진엽', '2022-05-25', 'emp0016@healthgate.com', '010-4016-1016', 'EMPLOYEE', 'Y', 2, 1),
@@ -121,7 +121,7 @@ VALUES
 ('0030', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '황정별', '2015-08-26', 'emp0030@healthgate.com', '010-4030-1030', 'EMPLOYEE', 'Y', 2, 1);
 INSERT INTO employees (employee_number, password, name, hire_date, email, phone, role, status, department_id, position_id)
 VALUES
-('0031', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차동준', '2015-04-06', 'dbwhdrb1@gmail.com', '010-4031-1031', 'EMPLOYEE', 'Y', 8, 1),
+('0031', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '차동준', '2015-04-06', 'emp0031@healthgate.com', '010-4031-1031', 'EMPLOYEE', 'Y', 8, 1),
 ('0032', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '배라우', '2016-07-01', 'emp0032@healthgate.com', '010-4032-1032', 'EMPLOYEE', 'Y', 5, 5),
 ('0033', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '심준영', '2025-12-26', 'emp0033@healthgate.com', '010-4033-1033', 'EMPLOYEE', 'Y', 8, 1),
 ('0034', '$2a$10$kXm11MD.jblEMM2c.PmUau/mdaRqnJ4OvNRW1rYbysFfcReTn5sKC', '전시우', '2023-12-18', 'emp0034@healthgate.com', '010-4034-1034', 'EMPLOYEE', 'Y', 6, 1),
