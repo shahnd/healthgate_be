@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class SafetyBriefingDocumentRetriever {
+    private static final int MAX_RETRIEVAL_QUERIES = 3;
     private static final String NO_MATCHING_FINGERPRINT = "__no_active_safety_document__";
 
     private final VectorStore vectorStore;
@@ -29,14 +30,12 @@ public class SafetyBriefingDocumentRetriever {
         List<String> queries = retrievalQuery.lines()
                 .map(line -> line.strip())
                 .filter(line -> !line.isEmpty())
+                .distinct()
+                .limit(MAX_RETRIEVAL_QUERIES)
                 .toList();
-        if (queries.size() != 2) {
-            log.warn("검색 쿼리가 두 줄이 아니므로 단일 검색을 수행합니다.");
-            return retrieveSingle(retrievalQuery, documentFingerprints);
-        }
 
         var documentsById = new LinkedHashMap<String, Document>();
-        queries.stream().distinct().forEach(query -> {
+        queries.forEach(query -> {
             List<Document> documents = retrieveSingle(query, documentFingerprints);
             documents.forEach(document -> documentsById.putIfAbsent(document.getId(), document));
         });
