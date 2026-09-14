@@ -39,9 +39,7 @@ public class SafetyBriefingGenerator {
         Query augmentedQuery = documents.isEmpty()
                 ? generationQuery
                 : queryAugmenter.augment(generationQuery, documents);
-        String instructions = documents.isEmpty()
-                ? SafetyBriefingPrompts.BASIC_BRIEFING_INSTRUCTIONS
-                : SafetyBriefingPrompts.BRIEFING_INSTRUCTIONS;
+        String instructions = SafetyBriefingPrompts.BRIEFING_INSTRUCTIONS;
         String answer = chatClient
                 .prompt()
                 .advisors(simpleLoggerAdvisor)

@@ -48,6 +48,7 @@ public class SafetyBriefingDocumentRetriever {
                 .similarityThreshold(0.50)
                 .vectorStore(vectorStore)
                 .filterExpression(createFilter(documentFingerprints))
+                .topK(2)
                 .build()
                 .retrieve(new Query(retrievalQuery));
     }
