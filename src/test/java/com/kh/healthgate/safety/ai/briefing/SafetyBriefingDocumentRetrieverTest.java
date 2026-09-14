@@ -1,16 +1,18 @@
 package com.kh.healthgate.safety.ai.briefing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 
-class ActiveSafetyDocumentFilterFactoryTest {
-    private final ActiveSafetyDocumentFilterFactory filterFactory =
-            new ActiveSafetyDocumentFilterFactory();
+class SafetyBriefingDocumentRetrieverTest {
+    private final SafetyBriefingDocumentRetriever documentRetriever =
+            new SafetyBriefingDocumentRetriever(mock(VectorStore.class));
 
     @Test
     void createsFilterForDocumentFingerprints() {
@@ -18,7 +20,7 @@ class ActiveSafetyDocumentFilterFactoryTest {
         List<String> fingerprints = List.of("fingerprint-1", "fingerprint-2");
 
         // when
-        Filter.Expression result = filterFactory.create(fingerprints);
+        Filter.Expression result = documentRetriever.createFilter(fingerprints);
 
         // then
         Filter.Expression expected = new FilterExpressionBuilder()
@@ -33,7 +35,7 @@ class ActiveSafetyDocumentFilterFactoryTest {
         List<String> fingerprints = List.of();
 
         // when
-        Filter.Expression result = filterFactory.create(fingerprints);
+        Filter.Expression result = documentRetriever.createFilter(fingerprints);
 
         // then
         Filter.Expression expected = new FilterExpressionBuilder()

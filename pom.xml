@@ -246,6 +246,15 @@
 							<cleanupDaemonThreads>false</cleanupDaemonThreads>
 						</configuration>
 					</execution>
+					<execution>
+						<id>briefing-experiment</id>
+						<goals><goal>java</goal></goals>
+						<configuration>
+							<mainClass>com.kh.healthgate.support.SafetyBriefingExperiment</mainClass>
+							<classpathScope>test</classpathScope>
+							<cleanupDaemonThreads>false</cleanupDaemonThreads>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>

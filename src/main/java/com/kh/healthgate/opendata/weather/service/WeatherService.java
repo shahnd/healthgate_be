@@ -1,12 +1,14 @@
 package com.kh.healthgate.opendata.weather.service;
 
 import static com.kh.healthgate.opendata.weather.util.VilageFcstDateTimeUtils.latestForecastDateTimeBefore;
+import static com.kh.healthgate.opendata.weather.util.VilageFcstDateTimeUtils.preferredBaseDateTime;
 
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kh.healthgate.opendata.weather.client.WeatherApiClient;
 import com.kh.healthgate.opendata.weather.exception.WeatherForecastException;
 import com.kh.healthgate.opendata.weather.repository.WeatherForecastRepository;
-import com.kh.healthgate.opendata.weather.client.dto.VilageFcstBaseTime;
 import com.kh.healthgate.opendata.weather.client.dto.VilageFcstCategory;
 import com.kh.healthgate.opendata.weather.client.dto.VilageFcstRequest;
 import com.kh.healthgate.opendata.weather.client.dto.VilageFcstResponse;
@@ -41,6 +42,7 @@ public class WeatherService {
     private final Clock clock;
 
     private static final Long DETAILED_DURATION_DAYS = 3L;
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private boolean isValidForecastDateTime(
             LocalDateTime dateTime,
@@ -52,9 +54,10 @@ public class WeatherService {
 
     @Transactional
     public void indexVilageFcst(WeatherForecastLocation location) {
-        LocalDate baseDate = LocalDate.now(clock);
-        LocalTime baseTime = VilageFcstBaseTime.T3.toLocalTime();
-        LocalDateTime baseDateTime = LocalDateTime.of(baseDate, baseTime);
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), SEOUL);
+        LocalDateTime baseDateTime = preferredBaseDateTime(now);
+        LocalDate baseDate = baseDateTime.toLocalDate();
+        LocalTime baseTime = baseDateTime.toLocalTime();
         LocalDateTime detailedUntil = baseDate.atStartOfDay().plusDays(DETAILED_DURATION_DAYS);
 
         VilageFcstResponse response = client.getVilageFcst(new VilageFcstRequest(

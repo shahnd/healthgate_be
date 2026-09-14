@@ -4,7 +4,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Component;
 
-import com.kh.healthgate.safety.ai.config.AiProperties;
+import com.kh.healthgate.safety.config.AiProperties;
 
 import lombok.RequiredArgsConstructor;
 

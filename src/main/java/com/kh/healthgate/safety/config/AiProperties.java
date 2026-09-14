@@ -1,4 +1,4 @@
-package com.kh.healthgate.safety.ai.config;
+package com.kh.healthgate.safety.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +16,6 @@ import lombok.Setter;
 @Setter
 public class AiProperties {
     private String vectorStoreFilePath;
-    private String pipelineVersion = "pdf-page-v1";
+    private String pipelineVersion = "pdf-page-v3";
     private String embeddingModel = "google-genai-embedding";
 }

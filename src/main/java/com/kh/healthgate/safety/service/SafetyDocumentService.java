@@ -23,16 +23,16 @@ import com.kh.healthgate.file.exception.FileStorageException;
 import com.kh.healthgate.file.storage.FileStorage;
 import com.kh.healthgate.file.storage.StoredFile;
 import com.kh.healthgate.safety.ai.index.VectorIndexFingerprintFactory;
-import com.kh.healthgate.safety.ai.index.VectorIndexManifestService;
-import com.kh.healthgate.safety.ai.index.VectorIndexRequestedEvent;
-import com.kh.healthgate.safety.ai.index.VectorIndexStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
+import com.kh.healthgate.safety.domain.VectorIndexStatus;
 import com.kh.healthgate.safety.dto.SafetyDocumentFile;
 import com.kh.healthgate.safety.dto.SafetyDocumentResponse;
 import com.kh.healthgate.safety.exception.SafetyDocumentException;
 import com.kh.healthgate.safety.exception.SafetyDocumentProblem;
 import com.kh.healthgate.safety.event.SafetyDocumentDeletedEvent;
+import com.kh.healthgate.safety.event.VectorIndexRequestedEvent;
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
 import com.kh.healthgate.safety.repository.SafetyDocumentRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -197,9 +197,12 @@ public class SafetyDocumentService {
         VectorIndexStatus indexStatus = manifestService.acceptIndexingRequest(
                 fingerprint,
                 document.getContentChecksum());
-        eventPublisher.publishEvent(new VectorIndexRequestedEvent(
+        eventPublisher.publishEvent(new VectorIndexRequestedEvent(new SafetyDocumentIndexingRequest(
                 document.getStorageKey(),
-                document.getContentChecksum()));
+                document.getTitle(),
+                document.getOriginalFilename(),
+                document.getContentChecksum(),
+                fingerprint)));
         return SafetyDocumentResponse.from(document, indexStatus);
     }
 

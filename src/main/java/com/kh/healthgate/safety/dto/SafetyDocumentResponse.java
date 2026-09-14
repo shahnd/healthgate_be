@@ -2,9 +2,9 @@ package com.kh.healthgate.safety.dto;
 
 import java.time.LocalDateTime;
 
-import com.kh.healthgate.safety.ai.index.VectorIndexStatus;
 import com.kh.healthgate.safety.domain.SafetyDocument;
 import com.kh.healthgate.safety.domain.SafetyDocumentStatus;
+import com.kh.healthgate.safety.domain.VectorIndexStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

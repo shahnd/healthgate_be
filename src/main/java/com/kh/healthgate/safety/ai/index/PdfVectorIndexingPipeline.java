@@ -1,19 +1,17 @@
 package com.kh.healthgate.safety.ai.index;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.ai.document.Document;
-import org.springframework.ai.document.DocumentReader;
-import org.springframework.ai.reader.ExtractedTextFormatter;
-import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
-import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.google.genai.errors.ClientException;
+import com.kh.healthgate.safety.service.VectorIndexManifestService;
+import com.kh.healthgate.safety.domain.SafetyDocumentIndexingRequest;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,16 +21,17 @@ import lombok.extern.slf4j.Slf4j;
 public class PdfVectorIndexingPipeline {
     private static final int MAX_RATE_LIMIT_RETRIES = 3;
 
+    private final SafetyDocumentReader documentReader;
+    private final SafetyDocumentChunker documentChunker;
     private final VectorStore vectorStore;
     private final VectorIndexManifestService manifestService;
 
-    public int index(Resource resource, String fingerprint) {
+    public int index(Resource resource, SafetyDocumentIndexingRequest request) {
+        String fingerprint = request.fingerprint();
         log.info("try indexing: {}", resource.getFilename());
         manifestService.heartbeat(fingerprint);
         vectorStore.delete(new FilterExpressionBuilder().eq("fingerprint", fingerprint).build());
-        List<Document> documents = extract(resource).stream()
-                .map(document -> transform(document, fingerprint))
-                .toList();
+        List<Document> documents = documentChunker.chunk(documentReader.read(resource), request);
 
         for (Document document : documents) {
             manifestService.heartbeat(fingerprint);
@@ -43,26 +42,6 @@ public class PdfVectorIndexingPipeline {
         log.info("{} successfully indexed");
 
         return documents.size();
-    }
-
-    private List<Document> extract(Resource resource) {
-        DocumentReader reader = new PagePdfDocumentReader(resource, PdfDocumentReaderConfig.builder()
-                .withPageTopMargin(0)
-                .withPageExtractedTextFormatter(ExtractedTextFormatter.builder()
-                        .withNumberOfTopTextLinesToDelete(0)
-                        .build())
-                .withPagesPerDocument(1)
-                .build());
-        return reader.read();
-    }
-
-    private Document transform(Document document, String fingerprint) {
-        Map<String, Object> metadata = document.getMetadata();
-        metadata.put("fingerprint", fingerprint);
-        return new Document(
-                document.getId(),
-                document.getText().strip().replaceAll("\\s+", " "),
-                metadata);
     }
 
     private void load(Document document, String fingerprint) {

@@ -80,7 +80,7 @@ public class WeatherContextFormatter {
 
         sb.append(forecast.getForecastAt().format(TIME_FORMATTER));
         sb.append(" | ");
-        sb.append("Temperature: %s°C".formatted(forecast.getTemperature()));
+        sb.append("Temperature: %s°C".formatted(forecast.getTemperature().stripTrailingZeros().toPlainString()));
         sb.append(" | ");
 
         if (isSummer) {
@@ -95,14 +95,15 @@ public class WeatherContextFormatter {
             sb.append(" | ");
         }
 
-        sb.append("Humidity: %s%%".formatted(forecast.getHumidity()));
+        sb.append("Humidity: %s%%".formatted(forecast.getHumidity().stripTrailingZeros().toPlainString()));
         sb.append(" | ");
-        sb.append("Wind speed: %s m/s".formatted(forecast.getWindSpeed()));
+        sb.append("Wind speed: %s m/s".formatted(forecast.getWindSpeed().stripTrailingZeros().toPlainString()));
         sb.append(" | ");
         sb.append("Sky condition: %s".formatted(forecast.getSkyCondition()));
         sb.append(" | ");
 
-        sb.append("Precipitation probability: %s%%".formatted(forecast.getPrecipitationProbability()));
+        sb.append("Precipitation probability: %s%%".formatted(
+                forecast.getPrecipitationProbability().stripTrailingZeros().toPlainString()));
         sb.append(" | ");
 
         if (forecast.hasPrecipitation()) {

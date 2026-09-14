@@ -28,12 +28,14 @@ class SafetyBriefingContextTest {
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 List.of(morning, afternoon),
-                List.of("fingerprint-b", "fingerprint-a"));
+                List.of("fingerprint-b", "fingerprint-a"),
+                List.of());
         SafetyBriefingContext reversed = SafetyBriefingContext.of(
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 List.of(afternoon, morning),
-                List.of("fingerprint-a", "fingerprint-b"));
+                List.of("fingerprint-a", "fingerprint-b"),
+                List.of());
 
         // then
         assertThat(reversed.weatherContext()).isEqualTo(ordered.weatherContext());
@@ -53,15 +55,39 @@ class SafetyBriefingContextTest {
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 forecasts,
-                List.of("fingerprint-a"));
+                List.of("fingerprint-a"),
+                List.of());
         SafetyBriefingContext second = SafetyBriefingContext.of(
                 briefingDate,
                 WeatherForecastLocation.YEOKSAM1,
                 forecasts,
-                List.of("fingerprint-a", "fingerprint-b"));
+                List.of("fingerprint-a", "fingerprint-b"),
+                List.of());
 
         // then
         assertThat(second.fingerprint()).isNotEqualTo(first.fingerprint());
+    }
+
+    @Test
+    void createsSameFingerprintRegardlessOfDecimalScale() {
+        LocalDate date = LocalDate.of(2026, 9, 14);
+        WeatherForecast original = forecastAt(date.atTime(9, 0), "24");
+        WeatherForecast persisted = new WeatherForecast(
+                original.getForecastAt(), new BigDecimal("24.00"), new BigDecimal("70.00"),
+                new BigDecimal("20.00"), "강수없음", "적설없음", new BigDecimal("1.50"),
+                WeatherForecastPrecipitationType.NONE, WeatherForecastSkyCondition.CLEAR,
+                WeatherForecastLocation.YEOKSAM1);
+        SafetyBriefingContext first = SafetyBriefingContext.of(
+                date, WeatherForecastLocation.YEOKSAM1, List.of(original), List.of(), List.of());
+        SafetyBriefingContext second = SafetyBriefingContext.of(
+                date, WeatherForecastLocation.YEOKSAM1, List.of(persisted), List.of(), List.of());
+        SafetyBriefingContext changed = SafetyBriefingContext.of(
+                date, WeatherForecastLocation.YEOKSAM1,
+                List.of(forecastAt(date.atTime(9, 0), "24.01")), List.of(), List.of());
+
+        assertThat(second.weatherContext()).isEqualTo(first.weatherContext());
+        assertThat(second.fingerprint()).isEqualTo(first.fingerprint());
+        assertThat(changed.fingerprint()).isNotEqualTo(first.fingerprint());
     }
 
     private WeatherForecast forecastAt(LocalDateTime forecastAt, String temperature) {

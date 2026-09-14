@@ -72,11 +72,9 @@ public class WeatherServiceTest {
     void recomputesForecastDatesForEveryIndexingRequest() throws IOException {
         // given
         Clock clock = mock(Clock.class);
-        ZoneId seoul = ZoneId.of("Asia/Seoul");
-        when(clock.getZone()).thenReturn(seoul);
         when(clock.instant()).thenReturn(
-                Instant.parse("2026-08-20T15:00:00Z"),
-                Instant.parse("2026-08-21T15:00:00Z"));
+                Instant.parse("2026-08-21T00:00:00Z"),
+                Instant.parse("2026-08-22T00:00:00Z"));
         weatherService = new WeatherService(weatherForecastRepository, client, clock);
         when(client.getVilageFcst(any())).thenReturn(loadFixture("vilage-fcst-success.json"));
 
