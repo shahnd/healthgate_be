@@ -17,7 +17,7 @@ public record SafetyBriefingContext(
         List<String> documentFingerprints,
         String documentMetadata) {
 
-    private static final String CONTEXT_VERSION = "v14";
+    private static final String CONTEXT_VERSION = "v15";
 
     public SafetyBriefingContext {
         documentFingerprints = documentFingerprints.stream()
